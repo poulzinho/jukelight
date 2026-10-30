@@ -20,7 +20,7 @@
 - [x] 3.1 Write failing HTTP tests for "Album colours" and "No album colours" in `/api/v1/player`, then add `palette` to the DTO until they pass; confirm the existing shutdown tests cover "Live streams end on shutdown"
 - [x] 3.2 Write failing configuration tests (`MA_URL` and `MA_TOKEN` both or neither, `MA_URL` must be http(s), no provider without them), then implement them and wire the provider (`follow`, `updates`, its polling task) into `app`; verify with the real Music Assistant that `/api/v1/player` shows the Music Assistant track
 - [x] 3.3 Add a fake scenario with album colours, update `.env.example` and the README configuration table with `MA_URL` and `MA_TOKEN` (example values only, recommend a non-admin Music Assistant user)
-- [ ] 3.4 Verify the layer as in 1.5; open the layer's pull request on top of layer 2 and verify CI is green
+- [x] 3.4 Verify the layer as in 1.5; open the layer's pull request on top of layer 2 and verify CI is green
 
 ## 4. Layer 4 (DEV-11): kiosk colours and acceptance
 
