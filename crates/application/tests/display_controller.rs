@@ -48,7 +48,7 @@ fn paused(title: &str) -> DeviceSnapshot {
     device(title, true, PlaybackState::Paused)
 }
 
-/// A monitor and a running controller with a 10-minute grace period.
+/// A monitor and a running controller with the given grace period.
 fn start(grace: Duration) -> (PlayerMonitor, DisplayHandle) {
     let monitor = PlayerMonitor::new(Vec::new());
     let controller = DisplayController::new(DisplayPolicy::new(grace));
