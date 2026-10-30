@@ -722,6 +722,7 @@ dependencies = [
  "jukelight-adapter-bluos",
  "jukelight-adapter-fake",
  "jukelight-adapter-http",
+ "jukelight-adapter-music-assistant",
  "jukelight-application",
  "jukelight-domain",
  "serde_json",
