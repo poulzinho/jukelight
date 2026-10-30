@@ -1,0 +1,632 @@
+{
+  "queue_id": "aabbccddeeff",
+  "active": true,
+  "display_name": "Bluesound Node",
+  "available": true,
+  "items": 14,
+  "shuffle_enabled": false,
+  "repeat_mode": "off",
+  "crossfade_enabled": false,
+  "autoplay_enabled": false,
+  "overlay_enabled": false,
+  "overlay_source": null,
+  "overlay_volume": 100,
+  "smart_fades_active": false,
+  "smart_shuffle_active": false,
+  "current_index": 0,
+  "index_in_buffer": 0,
+  "ended": false,
+  "elapsed_time": 0.5026741027832031,
+  "elapsed_time_last_updated": 1793395144.6669204,
+  "playback_speed": 1.0,
+  "state": "playing",
+  "current_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "a0ad3d2406a741a8961e00d83083a41d",
+    "name": "Alejandro Fernández - Tantita Pena",
+    "duration": 209,
+    "sort_index": 0,
+    "streamdetails": {
+      "provider": "opensubsonic--instance1",
+      "item_id": "4fk86JJXVfd2V6giRd6yiL",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "flac",
+        "sample_rate": 44100,
+        "bit_depth": 16,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 209,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": {
+        "input_fidelity": {
+          "quality": "lossless",
+          "bit_perfect": null
+        },
+        "queue_processing": {
+          "pcm_format": {
+            "content_type": "f32le",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 32,
+            "channels": 2,
+            "output_format_str": "pcm;codec=pcm;rate=44100;bitrate=32;channels=2",
+            "bit_rate": 0
+          },
+          "normalization": {
+            "mode": "measurement_only",
+            "measurement_source": "track",
+            "target_lufs": -14.0,
+            "measured_lufs": -8.0,
+            "applied_gain_db": -6.0
+          },
+          "playback_speed": 1.0,
+          "crossfade_mode": "disabled",
+          "overlay_active": false
+        },
+        "outputs": [
+          {
+            "player_ids": [
+              "aabbccddeeff"
+            ],
+            "dsp": {
+              "state": "disabled",
+              "input_gain": 0.0,
+              "filters": [],
+              "output_gain": 0.0,
+              "preset_id": null
+            },
+            "source_channel": null,
+            "output_format": {
+              "content_type": "flac",
+              "codec_type": "?",
+              "sample_rate": 44100,
+              "bit_depth": 24,
+              "channels": 2,
+              "output_format_str": "flac",
+              "bit_rate": 1581
+            },
+            "fidelity": {
+              "quality": "lossless",
+              "bit_perfect": false
+            }
+          }
+        ]
+      },
+      "loudness": -8.0,
+      "loudness_album": null,
+      "prefer_album_loudness": true,
+      "volume_normalization_mode": "measurement_only",
+      "volume_normalization_gain_correct": -6.0,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "289",
+      "provider": "library",
+      "name": "Tantita Pena",
+      "version": "",
+      "sort_name": "tantita pena",
+      "uri": "library://track/289",
+      "external_ids": [],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "4fk86JJXVfd2V6giRd6yiL",
+          "provider_domain": "opensubsonic",
+          "provider_instance": "opensubsonic--instance1",
+          "available": true,
+          "in_library": true,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 16,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 981
+          },
+          "url": null,
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+            "provider": "opensubsonic--instance1",
+            "remotely_accessible": false,
+            "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+          },
+          {
+            "type": "thumb",
+            "path": "mf-4fk86JJXVfd2V6giRd6yiL",
+            "provider": "opensubsonic--instance1",
+            "remotely_accessible": false,
+            "proxy_id": "f12cc43b526fd30bf1f444eb6f5517da150ee1714e4a25fd75ba976db4b61f0d"
+          }
+        ],
+        "grouping": null,
+        "genres": [
+          "Latin"
+        ],
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "Kiko Campos",
+          "Fernando Riba"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": "2026-10-16T13:24:11+00:00",
+      "duration": 209,
+      "artists": [
+        {
+          "item_id": "11",
+          "provider": "library",
+          "name": "Alejandro Fernández",
+          "version": "",
+          "sort_name": "alejandro fernandez",
+          "uri": "library://artist/11",
+          "external_ids": [
+            [
+              "musicbrainz_artistid",
+              "772a8360-e81e-4647-92e2-195c19efddad"
+            ]
+          ],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 1793392074,
+      "album": {
+        "item_id": "19",
+        "provider": "library",
+        "name": "Origenes",
+        "version": "",
+        "sort_name": "origenes",
+        "uri": "library://album/19",
+        "external_ids": [],
+        "is_playable": true,
+        "media_type": "album",
+        "provider_mappings": [
+          {
+            "item_id": "7ezNXGvOeV418Gygh335eW",
+            "provider_domain": "opensubsonic",
+            "provider_instance": "opensubsonic--instance1",
+            "available": true,
+            "in_library": true,
+            "is_unique": null,
+            "audio_format": {
+              "content_type": "?",
+              "codec_type": "?",
+              "sample_rate": 44100,
+              "bit_depth": 16,
+              "channels": 2,
+              "output_format_str": "?",
+              "bit_rate": 0
+            },
+            "url": null,
+            "details": null
+          }
+        ],
+        "metadata": {
+          "description": null,
+          "description_language": null,
+          "life_span": null,
+          "artist_entity_type": null,
+          "review": null,
+          "explicit": null,
+          "images": [
+            {
+              "type": "thumb",
+              "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+              "provider": "opensubsonic--instance1",
+              "remotely_accessible": false,
+              "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+            },
+            {
+              "type": "thumb",
+              "path": "http://192.168.1.50:4533/share/img/example-share-token?size=300",
+              "provider": "opensubsonic--instance1",
+              "remotely_accessible": true,
+              "proxy_id": "6c782dce29902aea3bd863c896edd7288ee03394a01e163942e0b3832076a949"
+            },
+            {
+              "type": "thumb",
+              "path": "https://r2.theaudiodb.com/images/media/album/thumb/zsdj4w1774103544.jpg",
+              "provider": "theaudiodb",
+              "remotely_accessible": true,
+              "proxy_id": "cf2e4d97cd1e4255ed0e85e9210b2692fe8a1863c9530ac686206d8139abf80c"
+            }
+          ],
+          "grouping": null,
+          "genres": [
+            "Latin"
+          ],
+          "mood": null,
+          "style": "",
+          "copyright": null,
+          "lyrics": null,
+          "lrc_lyrics": null,
+          "transcript": null,
+          "transcript_cues": null,
+          "has_transcript": null,
+          "label": "Columbia",
+          "links": [
+            {
+              "type": "wikipedia",
+              "url": "https://wikipedia.org/wiki/Or%C3%ADgenes"
+            }
+          ],
+          "performers": null,
+          "preview": null,
+          "popularity": null,
+          "release_date": null,
+          "languages": null,
+          "chapters": null,
+          "collections": null,
+          "last_refresh": 1792317351
+        },
+        "favorite": false,
+        "position": null,
+        "date_added": "2026-10-16T13:24:09+00:00",
+        "year": 2001,
+        "artists": [
+          {
+            "item_id": "11",
+            "provider": "library",
+            "name": "Alejandro Fernández",
+            "version": "",
+            "sort_name": "alejandro fernandez",
+            "uri": "library://artist/11",
+            "external_ids": [],
+            "is_playable": true,
+            "media_type": "artist",
+            "available": true,
+            "image": null,
+            "year": null
+          }
+        ],
+        "album_type": "album"
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+      "provider": "opensubsonic--instance1",
+      "remotely_accessible": false,
+      "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "next_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "22ee509c179b4e76aa86c8ae334003c4",
+    "name": "Alejandro Fernández - Si Tu No Vuelves",
+    "duration": 195,
+    "sort_index": 1,
+    "streamdetails": {
+      "provider": "opensubsonic--instance1",
+      "item_id": "7aSKPm4EQCbu8H94yyzsAs",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "?",
+        "sample_rate": 44100,
+        "bit_depth": 16,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 195,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": null,
+      "loudness": null,
+      "loudness_album": null,
+      "prefer_album_loudness": true,
+      "volume_normalization_mode": "dynamic",
+      "volume_normalization_gain_correct": null,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "284",
+      "provider": "library",
+      "name": "Si Tu No Vuelves",
+      "version": "",
+      "sort_name": "si tu no vuelves",
+      "uri": "library://track/284",
+      "external_ids": [],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "7aSKPm4EQCbu8H94yyzsAs",
+          "provider_domain": "opensubsonic",
+          "provider_instance": "opensubsonic--instance1",
+          "available": true,
+          "in_library": true,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 16,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 925
+          },
+          "url": null,
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+            "provider": "opensubsonic--instance1",
+            "remotely_accessible": false,
+            "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+          },
+          {
+            "type": "thumb",
+            "path": "mf-7aSKPm4EQCbu8H94yyzsAs",
+            "provider": "opensubsonic--instance1",
+            "remotely_accessible": false,
+            "proxy_id": "6cd6629a0b6e51ada67a6b4f5f8414709b784f9c97420acba9750ef23a3526d3"
+          }
+        ],
+        "grouping": null,
+        "genres": [
+          "Latin"
+        ],
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": null,
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": "2026-10-16T13:24:11+00:00",
+      "duration": 195,
+      "artists": [
+        {
+          "item_id": "11",
+          "provider": "library",
+          "name": "Alejandro Fernández",
+          "version": "",
+          "sort_name": "alejandro fernandez",
+          "uri": "library://artist/11",
+          "external_ids": [
+            [
+              "musicbrainz_artistid",
+              "772a8360-e81e-4647-92e2-195c19efddad"
+            ]
+          ],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "19",
+        "provider": "library",
+        "name": "Origenes",
+        "version": "",
+        "sort_name": "origenes",
+        "uri": "library://album/19",
+        "external_ids": [],
+        "is_playable": true,
+        "media_type": "album",
+        "provider_mappings": [
+          {
+            "item_id": "7ezNXGvOeV418Gygh335eW",
+            "provider_domain": "opensubsonic",
+            "provider_instance": "opensubsonic--instance1",
+            "available": true,
+            "in_library": true,
+            "is_unique": null,
+            "audio_format": {
+              "content_type": "?",
+              "codec_type": "?",
+              "sample_rate": 44100,
+              "bit_depth": 16,
+              "channels": 2,
+              "output_format_str": "?",
+              "bit_rate": 0
+            },
+            "url": null,
+            "details": null
+          }
+        ],
+        "metadata": {
+          "description": null,
+          "description_language": null,
+          "life_span": null,
+          "artist_entity_type": null,
+          "review": null,
+          "explicit": null,
+          "images": [
+            {
+              "type": "thumb",
+              "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+              "provider": "opensubsonic--instance1",
+              "remotely_accessible": false,
+              "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+            },
+            {
+              "type": "thumb",
+              "path": "http://192.168.1.50:4533/share/img/example-share-token?size=300",
+              "provider": "opensubsonic--instance1",
+              "remotely_accessible": true,
+              "proxy_id": "6c782dce29902aea3bd863c896edd7288ee03394a01e163942e0b3832076a949"
+            },
+            {
+              "type": "thumb",
+              "path": "https://r2.theaudiodb.com/images/media/album/thumb/zsdj4w1774103544.jpg",
+              "provider": "theaudiodb",
+              "remotely_accessible": true,
+              "proxy_id": "cf2e4d97cd1e4255ed0e85e9210b2692fe8a1863c9530ac686206d8139abf80c"
+            }
+          ],
+          "grouping": null,
+          "genres": [
+            "Latin"
+          ],
+          "mood": null,
+          "style": "",
+          "copyright": null,
+          "lyrics": null,
+          "lrc_lyrics": null,
+          "transcript": null,
+          "transcript_cues": null,
+          "has_transcript": null,
+          "label": "Columbia",
+          "links": [
+            {
+              "type": "wikipedia",
+              "url": "https://wikipedia.org/wiki/Or%C3%ADgenes"
+            }
+          ],
+          "performers": null,
+          "preview": null,
+          "popularity": null,
+          "release_date": null,
+          "languages": null,
+          "chapters": null,
+          "collections": null,
+          "last_refresh": 1792317351
+        },
+        "favorite": false,
+        "position": null,
+        "date_added": "2026-10-16T13:24:09+00:00",
+        "year": 2001,
+        "artists": [
+          {
+            "item_id": "11",
+            "provider": "library",
+            "name": "Alejandro Fernández",
+            "version": "",
+            "sort_name": "alejandro fernandez",
+            "uri": "library://artist/11",
+            "external_ids": [],
+            "is_playable": true,
+            "media_type": "artist",
+            "available": true,
+            "image": null,
+            "year": null
+          }
+        ],
+        "album_type": "album"
+      },
+      "disc_number": 1,
+      "track_number": 2,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+      "provider": "opensubsonic--instance1",
+      "remotely_accessible": false,
+      "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "sources": [
+    {
+      "item_id": "19",
+      "provider": "library",
+      "name": "Origenes",
+      "version": "",
+      "sort_name": "origenes",
+      "uri": "library://album/19",
+      "external_ids": [],
+      "is_playable": true,
+      "media_type": "album",
+      "available": true,
+      "image": {
+        "type": "thumb",
+        "path": "al-7ezNXGvOeV418Gygh335eW_9cbac1ca54b99b29",
+        "provider": "opensubsonic--instance1",
+        "remotely_accessible": false,
+        "proxy_id": "2f126e4d2f7d993ba0cbd7adb7e9d4a8ea13bcfb6476a74b86c8559a12eb16e0"
+      },
+      "year": 2001
+    }
+  ],
+  "flow_mode": true,
+  "resume_pos": 0,
+  "is_dynamic": false,
+  "extra_attributes": {
+    "play_action_in_progress": false
+  },
+  "dont_stop_the_music_enabled": false,
+  "radio_source": []
+}
