@@ -21,7 +21,9 @@ failsafe="${FAILSAFE_SECONDS:-600}"
 
 # Unix seconds of the backend's last data (decision or heartbeat), for the
 # fail-safe, and of the current connection's last data or start, for the
-# silence limit. Files, because the stream is read in a subshell.
+# silence limit. Files, because the watchdog runs in a background subshell
+# and must see what follow writes in the main shell; a shell variable would
+# not reach it.
 work=$(mktemp -d)
 contact="$work/contact"
 seen="$work/seen"
