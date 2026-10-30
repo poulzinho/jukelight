@@ -82,6 +82,32 @@ test('hi-res track shows the HI-RES badge', async ({ page }) => {
   await screenshot(page, 'hi-res')
 })
 
+// Spec: kiosk-display, "Album colours".
+async function colours(page: Page) {
+  const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  const fill = await page
+    .getByRole('progressbar')
+    .locator(':scope > div')
+    .evaluate((element) => getComputedStyle(element).backgroundColor)
+  return { background, fill }
+}
+
+test('album colours tint the page and the progress bar', async ({ page }) => {
+  await open(page, 'album-colours')
+  await expect(page.getByRole('heading', { name: 'Example Song' })).toBeVisible()
+  expect(await colours(page)).toEqual({
+    background: 'rgb(73, 51, 38)',
+    fill: 'rgb(209, 147, 108)',
+  })
+  await screenshot(page, 'album-colours')
+})
+
+test('without album colours the default theme applies', async ({ page }) => {
+  await open(page, 'playing-with-queue')
+  await expect(page.getByRole('heading', { name: 'Example Song' })).toBeVisible()
+  expect((await colours(page)).background).toBe('rgb(18, 18, 22)')
+})
+
 test('paused shows the pause symbol', async ({ page }) => {
   await open(page, 'paused')
   const symbol = await box(page, ['status', { name: 'Paused' }])
