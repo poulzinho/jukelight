@@ -61,7 +61,7 @@
 
 - [x] 10.1 Write the multi-stage `Dockerfile` (Node build of the kiosk, Rust build with `cargo-chef`, slim non-root runtime with a health check on `/api/v1/player`) and `docker-compose.yml` (build from source, port 8080, `.env`); verify `docker compose up --build` with `JUKELIGHT_DEVICE=fake:playing-with-queue` serves the kiosk at `http://localhost:8080`
 - [x] 10.2 Add Playwright screenshot tests that start the binary with fake scenarios (playing with queue, cast without queue, long title, no artwork, hi-res, paused, stopped, offline) at 3840x2160 and 2160x3840 with reduced motion; verify they pass and the screenshots match the kiosk-display scenarios
-- [ ] 10.3 Add the GitHub Actions workflow with the Rust job (fmt, clippy `-D warnings`, test, `cargo deny check`), web job (lint, typecheck, Vitest), end-to-end job (task 10.2) and Docker build job, publishing nothing; verify all jobs pass on the pull request
+- [x] 10.3 Add the GitHub Actions workflow with the Rust job (fmt, clippy `-D warnings`, test, `cargo deny check`), web job (lint, typecheck, Vitest), end-to-end job (task 10.2) and Docker build job, publishing nothing; verify all jobs pass on the pull request
 - [x] 10.4 Add a README quickstart (clone, copy `.env.example` to `.env`, `docker compose up --build`) and link `docs/reference-setup.md`; verify the steps work on a clean checkout
 
 ## 11. Acceptance on the reference host
