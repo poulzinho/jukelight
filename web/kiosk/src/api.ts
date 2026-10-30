@@ -14,7 +14,11 @@ export interface Player {
   quality: { label: string; detail: string | null; hiRes: boolean } | null
   /** `null` when the session has no queue. */
   queue: { title: string; artists: string[]; artUrl: string | null }[] | null
+  /** Album colours as `[red, green, blue]`; `null` when unknown. */
+  palette: { background: Rgb; accent: Rgb } | null
 }
+
+export type Rgb = [number, number, number]
 
 export const PLAYER_URL = '/api/v1/player'
 export const EVENTS_URL = '/api/v1/player/events'

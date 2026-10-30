@@ -7,6 +7,7 @@ import { Dim, PauseSymbol } from './components/PauseOverlay'
 import { Progress } from './components/Progress'
 import { TrackInfo } from './components/TrackInfo'
 import { UpNext } from './components/UpNext'
+import { useAlbumColours } from './useAlbumColours'
 import type { Connection } from './usePlayer'
 
 interface Props {
@@ -19,10 +20,13 @@ interface Props {
 export function Kiosk({ player, connection, clockOffsetMs }: Props) {
   const indicator =
     connection === 'lost' ? 'Reconnecting…' : player && !player.online ? 'Player offline' : null
+  const playing = Boolean(player?.track) && player?.state !== 'stopped'
+  // The idle screen keeps the default colours.
+  useAlbumColours(playing ? (player?.palette ?? null) : null)
 
   return (
     <>
-      {player?.track && player.state !== 'stopped' ? (
+      {player?.track && playing ? (
         <PlayingScreen player={player} track={player.track} clockOffsetMs={clockOffsetMs} />
       ) : (
         <IdleScreen deviceName={player?.deviceName || null} />

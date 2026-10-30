@@ -12,6 +12,7 @@ export function player(overrides: Partial<Player> = {}): Player {
     position: { elapsed: 60, duration: 200, observedAt: 1_000_000 },
     quality: { label: 'FLAC 16/44.1', detail: 'CD quality', hiRes: false },
     queue: null,
+    palette: null,
     ...overrides,
   }
 }
