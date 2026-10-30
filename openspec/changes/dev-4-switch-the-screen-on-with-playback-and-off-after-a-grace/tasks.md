@@ -19,6 +19,7 @@
 - [x] 3.3 Add `shellcheck` of the script to CI
 - [x] 3.4 Replace the placeholder in `docs/reference-setup.md` ("5. Display agent") with the installation steps: copy the script and unit, the sway `exec` line that imports `SWAYSOCK` and starts the service, and how to check it (`systemctl --user status`, `journalctl --user -u jukelight-display-agent`)
 - [ ] 3.5 Verify the layer as in 1.3 plus `shellcheck`; open the layer's pull request on top of layer 2 and verify CI is green
+- [x] 3.6 Review feedback (PR #11): write the timestamp files through a rename and let the watchdog skip an empty read, so a concurrent truncated write cannot end the watchdog under dash
 
 ## 4. Layer 4 (DEV-17): reference host acceptance
 

@@ -27,11 +27,18 @@ contact="$work/contact"
 seen="$work/seen"
 stream="$work/stream"
 mkfifo "$stream"
-date +%s > "$contact"
 pids=""
 trap 'rm -rf "$work"' EXIT
 # shellcheck disable=SC2086 # $pids holds two process ids
 trap 'kill $pids 2> /dev/null; exit 0' INT TERM
+
+# Writes the current time to file $1. Through a rename, so a concurrent
+# reader never sees a truncated, empty file.
+stamp() {
+  date +%s > "$1.new" && mv "$1.new" "$1"
+}
+
+stamp "$contact"
 
 power() {
   if swaymsg "output * power $1" > /dev/null; then
@@ -45,7 +52,8 @@ power() {
 follow() {
   applied=""
   while IFS= read -r line; do
-    date +%s | tee "$contact" > "$seen"
+    stamp "$contact"
+    stamp "$seen"
     line=${line%"$(printf '\r')"}
     case $line in
       data:*)
@@ -67,7 +75,9 @@ follow() {
 # Ends the connection (process $1) after the silence limit without data.
 watchdog() {
   while sleep 1; do
-    if [ $(( $(date +%s) - $(cat "$seen") )) -ge "$silence" ]; then
+    last=$(cat "$seen" 2> /dev/null)
+    [ -n "$last" ] || continue
+    if [ $(( $(date +%s) - last )) -ge "$silence" ]; then
       kill "$1" 2> /dev/null
       return
     fi
@@ -78,7 +88,7 @@ off_by_failsafe=false
 while true; do
   before=$(cat "$contact")
   started=$(date +%s)
-  echo "$started" > "$seen"
+  stamp "$seen"
   curl --silent --no-buffer --fail --connect-timeout "$retry" \
     "$url/api/v1/display" > "$stream" &
   curl_pid=$!
