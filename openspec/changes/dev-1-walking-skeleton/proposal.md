@@ -87,6 +87,7 @@ None: there are no existing specs.
   and from artwork CDNs through the proxy. Nothing is written to them.
 - Configuration: environment variables only in this step (player address,
   HTTP port, log level).
-- Done when: CI is green, and `docker compose up --build` runs Jukelight on
-  the reference host and shows a real BluOS player's playback in a browser on
-  the LAN.
+- Done when: CI is green, and `docker compose up --build` runs Jukelight
+  against a real BluOS player and shows its playback in a browser. This step
+  is accepted on a development machine; the first run on the reference host
+  follows with step 3 (display power), which needs that host anyway.

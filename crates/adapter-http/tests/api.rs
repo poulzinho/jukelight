@@ -11,7 +11,7 @@ use axum::http::{Request, StatusCode, header};
 use futures::FutureExt;
 use futures::future::BoxFuture;
 use http_body_util::BodyExt;
-use jukelight_adapter_http::{HttpConfig, router};
+use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
 use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, Image, PlayerMonitor};
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, PlaybackState,
@@ -345,4 +345,39 @@ async fn unknown_api_paths_are_not_found() {
     let monitor = PlayerMonitor::new(Vec::new());
     let (status, _, _) = get(&app(&monitor), "/api/v1/nope").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+// Shutdown: live streams end, so a graceful shutdown does not wait forever.
+
+#[tokio::test]
+async fn shutdown_ends_live_streams() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&device("Example Song", 42, 1_000_000));
+    let (stop, shutdown) = tokio::sync::watch::channel(false);
+    let config = HttpConfig {
+        keep_alive: Duration::from_millis(100),
+    };
+    let app = router_with_shutdown(monitor.handle(), Arc::new(TestArtwork), &config, shutdown);
+    let mut body = open_events(&app).await;
+    let _ = read_events(&mut body, Duration::from_millis(50)).await;
+
+    stop.send(true).unwrap();
+    let ended = tokio::time::timeout(Duration::from_secs(1), async {
+        while let Some(frame) = body.frame().await {
+            frame.unwrap();
+        }
+    })
+    .await;
+    assert!(ended.is_ok(), "the event stream should end on shutdown");
+}
+
+#[tokio::test]
+async fn streams_without_a_shutdown_signal_keep_running() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&device("Example Song", 42, 1_000_000));
+    let mut body = open_events(&app(&monitor)).await;
+
+    // Keep-alive comments keep arriving: the stream is still open.
+    let (_, comments) = read_events(&mut body, Duration::from_millis(350)).await;
+    assert!(comments >= 2);
 }

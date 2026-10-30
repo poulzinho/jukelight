@@ -157,7 +157,10 @@ axum with DTOs separate from domain types (camelCase JSON). SSE uses axum's
 SSE support with keep-alive comments every 15 seconds. The SSE handler
 subscribes to the snapshot `watch`, sends the current value first, then
 forwards changes that the domain classified as more than normal progress.
-The kiosk build (`web/kiosk/dist`) is embedded with `rust-embed` and served
+On shutdown (SIGTERM or Ctrl-C), the live streams are ended first; otherwise a
+graceful shutdown would wait forever for kiosks that never disconnect (found
+during acceptance: `docker stop` hung until it killed the container). The
+kiosk build (`web/kiosk/dist`) is embedded with `rust-embed` and served
 at `/`, with an `index.html` fallback.
 
 - Alternative: serve the kiosk from disk or a separate web server. Rejected:

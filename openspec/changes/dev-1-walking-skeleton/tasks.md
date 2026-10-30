@@ -66,5 +66,5 @@
 
 ## 11. Acceptance on the reference host
 
-- [ ] 11.1 On the reference host, run `docker compose up --build -d` with the real player's address in `.env`, open the kiosk in a browser on the LAN, and verify playing, paused, stopped and offline states for native Qobuz, Qobuz Connect, Spotify Connect and a Music Assistant stream (shown as "Stream"); record the results on DEV-1
-- [ ] 11.2 Verify that `git status` on the reference host shows neither `.env` nor any raw recording, then run `openspec validate dev-1-walking-skeleton --strict`
+- [x] 11.1 On a development machine (the reference host follows with DEV-3, display power), run `docker compose up --build -d` with the real player's address in `.env`, open the kiosk in a browser, and verify playing, paused, stopped and offline states for native Qobuz, Qobuz Connect, Spotify Connect and a Music Assistant stream (shown as "Stream"); record the results on DEV-1
+- [x] 11.2 Verify that `git status` on that machine shows neither `.env` nor any raw recording, then run `openspec validate dev-1-walking-skeleton --strict`

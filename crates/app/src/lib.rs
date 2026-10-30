@@ -7,7 +7,7 @@ use std::sync::Arc;
 use jukelight_adapter_artwork::ArtworkProxy;
 use jukelight_adapter_bluos::{BluosConfig, BluosMonitor};
 use jukelight_adapter_fake::FakeDevice;
-use jukelight_adapter_http::{HttpConfig, router};
+use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
 use jukelight_application::{Clock, DeviceMonitor, PlayerMonitor, SystemClock};
 
 use crate::config::{Config, DeviceConfig};
@@ -45,15 +45,22 @@ pub async fn run(config: Config) -> Result<(), RunError> {
     let player = monitor.handle();
     tokio::spawn(monitor.run(device));
 
-    let app = router(
+    let (stop, shutdown) = tokio::sync::watch::channel(false);
+    let app = router_with_shutdown(
         player,
         Arc::new(ArtworkProxy::new()),
         &HttpConfig::default(),
+        shutdown,
     );
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", config.http_port)).await?;
     tracing::info!(port = config.http_port, "serving the kiosk and API");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(async move {
+            shutdown_signal().await;
+            tracing::info!("stopping");
+            // End the kiosks' live streams; they reconnect to the next start.
+            let _ = stop.send(true);
+        })
         .await?;
     tracing::info!("stopped");
     Ok(())
