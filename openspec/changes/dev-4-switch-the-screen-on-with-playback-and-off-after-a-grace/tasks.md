@@ -2,8 +2,8 @@
 
 - [x] 1.1 Write failing domain tests for the policy ("Playback starts", "Buffering", "Paused within the grace period", "Paused past the grace period", "Stopped", "Player offline", "No grace period"), then add `DisplayPower` and `DisplayPolicy` until they pass
 - [x] 1.2 Write failing application tests for the display controller with tokio's paused time and the fake device ("Playback resumes within the grace period", "Start with nothing playing", "Start while music plays", "Track change while playing", "Pause and resume within the grace period"), then implement `DisplayController` following the published player snapshots until they pass
-- [x] 1.4 Review feedback (PR #8): word the display controller test helper's comment for any grace period, not a fixed 10 minutes
 - [ ] 1.3 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, the architecture test, and kiosk lint, typecheck and tests; open the layer's pull request and verify CI is green
+- [x] 1.4 Review feedback (PR #8): word the display controller test helper's comment for any grace period, not a fixed 10 minutes
 
 ## 2. Layer 2 (DEV-15): display stream and configuration
 
