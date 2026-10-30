@@ -16,8 +16,8 @@
 
 - [x] 3.1 Write failing agent tests in `crates/app/tests/` that run the script with `sh` against a local SSE test server, short timings and a fake `swaymsg` that records its arguments, for every display-agent scenario ("Decision on", "Decision off", "Reconnect with the same decision", "Backend restarts", "Silent connection", "Backend unreachable", "Backend back after the fail-safe")
 - [x] 3.2 Write `host/display-agent/jukelight-display-agent` (POSIX `sh`, `curl`, `swaymsg`; `JUKELIGHT_URL`, `RETRY_SECONDS`, `SILENCE_SECONDS`, `FAILSAFE_SECONDS`) until the tests pass, and the systemd user unit `jukelight-display-agent.service`
-- [ ] 3.3 Add `shellcheck` of the script to CI
-- [ ] 3.4 Replace the placeholder in `docs/reference-setup.md` ("5. Display agent") with the installation steps: copy the script and unit, the sway `exec` line that imports `SWAYSOCK` and starts the service, and how to check it (`systemctl --user status`, `journalctl --user -u jukelight-display-agent`)
+- [x] 3.3 Add `shellcheck` of the script to CI
+- [x] 3.4 Replace the placeholder in `docs/reference-setup.md` ("5. Display agent") with the installation steps: copy the script and unit, the sway `exec` line that imports `SWAYSOCK` and starts the service, and how to check it (`systemctl --user status`, `journalctl --user -u jukelight-display-agent`)
 - [ ] 3.5 Verify the layer as in 1.3 plus `shellcheck`; open the layer's pull request on top of layer 2 and verify CI is green
 
 ## 4. Layer 4 (DEV-17): reference host acceptance
