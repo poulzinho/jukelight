@@ -135,6 +135,8 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 })
                 .collect(),
             ),
+            service: None,
+            palette: None,
         }),
     };
     let content = snapshot.content.as_mut();

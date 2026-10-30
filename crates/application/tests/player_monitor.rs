@@ -38,6 +38,8 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
             }),
             quality: None,
             queue: QueueView::NotApplicable,
+            service: None,
+            palette: None,
         }),
     }
 }
@@ -138,4 +140,136 @@ fn tokio_stream_like(
         let value = receiver.borrow_and_update().clone();
         Some((value, (receiver, false)))
     })
+}
+
+// DEV-3: session-arbitration, "Provider updates refresh the snapshot".
+
+mod provider_updates {
+    use std::sync::{Arc, Mutex};
+    use std::time::Duration;
+
+    use futures::StreamExt;
+    use futures::stream::BoxStream;
+    use jukelight_application::testing::{FakeDeviceMonitor, FakeProvider};
+    use jukelight_application::{PlayerMonitor, SessionProvider};
+    use jukelight_domain::{
+        Content, DeviceSnapshot, Origin, PlaybackState, PlayerSnapshot, QueueView, Track,
+    };
+
+    fn content(title: &str) -> Content {
+        Content {
+            track: Track {
+                title: title.into(),
+                artists: vec![],
+                album: None,
+            },
+            artwork: None,
+            position: None,
+            quality: None,
+            queue: QueueView::NotApplicable,
+            service: None,
+            palette: None,
+        }
+    }
+
+    fn streaming_device(name: &str) -> DeviceSnapshot {
+        DeviceSnapshot {
+            name: name.into(),
+            player_key: "aabbccddeeff".into(),
+            online: true,
+            state: PlaybackState::Playing,
+            origin: Origin::Stream {
+                url: "http://192.168.1.50:8097/flow/s/aabbccddeeff/x.flac".into(),
+            },
+            content: Some(content("Music Assistant")),
+        }
+    }
+
+    async fn next_title(
+        published: &mut tokio::sync::watch::Receiver<PlayerSnapshot>,
+        title: &str,
+    ) -> bool {
+        tokio::time::timeout(Duration::from_secs(1), async {
+            loop {
+                let current = published
+                    .borrow_and_update()
+                    .content
+                    .as_ref()
+                    .map(|c| c.track.title.clone());
+                if current.as_deref() == Some(title) {
+                    return true;
+                }
+                if published.changed().await.is_err() {
+                    return false;
+                }
+            }
+        })
+        .await
+        .unwrap_or(false)
+    }
+
+    #[tokio::test]
+    async fn track_change_seen_only_by_the_provider() {
+        let provider = Arc::new(FakeProvider::claiming(
+            "Example Provider",
+            Some(content("Song A")),
+        ));
+        let (device_monitor, devices) = FakeDeviceMonitor::new();
+        let monitor = PlayerMonitor::new(vec![provider.clone() as Arc<dyn SessionProvider>]);
+        let mut published = monitor.handle().subscribe_published();
+        let task = tokio::spawn(monitor.run(Arc::new(device_monitor)));
+
+        devices.send(streaming_device("Example Player")).unwrap();
+        assert!(next_title(&mut published, "Song A").await, "first snapshot");
+
+        // The device reports nothing new; only the provider's content changes.
+        provider.set_content(Some(content("Song B")));
+        assert!(
+            next_title(&mut published, "Song B").await,
+            "provider update"
+        );
+        task.abort();
+    }
+
+    /// Titles its content after the last device report it was given.
+    struct EchoProvider {
+        followed: Mutex<Option<String>>,
+    }
+
+    impl SessionProvider for EchoProvider {
+        fn label(&self) -> &'static str {
+            "Echo"
+        }
+        fn claims(&self, _device: &DeviceSnapshot) -> bool {
+            true
+        }
+        fn content(&self) -> Option<Content> {
+            self.followed.lock().unwrap().as_deref().map(content)
+        }
+        fn follow(&self, device: &DeviceSnapshot) {
+            *self.followed.lock().unwrap() = Some(device.name.clone());
+        }
+        fn updates(&self) -> BoxStream<'static, ()> {
+            futures::stream::pending().boxed()
+        }
+    }
+
+    #[test]
+    fn provider_is_told_about_the_device_before_the_rebuild() {
+        let provider = Arc::new(EchoProvider {
+            followed: Mutex::new(None),
+        });
+        let monitor = PlayerMonitor::new(vec![provider as Arc<dyn SessionProvider>]);
+
+        monitor.apply(&streaming_device("First Report"));
+        assert_eq!(
+            monitor.handle().current().content.unwrap().track.title,
+            "First Report"
+        );
+        monitor.apply(&streaming_device("Second Report"));
+        assert_eq!(
+            monitor.handle().current().content.unwrap().track.title,
+            "Second Report"
+        );
+    }
 }

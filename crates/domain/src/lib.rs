@@ -11,8 +11,8 @@ mod time;
 
 pub use changes::{Changes, POSITION_TOLERANCE, PlayerEvent, detect_changes};
 pub use playback::{
-    ArtworkRef, Content, DeviceSnapshot, Origin, PlaybackState, PlayerSnapshot, Position,
-    QueueEntry, QueueView, Session, Track,
+    ArtworkRef, Content, DeviceSnapshot, Origin, Palette, PlaybackState, PlayerSnapshot, Position,
+    QueueEntry, QueueView, Rgb, Session, Track,
 };
 pub use quality::{AudioFormat, AudioQuality, QualityMeasure};
 pub use time::Timestamp;

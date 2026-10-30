@@ -22,6 +22,14 @@ pub trait SessionProvider: Send + Sync + 'static {
 
     /// The provider's current content, or `None` while it is unreachable.
     fn content(&self) -> Option<Content>;
+
+    /// The current device report, given before every rebuild of the player
+    /// snapshot, so the provider can start or stop following the player.
+    fn follow(&self, device: &DeviceSnapshot);
+
+    /// Ticks whenever `content()` has changed, so the snapshot can be rebuilt
+    /// even when the device reports nothing new.
+    fn updates(&self) -> BoxStream<'static, ()>;
 }
 
 pub trait Clock: Send + Sync + 'static {

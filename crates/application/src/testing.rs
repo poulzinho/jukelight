@@ -8,16 +8,19 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use futures::stream::BoxStream;
 use futures::{StreamExt, stream};
-use jukelight_domain::{Content, DeviceSnapshot, Timestamp};
-use tokio::sync::mpsc;
+use jukelight_domain::{Content, DeviceSnapshot, Origin, Timestamp};
+use tokio::sync::{mpsc, watch};
 
 use crate::{Clock, DeviceMonitor, SessionProvider};
 
-/// A provider whose claim and content are set by the test.
+/// A provider whose claim and content are set by the test. Setting the
+/// content publishes an update; the device reports it follows are recorded.
 pub struct FakeProvider {
     label: String,
     claims: bool,
     content: Mutex<Option<Content>>,
+    followed: Mutex<Vec<DeviceSnapshot>>,
+    updates: watch::Sender<()>,
 }
 
 impl FakeProvider {
@@ -26,6 +29,8 @@ impl FakeProvider {
             label: label.into(),
             claims: true,
             content: Mutex::new(content),
+            followed: Mutex::new(Vec::new()),
+            updates: watch::channel(()).0,
         }
     }
 
@@ -34,15 +39,34 @@ impl FakeProvider {
             label: label.into(),
             claims: false,
             content: Mutex::new(None),
+            followed: Mutex::new(Vec::new()),
+            updates: watch::channel(()).0,
         }
     }
 
     pub fn set_content(&self, content: Option<Content>) {
-        *self
-            .content
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = content;
+        *lock(&self.content) = content;
+        self.updates.send_replace(());
     }
+
+    /// The device reports this provider was told about, oldest first.
+    pub fn followed(&self) -> Vec<DeviceSnapshot> {
+        lock(&self.followed).clone()
+    }
+}
+
+fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    mutex
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
+/// Ticks whenever `sender` publishes; the stream ends with the sender.
+pub fn ticks(sender: &watch::Sender<()>) -> BoxStream<'static, ()> {
+    stream::unfold(sender.subscribe(), |mut receiver| async move {
+        receiver.changed().await.ok().map(|()| ((), receiver))
+    })
+    .boxed()
 }
 
 impl SessionProvider for FakeProvider {
@@ -50,15 +74,21 @@ impl SessionProvider for FakeProvider {
         &self.label
     }
 
-    fn claims(&self, _device: &DeviceSnapshot) -> bool {
-        self.claims
+    /// A claiming fake claims stream origins, like a real provider would.
+    fn claims(&self, device: &DeviceSnapshot) -> bool {
+        self.claims && matches!(device.origin, Origin::Stream { .. })
     }
 
     fn content(&self) -> Option<Content> {
-        self.content
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .clone()
+        lock(&self.content).clone()
+    }
+
+    fn follow(&self, device: &DeviceSnapshot) {
+        lock(&self.followed).push(device.clone());
+    }
+
+    fn updates(&self) -> BoxStream<'static, ()> {
+        ticks(&self.updates)
     }
 }
 

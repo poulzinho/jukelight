@@ -5,8 +5,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    Content, PlaybackState, PlayerSnapshot, Position, QueueEntry, QueueView, Session, Timestamp,
-    Track,
+    Content, Palette, PlaybackState, PlayerSnapshot, Position, QueueEntry, QueueView, Rgb, Session,
+    Timestamp, Track,
 };
 
 fn track(title: &str) -> Track {
@@ -24,6 +24,8 @@ fn content(track: Track, position: Option<Position>, queue: QueueView) -> Conten
         position,
         quality: None,
         queue,
+        service: None,
+        palette: None,
     }
 }
 
@@ -100,4 +102,34 @@ fn session_with_upcoming_tracks() {
 fn session_without_a_queue() {
     let shown = content(track("Example Song"), None, QueueView::NotApplicable);
     assert_eq!(shown.queue, QueueView::NotApplicable);
+}
+
+// DEV-3: album colours and the music service.
+
+#[test]
+fn source_with_album_colours() {
+    let palette = Palette {
+        background: Rgb(73, 51, 38),
+        accent: Rgb(209, 147, 108),
+    };
+    let mut shown = content(track("Example Song"), None, QueueView::NotApplicable);
+    shown.palette = Some(palette);
+
+    let carried = shown.palette.unwrap();
+    assert_eq!(carried.background, Rgb(73, 51, 38));
+    assert_eq!(carried.accent, Rgb(209, 147, 108));
+}
+
+#[test]
+fn source_without_album_colours() {
+    let shown = content(track("Example Song"), None, QueueView::NotApplicable);
+    assert_eq!(shown.palette, None);
+    assert_eq!(shown.service, None);
+}
+
+#[test]
+fn source_names_its_music_service() {
+    let mut shown = content(track("Example Song"), None, QueueView::NotApplicable);
+    shown.service = Some("Example Service".into());
+    assert_eq!(shown.service.as_deref(), Some("Example Service"));
 }

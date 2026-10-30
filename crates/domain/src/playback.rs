@@ -86,6 +86,17 @@ pub enum Origin {
     None,
 }
 
+/// A colour as red, green and blue from 0 to 255.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Rgb(pub u8, pub u8, pub u8);
+
+/// The album's colours, when a source knows them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Palette {
+    pub background: Rgb,
+    pub accent: Rgb,
+}
+
 /// What is playing, from whichever source knows it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Content {
@@ -94,6 +105,10 @@ pub struct Content {
     pub position: Option<Position>,
     pub quality: Option<AudioQuality>,
     pub queue: QueueView,
+    /// The music service behind the session, e.g. "Qobuz", when a provider
+    /// knows it.
+    pub service: Option<String>,
+    pub palette: Option<Palette>,
 }
 
 /// What the device reports about itself.
