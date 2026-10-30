@@ -1,0 +1,110 @@
+#!/bin/sh
+# Jukelight display agent: follows the backend's display decisions
+# (GET /api/v1/display) and switches the monitor with swaymsg. Runs as a
+# systemd user service in the kiosk's sway session; see
+# docs/reference-setup.md.
+#
+# Settings (environment):
+#   JUKELIGHT_URL     backend address             (default http://localhost:8080)
+#   RETRY_SECONDS     wait between connections    (default 5)
+#   SILENCE_SECONDS   reconnect after this long without data or heartbeat
+#                     (default 60)
+#   FAILSAFE_SECONDS  switch off after this long without the backend
+#                     (default 600)
+
+set -u
+
+url="${JUKELIGHT_URL:-http://localhost:8080}"
+retry="${RETRY_SECONDS:-5}"
+silence="${SILENCE_SECONDS:-60}"
+failsafe="${FAILSAFE_SECONDS:-600}"
+
+# Unix seconds of the backend's last data (decision or heartbeat), for the
+# fail-safe, and of the current connection's last data or start, for the
+# silence limit. Files, because the stream is read in a subshell.
+work=$(mktemp -d)
+contact="$work/contact"
+seen="$work/seen"
+stream="$work/stream"
+mkfifo "$stream"
+date +%s > "$contact"
+pids=""
+trap 'rm -rf "$work"' EXIT
+# shellcheck disable=SC2086 # $pids holds two process ids
+trap 'kill $pids 2> /dev/null; exit 0' INT TERM
+
+power() {
+  if swaymsg "output * power $1" > /dev/null; then
+    echo "display $1"
+  else
+    echo "swaymsg failed to switch the display $1" >&2
+  fi
+}
+
+# Applies the first decision of a connection, then only changes.
+follow() {
+  applied=""
+  while IFS= read -r line; do
+    date +%s | tee "$contact" > "$seen"
+    line=${line%"$(printf '\r')"}
+    case $line in
+      data:*)
+        decision=${line#data:}
+        decision=${decision# }
+        case $decision in
+          on | off)
+            if [ "$decision" != "$applied" ]; then
+              power "$decision"
+              applied=$decision
+            fi
+            ;;
+        esac
+        ;;
+    esac
+  done
+}
+
+# Ends the connection (process $1) after the silence limit without data.
+watchdog() {
+  while sleep 1; do
+    if [ $(( $(date +%s) - $(cat "$seen") )) -ge "$silence" ]; then
+      kill "$1" 2> /dev/null
+      return
+    fi
+  done
+}
+
+off_by_failsafe=false
+while true; do
+  before=$(cat "$contact")
+  started=$(date +%s)
+  echo "$started" > "$seen"
+  curl --silent --no-buffer --fail --connect-timeout "$retry" \
+    "$url/api/v1/display" > "$stream" &
+  curl_pid=$!
+  watchdog "$curl_pid" &
+  watchdog_pid=$!
+  pids="$curl_pid $watchdog_pid"
+  follow < "$stream"
+  kill "$curl_pid" "$watchdog_pid" 2> /dev/null
+  wait 2> /dev/null
+
+  since=$(( $(date +%s) - $(cat "$contact") ))
+  if [ "$since" -ge "$failsafe" ]; then
+    if [ "$off_by_failsafe" = false ]; then
+      echo "backend unreachable for ${since}s: switching the display off" >&2
+      power off
+      off_by_failsafe=true
+    fi
+  else
+    off_by_failsafe=false
+  fi
+
+  # Reconnect at once after a connection that delivered data and lasted at
+  # least the retry interval; otherwise wait, so a backend or proxy that
+  # closes every connection at once is not hammered.
+  if [ "$(cat "$contact")" = "$before" ] ||
+    [ $(( $(date +%s) - started )) -lt "$retry" ]; then
+    sleep "$retry"
+  fi
+done

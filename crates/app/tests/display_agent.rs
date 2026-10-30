@@ -1,0 +1,345 @@
+//! Spec: display-agent. Runs the real agent script with `sh` against a local
+//! display stream, with short timings and a fake `swaymsg` that records its
+//! arguments (design decision 7).
+
+#![cfg(unix)]
+#![allow(clippy::unwrap_used, clippy::expect_used)] // tests may panic on bad test data
+
+use std::convert::Infallible;
+use std::os::unix::process::CommandExt;
+use std::path::PathBuf;
+use std::process::{Child, Command, Stdio};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::{Duration, Instant};
+
+use axum::Router;
+use axum::extract::State;
+use axum::response::sse::{Event, KeepAlive, Sse};
+use axum::routing::get;
+use futures::{Stream, StreamExt, stream};
+use tokio::sync::watch;
+use tokio::task::JoinHandle;
+
+const ON: &str = "output * power on";
+const OFF: &str = "output * power off";
+
+/// How the test backend behaves on a connection.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    /// The decision, its changes and heartbeats.
+    Normal,
+    /// The decision, then the connection ends.
+    CloseAfterFirst,
+    /// The decision, then nothing at all, not even heartbeats.
+    Silent,
+}
+
+#[derive(Clone)]
+struct Backend {
+    decision: watch::Sender<&'static str>,
+    mode: Mode,
+    connections: Arc<AtomicUsize>,
+    /// Ends every open stream when set.
+    kill: watch::Sender<bool>,
+}
+
+/// A display stream on a fixed port that can be stopped and started again.
+struct TestBackend {
+    port: u16,
+    backend: Backend,
+    server: Option<JoinHandle<()>>,
+}
+
+impl TestBackend {
+    async fn start(decision: &'static str, mode: Mode) -> Self {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let mut test = Self {
+            port,
+            backend: Backend {
+                decision: watch::Sender::new(decision),
+                mode,
+                connections: Arc::new(AtomicUsize::new(0)),
+                kill: watch::Sender::new(false),
+            },
+            server: None,
+        };
+        test.serve(listener);
+        test
+    }
+
+    /// A port where nothing answers.
+    async fn unreachable() -> Self {
+        let mut test = Self::start("on", Mode::Normal).await;
+        test.stop();
+        test
+    }
+
+    fn serve(&mut self, listener: tokio::net::TcpListener) {
+        self.backend.kill.send_replace(false);
+        let app = Router::new()
+            .route("/api/v1/display", get(display))
+            .with_state(self.backend.clone());
+        self.server = Some(tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        }));
+    }
+
+    /// Stops listening and ends every open stream.
+    fn stop(&mut self) {
+        self.backend.kill.send_replace(true);
+        if let Some(server) = self.server.take() {
+            server.abort();
+        }
+    }
+
+    async fn restart(&mut self, decision: &'static str) {
+        self.backend.decision.send_replace(decision);
+        let listener = tokio::net::TcpListener::bind(("127.0.0.1", self.port))
+            .await
+            .unwrap();
+        self.serve(listener);
+    }
+
+    fn set(&self, decision: &'static str) {
+        self.backend.decision.send_replace(decision);
+    }
+
+    fn connections(&self) -> usize {
+        self.backend.connections.load(Ordering::SeqCst)
+    }
+
+    fn url(&self) -> String {
+        format!("http://127.0.0.1:{}", self.port)
+    }
+}
+
+async fn display(
+    State(backend): State<Backend>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    backend.connections.fetch_add(1, Ordering::SeqCst);
+    let event = |data: &str| Ok(Event::default().event("display").data(data));
+    let first = stream::once(futures::future::ready(event(*backend.decision.borrow())));
+    let rest = match backend.mode {
+        Mode::Normal => changes(backend.decision.subscribe()).map(event).boxed(),
+        Mode::CloseAfterFirst => stream::empty().boxed(),
+        Mode::Silent => stream::pending().boxed(),
+    };
+    let mut kill = backend.kill.subscribe();
+    let ended = async move {
+        let _ = kill.wait_for(|kill| *kill).await;
+    };
+    let events = first.chain(rest).take_until(ended);
+    let keep_alive = match backend.mode {
+        Mode::Silent => KeepAlive::new().interval(Duration::from_secs(3600)),
+        _ => KeepAlive::new().interval(Duration::from_millis(200)),
+    };
+    Sse::new(events).keep_alive(keep_alive)
+}
+
+/// The values a watch channel takes after now.
+fn changes(receiver: watch::Receiver<&'static str>) -> impl Stream<Item = &'static str> {
+    stream::unfold(receiver, |mut receiver| async move {
+        receiver.changed().await.ok()?;
+        let value = *receiver.borrow_and_update();
+        Some((value, receiver))
+    })
+}
+
+/// The agent script, run with a fake `swaymsg` first in `PATH`.
+struct Agent {
+    child: Child,
+    calls: PathBuf,
+    dir: PathBuf,
+}
+
+impl Agent {
+    fn start(url: &str, failsafe_seconds: u32) -> Self {
+        static NEXT: AtomicUsize = AtomicUsize::new(0);
+        let dir = std::env::temp_dir().join(format!(
+            "jukelight-agent-test-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::SeqCst)
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let calls = dir.join("calls");
+        std::fs::write(&calls, "").unwrap();
+        let swaymsg = dir.join("swaymsg");
+        std::fs::write(
+            &swaymsg,
+            format!(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >> '{}'\n",
+                calls.display()
+            ),
+        )
+        .unwrap();
+        Command::new("chmod")
+            .arg("+x")
+            .arg(&swaymsg)
+            .status()
+            .unwrap();
+
+        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../host/display-agent/jukelight-display-agent");
+        let path = format!(
+            "{}:{}",
+            dir.display(),
+            std::env::var("PATH").unwrap_or_default()
+        );
+        let child = Command::new("sh")
+            .arg(script)
+            .env("PATH", path)
+            .env("JUKELIGHT_URL", url)
+            .env("RETRY_SECONDS", "1")
+            .env("SILENCE_SECONDS", "2")
+            .env("FAILSAFE_SECONDS", failsafe_seconds.to_string())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            // Its own process group, so stopping it also stops its curl.
+            .process_group(0)
+            .spawn()
+            .unwrap();
+        Self { child, calls, dir }
+    }
+
+    fn calls(&self) -> Vec<String> {
+        std::fs::read_to_string(&self.calls)
+            .unwrap()
+            .lines()
+            .map(str::to_owned)
+            .collect()
+    }
+
+    /// Waits until the recorded calls match, for at most `limit`.
+    async fn wait_for(&self, expected: &[&str], limit: Duration) {
+        let deadline = Instant::now() + limit;
+        while self.calls() != expected {
+            assert!(
+                Instant::now() < deadline,
+                "expected {expected:?}, recorded {:?}",
+                self.calls()
+            );
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+    }
+}
+
+impl Drop for Agent {
+    fn drop(&mut self) {
+        let _ = Command::new("kill")
+            .arg("-TERM")
+            .arg(format!("-{}", self.child.id()))
+            .stderr(Stdio::null())
+            .status();
+        let _ = self.child.wait();
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
+const SOON: Duration = Duration::from_secs(3);
+
+mod follow_the_display_decisions {
+    use super::*;
+
+    #[tokio::test]
+    async fn decision_on() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[ON], SOON).await;
+    }
+
+    #[tokio::test]
+    async fn decision_off() {
+        let backend = TestBackend::start("off", Mode::Normal).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[OFF], SOON).await;
+    }
+
+    #[tokio::test]
+    async fn changes_follow_and_repeats_are_ignored() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[ON], SOON).await;
+        backend.set("off");
+        agent.wait_for(&[ON, OFF], SOON).await;
+        backend.set("on");
+        agent.wait_for(&[ON, OFF, ON], SOON).await;
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        assert_eq!(agent.calls(), [ON, OFF, ON], "heartbeats change nothing");
+    }
+}
+
+mod apply_the_decision_on_connect {
+    use super::*;
+
+    #[tokio::test]
+    async fn reconnect_with_the_same_decision() {
+        let backend = TestBackend::start("off", Mode::CloseAfterFirst).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[OFF, OFF], SOON).await;
+        assert!(backend.connections() >= 2);
+    }
+}
+
+mod reconnect_to_the_backend {
+    use super::*;
+
+    #[tokio::test]
+    async fn backend_restarts() {
+        let mut backend = TestBackend::start("off", Mode::Normal).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[OFF], SOON).await;
+
+        backend.stop();
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        backend.restart("on").await;
+        let restarted = Instant::now();
+        agent.wait_for(&[OFF, ON], Duration::from_secs(2)).await;
+        assert!(restarted.elapsed() <= Duration::from_secs(2));
+    }
+
+    #[tokio::test]
+    async fn silent_connection() {
+        let backend = TestBackend::start("on", Mode::Silent).await;
+        let agent = Agent::start(&backend.url(), 600);
+        agent.wait_for(&[ON], SOON).await;
+        // Silence limit 2 s, retry 1 s: a new connection by about 3 s.
+        tokio::time::sleep(Duration::from_millis(3500)).await;
+        assert!(
+            backend.connections() >= 2,
+            "connections: {}",
+            backend.connections()
+        );
+        assert_eq!(
+            agent.calls(),
+            [ON, ON],
+            "each connection applies its first decision"
+        );
+    }
+}
+
+mod fail_safe_without_the_backend {
+    use super::*;
+
+    #[tokio::test]
+    async fn backend_unreachable() {
+        let backend = TestBackend::unreachable().await;
+        let agent = Agent::start(&backend.url(), 2);
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        agent.wait_for(&[OFF], Duration::from_secs(1)).await;
+        // Once, not on every retry.
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        assert_eq!(agent.calls(), [OFF]);
+    }
+
+    #[tokio::test]
+    async fn backend_back_after_the_fail_safe() {
+        let mut backend = TestBackend::unreachable().await;
+        let agent = Agent::start(&backend.url(), 2);
+        agent.wait_for(&[OFF], Duration::from_secs(4)).await;
+
+        backend.restart("on").await;
+        agent.wait_for(&[OFF, ON], SOON).await;
+    }
+}
