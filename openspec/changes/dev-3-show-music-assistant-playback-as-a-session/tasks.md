@@ -13,7 +13,7 @@
 - [x] 2.3 Write failing fixture tests for "Track and artwork", "Per-track position" (queue position, clock skew), "Source quality", "Music provider name" and "Album colours", then implement the pure mapping until they pass
 - [x] 2.4 Write failing tests against a local test server replaying the fixtures for "Following the player" (claimed, not claimed, track change), "Up next" (following tracks, unchanged queue fetched once), "Unreachable Music Assistant" (server down, wrong token, back) and "Token handling", then implement the polling task and `updates()` until they pass
 - [x] 2.5 Run the session provider contract suite against the Music Assistant adapter and verify it passes; verify the architecture test still passes (no adapter depends on another)
-- [ ] 2.6 Verify the layer as in 1.5; open the layer's pull request on top of layer 1 and verify CI is green
+- [x] 2.6 Verify the layer as in 1.5; open the layer's pull request on top of layer 1 and verify CI is green
 
 ## 3. Layer 3 (DEV-10): API, configuration and wiring
 
