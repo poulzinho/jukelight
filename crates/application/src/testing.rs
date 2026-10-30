@@ -1,0 +1,117 @@
+//! In-memory implementations of the ports, and the shared port contract
+//! suites, for tests in this and other crates.
+
+pub mod contract;
+
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use futures::stream::BoxStream;
+use futures::{StreamExt, stream};
+use jukelight_domain::{Content, DeviceSnapshot, Timestamp};
+use tokio::sync::mpsc;
+
+use crate::{Clock, DeviceMonitor, SessionProvider};
+
+/// A provider whose claim and content are set by the test.
+pub struct FakeProvider {
+    label: String,
+    claims: bool,
+    content: Mutex<Option<Content>>,
+}
+
+impl FakeProvider {
+    pub fn claiming(label: &str, content: Option<Content>) -> Self {
+        Self {
+            label: label.into(),
+            claims: true,
+            content: Mutex::new(content),
+        }
+    }
+
+    pub fn not_claiming(label: &str) -> Self {
+        Self {
+            label: label.into(),
+            claims: false,
+            content: Mutex::new(None),
+        }
+    }
+
+    pub fn set_content(&self, content: Option<Content>) {
+        *self
+            .content
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = content;
+    }
+}
+
+impl SessionProvider for FakeProvider {
+    fn label(&self) -> &str {
+        &self.label
+    }
+
+    fn claims(&self, _device: &DeviceSnapshot) -> bool {
+        self.claims
+    }
+
+    fn content(&self) -> Option<Content> {
+        self.content
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+}
+
+/// A device monitor fed by the test through a channel.
+pub struct FakeDeviceMonitor {
+    receiver: Mutex<Option<mpsc::UnboundedReceiver<DeviceSnapshot>>>,
+}
+
+impl FakeDeviceMonitor {
+    pub fn new() -> (Self, mpsc::UnboundedSender<DeviceSnapshot>) {
+        let (sender, receiver) = mpsc::unbounded_channel();
+        (
+            Self {
+                receiver: Mutex::new(Some(receiver)),
+            },
+            sender,
+        )
+    }
+}
+
+impl DeviceMonitor for FakeDeviceMonitor {
+    fn snapshots(&self) -> BoxStream<'static, DeviceSnapshot> {
+        let receiver = self
+            .receiver
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        match receiver {
+            Some(receiver) => stream::unfold(receiver, |mut receiver| async move {
+                receiver.recv().await.map(|snapshot| (snapshot, receiver))
+            })
+            .boxed(),
+            None => stream::empty().boxed(),
+        }
+    }
+}
+
+/// A clock that only moves when the test moves it.
+#[derive(Default)]
+pub struct FixedClock(AtomicU64);
+
+impl FixedClock {
+    pub fn at(millis: u64) -> Self {
+        Self(AtomicU64::new(millis))
+    }
+
+    pub fn set(&self, millis: u64) {
+        self.0.store(millis, Ordering::SeqCst);
+    }
+}
+
+impl Clock for FixedClock {
+    fn now(&self) -> Timestamp {
+        Timestamp::from_millis(self.0.load(Ordering::SeqCst))
+    }
+}

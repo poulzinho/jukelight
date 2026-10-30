@@ -1,0 +1,19 @@
+# Only what the image build needs; never local data or secrets.
+.git
+.env
+.env.*
+!.env.example
+target
+mvp
+notes
+data
+local
+**/node_modules
+web/kiosk/dist
+web/kiosk/test-results
+web/kiosk/playwright-report
+**/fixtures/raw
+openspec
+docs
+*.log
+.DS_Store

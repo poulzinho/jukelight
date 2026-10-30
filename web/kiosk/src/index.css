@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/*
+ * Jukelight's design tokens. Sizes are relative to the shorter side of the
+ * screen (vmin), so landscape and portrait screens scale the same way and
+ * text stays readable from across the room.
+ */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --text-title: 7.2vmin;
+  --text-title--line-height: 1.08;
+  --text-artist: 4.4vmin;
+  --text-album: 3.2vmin;
+  --text-time: 2.4vmin;
+  --text-badge: 2.2vmin;
+  --text-next-title: 2.6vmin;
+  --text-next-artist: 2.2vmin;
+  --text-clock: 16vmin;
+  --text-idle: 3vmin;
+
+  --spacing-page-y: 8vmin;
+  --spacing-page-x: 7vw;
+  --spacing-columns: 6vw;
+  --spacing-stack: 5vmin;
+
+  /* Per-track colours: --bg and --accent follow the album when known. */
+  --color-kiosk-bg: rgb(var(--bg));
+  --color-kiosk-accent: rgb(var(--accent));
+  --color-kiosk-text: rgb(var(--text));
+
+  --animate-fade-in: fade-in 600ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+:root {
+  --bg: 18 18 22;
+  --accent: 230 230 235;
+  --text: 245 245 247;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-kiosk-bg);
+  color: var(--color-kiosk-text);
+  cursor: none;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

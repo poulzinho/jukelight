@@ -1,0 +1,20 @@
+[package]
+name = "jukelight-application"
+description = "Jukelight application"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+futures = { version = "0.3.34", default-features = false, features = ["std", "alloc"] }
+jukelight-domain = { version = "0.1.0", path = "../domain" }
+tokio = { version = "1.54.1", features = ["sync", "rt", "macros", "time"] }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tokio = { version = "1.54.1", features = ["sync", "rt", "macros", "time", "test-util"] }

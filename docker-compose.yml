@@ -1,0 +1,16 @@
+# A basic setup: builds Jukelight from source and serves the kiosk on
+# http://<host>:8080. Copy .env.example to .env and set your player's
+# address. Adapt this file to your own setup as needed.
+services:
+  jukelight:
+    build: .
+    image: jukelight:local
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Optional: JUKELIGHT_DEVICE=fake:<scenario> runs without a player.
+      JUKELIGHT_DEVICE: ${JUKELIGHT_DEVICE:-}
+    ports:
+      - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
