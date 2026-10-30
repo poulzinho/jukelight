@@ -113,3 +113,62 @@ fn empty_values_count_as_missing() {
     let config = parse(&[("BLUOS_HOST", "192.168.1.40"), ("HTTP_PORT", "")]).unwrap();
     assert_eq!(config.http_port, 8080);
 }
+
+mod music_assistant {
+    use super::*;
+
+    const TOKEN: &str = "example-token-0123456789";
+
+    #[test]
+    fn both_set() {
+        let config = parse(&[
+            ("BLUOS_HOST", "192.168.1.40"),
+            ("MA_URL", "http://192.168.1.50:8095"),
+            ("MA_TOKEN", TOKEN),
+        ])
+        .unwrap();
+        assert!(
+            !format!("{config:?}").contains(TOKEN),
+            "token in Debug output"
+        );
+        let music_assistant = config.music_assistant.expect("Music Assistant configured");
+        assert_eq!(music_assistant.url, "http://192.168.1.50:8095");
+    }
+
+    #[test]
+    fn neither_set_means_no_provider() {
+        let config = parse(&[("BLUOS_HOST", "192.168.1.40")]).unwrap();
+        assert_eq!(config.music_assistant, None);
+    }
+
+    #[test]
+    fn url_without_token() {
+        let error = parse(&[
+            ("BLUOS_HOST", "192.168.1.40"),
+            ("MA_URL", "http://192.168.1.50:8095"),
+        ])
+        .unwrap_err();
+        assert!(error.contains("MA_TOKEN"), "{error}");
+    }
+
+    #[test]
+    fn token_without_url() {
+        let error = parse(&[("BLUOS_HOST", "192.168.1.40"), ("MA_TOKEN", TOKEN)]).unwrap_err();
+        assert!(error.contains("MA_URL"), "{error}");
+        assert!(!error.contains(TOKEN), "token in the message: {error}");
+    }
+
+    #[test]
+    fn url_must_be_http() {
+        for url in ["ftp://192.168.1.50", "192.168.1.50:8095"] {
+            let error = parse(&[
+                ("BLUOS_HOST", "192.168.1.40"),
+                ("MA_URL", url),
+                ("MA_TOKEN", TOKEN),
+            ])
+            .unwrap_err();
+            assert!(error.contains("MA_URL"), "{error}");
+            assert!(!error.contains(TOKEN), "token in the message: {error}");
+        }
+    }
+}

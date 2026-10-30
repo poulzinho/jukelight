@@ -18,6 +18,7 @@ jukelight-adapter-artwork = { version = "0.1.0", path = "../adapter-artwork" }
 jukelight-adapter-bluos = { version = "0.1.0", path = "../adapter-bluos" }
 jukelight-adapter-fake = { version = "0.1.0", path = "../adapter-fake" }
 jukelight-adapter-http = { version = "0.1.0", path = "../adapter-http" }
+jukelight-adapter-music-assistant = { version = "0.1.0", path = "../adapter-music-assistant" }
 jukelight-application = { version = "0.1.0", path = "../application" }
 jukelight-domain = { version = "0.1.0", path = "../domain" }
 thiserror = "2.0.21"

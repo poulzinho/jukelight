@@ -9,7 +9,7 @@ use jukelight_adapter_fake::{FakeControls, FakeDevice, SCENARIOS};
 use jukelight_application::DeviceMonitor;
 use jukelight_application::testing::FixedClock;
 use jukelight_application::testing::contract::{DeviceHarness, device_monitor_contract};
-use jukelight_domain::{PlaybackState, QueueView};
+use jukelight_domain::{Palette, PlaybackState, QueueView, Rgb};
 
 struct Harness(FakeControls);
 
@@ -47,6 +47,7 @@ fn all_scenarios_exist() {
             "long-title",
             "no-artwork",
             "hi-res",
+            "album-colours",
             "paused",
             "stopped",
             "offline",
@@ -106,6 +107,21 @@ async fn long_title() {
 #[tokio::test]
 async fn no_artwork() {
     assert_eq!(first("no-artwork").await.content.unwrap().artwork, None);
+}
+
+#[tokio::test]
+async fn album_colours() {
+    assert_eq!(
+        first("album-colours").await.content.unwrap().palette,
+        Some(Palette {
+            background: Rgb(73, 51, 38),
+            accent: Rgb(209, 147, 108),
+        })
+    );
+    assert_eq!(
+        first("playing-with-queue").await.content.unwrap().palette,
+        None
+    );
 }
 
 #[tokio::test]

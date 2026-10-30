@@ -8,7 +8,8 @@ use jukelight_adapter_artwork::ArtworkProxy;
 use jukelight_adapter_bluos::{BluosConfig, BluosMonitor};
 use jukelight_adapter_fake::FakeDevice;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
-use jukelight_application::{Clock, DeviceMonitor, PlayerMonitor, SystemClock};
+use jukelight_adapter_music_assistant::{MusicAssistantProvider, UrlError};
+use jukelight_application::{Clock, DeviceMonitor, PlayerMonitor, SessionProvider, SystemClock};
 
 use crate::config::{Config, DeviceConfig};
 
@@ -16,6 +17,8 @@ use crate::config::{Config, DeviceConfig};
 pub enum RunError {
     #[error(transparent)]
     Scenario(#[from] jukelight_adapter_fake::UnknownScenario),
+    #[error("MA_URL: {0}")]
+    MusicAssistantUrl(#[from] UrlError),
     #[error("cannot serve HTTP: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -32,16 +35,27 @@ pub async fn run(config: Config) -> Result<(), RunError> {
                 host: host.clone(),
                 port: *port,
             };
-            (Arc::new(BluosMonitor::new(&config, clock)), None)
+            (
+                Arc::new(BluosMonitor::new(&config, Arc::clone(&clock))),
+                None,
+            )
         }
         DeviceConfig::Fake { scenario } => {
             tracing::info!(scenario, "using the fake device");
-            let (device, controls) = FakeDevice::new(scenario, clock)?;
+            let (device, controls) = FakeDevice::new(scenario, Arc::clone(&clock))?;
             (Arc::new(device), Some(controls))
         }
     };
 
-    let monitor = PlayerMonitor::new(Vec::new());
+    let mut providers: Vec<Arc<dyn SessionProvider>> = Vec::new();
+    if let Some(config) = &config.music_assistant {
+        tracing::info!("following Music Assistant sessions");
+        let provider = MusicAssistantProvider::new(config, Arc::clone(&clock))?;
+        tokio::spawn(provider.run());
+        providers.push(Arc::new(provider));
+    }
+
+    let monitor = PlayerMonitor::new(providers);
     let player = monitor.handle();
     tokio::spawn(monitor.run(device));
 

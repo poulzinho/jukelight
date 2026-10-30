@@ -19,7 +19,7 @@ use crate::mapping::{self, Responses, UP_NEXT};
 const LABEL: &str = "Music Assistant";
 
 /// A Music Assistant token. Never printed.
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Token(String);
 
 impl Token {
@@ -35,7 +35,7 @@ impl fmt::Debug for Token {
 }
 
 /// Where Music Assistant is and how to authenticate.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MusicAssistantConfig {
     /// Base URL of Music Assistant, e.g. `http://192.168.1.50:8095`.
     pub url: String,

@@ -37,8 +37,22 @@ Set these in `.env` (see `.env.example`):
 | `HTTP_PORT` | no | `8080` | Port for the kiosk and the API |
 | `LOG_LEVEL` | no | `info` | `trace`, `debug`, `info`, `warn` or `error` |
 | `JUKELIGHT_DEVICE` | no | | `fake:<scenario>` runs without a player (see below) |
+| `MA_URL` | no | | Music Assistant's address, e.g. `http://192.168.1.50:8095` |
+| `MA_TOKEN` | with `MA_URL` | | A long-lived Music Assistant token |
 
 `.env` is git-ignored. Never commit it.
+
+### Music Assistant
+
+When Music Assistant plays to your player, the player only sees one long
+stream. With `MA_URL` and `MA_TOKEN` set, Jukelight asks Music Assistant
+what is playing and shows the track, the queue, the source quality and the
+album colours. Set both or neither: without them, Music Assistant streams
+show as "Stream".
+
+Create the token in Music Assistant under your user's profile, as a
+long-lived token. Use a dedicated Music Assistant user without admin
+rights: Jukelight only reads.
 
 ### Try it without a player
 
@@ -49,7 +63,7 @@ JUKELIGHT_DEVICE=fake:playing-with-queue docker compose up --build
 ```
 
 Scenarios: `playing-with-queue`, `cast-without-queue`, `long-title`,
-`no-artwork`, `hi-res`, `paused`, `stopped`, `offline`.
+`no-artwork`, `hi-res`, `album-colours`, `paused`, `stopped`, `offline`.
 
 ## Reference setup
 
