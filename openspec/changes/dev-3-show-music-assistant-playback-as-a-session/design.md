@@ -101,6 +101,12 @@ New crate `crates/adapter-music-assistant`:
   from a remotely accessible `http(s)` path, otherwise the image proxy
   (`size=0`; `size=256` for up next); quality detail with conversion and
   "Normalised"; `OpenSubsonic Media Server Library` shortened to "Subsonic".
+- Colours: `background_dark` and `on_dark`. Music Assistant derives them
+  from the cover as a contrast-checked pair (WCAG AA 4.5:1, Sendspin
+  `color@v1`); `primary` and `accent` describe the cover and are not
+  adjusted, so either can disappear against the background (seen in the
+  recordings: `primary` equals `background_dark` on one cover, `accent` is
+  nearly equal on another).
 - Position from the queue; when `elapsed_time_last_updated` is more than
   10 s away from the local clock, the observation time is now.
 - A background task (`run()`, spawned by `app`) does the polling, with a

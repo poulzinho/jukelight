@@ -126,12 +126,18 @@ name.
 
 ### Requirement: Album colours
 The provider SHALL report the album's colours from the player's current
-media palette: `background_dark` as the background colour and `primary` as
-the accent colour.
+media palette: `background_dark` as the background colour and `on_dark` as
+the accent colour, the pair Music Assistant keeps at a contrast ratio of at
+least 4.5:1 with each other and `background_dark` with white text. When
+either is missing, the content SHALL have no colours.
 
 #### Scenario: Palette present
-- **WHEN** the palette has `background_dark` [73, 51, 38] and `primary` [209, 147, 108]
+- **WHEN** the palette has `background_dark` [73, 51, 38], `on_dark` [209, 147, 108] and `primary` [73, 51, 38]
 - **THEN** the content's colours have background (73, 51, 38) and accent (209, 147, 108)
+
+#### Scenario: Incomplete palette
+- **WHEN** the palette has `background_dark` but no `on_dark`
+- **THEN** the content has no colours
 
 #### Scenario: No palette
 - **WHEN** the current media has no palette
