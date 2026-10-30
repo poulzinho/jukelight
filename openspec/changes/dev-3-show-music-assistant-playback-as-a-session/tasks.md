@@ -27,5 +27,5 @@
 - [x] 4.1 Write failing component tests for "Colours known", "Colours unknown" and "Colours change with the track", then set `--bg` and `--accent` from `palette` until they pass
 - [x] 4.2 Extend the Playwright suite with the colours scenario (landscape and portrait), checking the page background and the progress fill colour; review the screenshots
 - [ ] 4.3 Acceptance against the real player with `docker compose up --build -d` and the Music Assistant settings in `.env`: Navidrome and Qobuz via Music Assistant (playing, paused, track change, up next, quality detail, colours, label "Music Assistant · …"), Music Assistant unreachable (degraded label), and a non-Music-Assistant session unchanged; record the results on DEV-3
-- [ ] 4.4 Document in the README that playback to speaker groups (AirPlay or Sendspin from Music Assistant) still shows as "AirPlay" (DEV-12)
+- [x] 4.4 Document in the README that playback to speaker groups (AirPlay or Sendspin from Music Assistant) still shows as "AirPlay" (DEV-12)
 - [ ] 4.5 Verify the layer as in 1.5; open the layer's pull request on top of layer 3 and verify CI is green

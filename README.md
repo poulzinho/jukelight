@@ -54,6 +54,10 @@ Create the token in Music Assistant under your user's profile, as a
 long-lived token. Use a dedicated Music Assistant user without admin
 rights: Jukelight only reads.
 
+Playback to a group of speakers is not recognised yet: Music Assistant then
+sends to the player over AirPlay, and Jukelight shows "AirPlay" without
+the track details.
+
 ### Try it without a player
 
 A fake player with scripted scenarios is built in:
