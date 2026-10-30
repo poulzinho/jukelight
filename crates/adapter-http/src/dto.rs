@@ -2,7 +2,7 @@
 //! domain can change without breaking the kiosk.
 
 use jukelight_application::ArtworkSource;
-use jukelight_domain::{ArtworkRef, PlaybackState, PlayerSnapshot, QueueView};
+use jukelight_domain::{ArtworkRef, PlaybackState, PlayerSnapshot, QueueView, Rgb};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -18,6 +18,7 @@ pub struct PlayerDto {
     pub quality: Option<QualityDto>,
     /// `None` when the session has no queue.
     pub queue: Option<Vec<QueueEntryDto>>,
+    pub palette: Option<PaletteDto>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,6 +59,13 @@ pub struct QueueEntryDto {
     pub title: String,
     pub artists: Vec<String>,
     pub art_url: Option<String>,
+}
+
+/// Album colours, each as `[red, green, blue]` from 0 to 255.
+#[derive(Debug, Serialize)]
+pub struct PaletteDto {
+    pub background: [u8; 3],
+    pub accent: [u8; 3],
 }
 
 pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> PlayerDto {
@@ -105,7 +113,15 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             ),
             QueueView::NotApplicable => None,
         }),
+        palette: content.and_then(|c| c.palette).map(|p| PaletteDto {
+            background: rgb(p.background),
+            accent: rgb(p.accent),
+        }),
     }
+}
+
+fn rgb(Rgb(red, green, blue): Rgb) -> [u8; 3] {
+    [red, green, blue]
 }
 
 fn state(state: PlaybackState) -> &'static str {

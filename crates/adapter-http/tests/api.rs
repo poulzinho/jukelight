@@ -14,8 +14,8 @@ use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
 use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, Image, PlayerMonitor};
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, PlaybackState,
-    Position, QueueEntry, QueueView, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, Palette, PlaybackState,
+    Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
 };
 use serde_json::Value;
 use tower::ServiceExt;
@@ -175,6 +175,37 @@ async fn field_names_and_shapes() {
     assert_eq!(json["quality"]["hiRes"], true);
     assert_eq!(json["queue"][0]["title"], "Next Song");
     assert_eq!(json["queue"][0]["artUrl"], "/api/v1/art/known");
+}
+
+#[tokio::test]
+async fn album_colours() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut coloured = device("Example Song", 42, 1_000_000);
+    coloured.content.as_mut().unwrap().palette = Some(Palette {
+        background: Rgb(73, 51, 38),
+        accent: Rgb(209, 147, 108),
+    });
+    monitor.apply(&coloured);
+
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(
+        json["palette"]["background"],
+        serde_json::json!([73, 51, 38])
+    );
+    assert_eq!(
+        json["palette"]["accent"],
+        serde_json::json!([209, 147, 108])
+    );
+}
+
+#[tokio::test]
+async fn no_album_colours() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&device("Example Song", 42, 1_000_000));
+
+    let json = player_json(&app(&monitor)).await;
+    assert!(json.as_object().unwrap().contains_key("palette"));
+    assert!(json["palette"].is_null());
 }
 
 // 7.2 Live updates
