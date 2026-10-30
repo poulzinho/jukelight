@@ -100,7 +100,7 @@ New crate `crates/adapter-music-assistant`:
 - Mapping as specified: queue item first, current media as fallback; artwork
   from a remotely accessible `http(s)` path, otherwise the image proxy
   (`size=0`; `size=256` for up next); quality detail with conversion and
-  "Normalized"; `OpenSubsonic Media Server Library` shortened to "Subsonic".
+  "Normalised"; `OpenSubsonic Media Server Library` shortened to "Subsonic".
 - Position from the queue; when `elapsed_time_last_updated` is more than
   10 s away from the local clock, the observation time is now.
 - A background task (`run()`, spawned by `app`) does the polling, with a

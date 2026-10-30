@@ -83,17 +83,17 @@ as observed now.
 The provider SHALL report the quality of the source, from the current item's
 `streamdetails.audio_format`. The quality detail SHALL be built from:
 "Lossless" for a lossless source that is not Hi-Res; "→ <bits>/<kHz> to
-player" when the format sent to the player differs; and "Normalized" when
-the loudness normalization mode changes the audio (`dynamic`, `fixed_gain`,
+player" when the format sent to the player differs; and "Normalised" when
+the loudness normalisation mode changes the audio (`dynamic`, `fixed_gain`,
 `fallback_fixed_gain`, `fallback_dynamic`, `source`), joined with " · ".
 
 #### Scenario: Padded CD-quality source
-- **WHEN** the source is FLAC 16/44.1, the output is FLAC 24/44.1 and normalization is `measurement_only`
+- **WHEN** the source is FLAC 16/44.1, the output is FLAC 24/44.1 and normalisation is `measurement_only`
 - **THEN** the quality label is "FLAC 16/44.1" with the detail "Lossless · → 24/44.1 to player"
 
-#### Scenario: Normalized Hi-Res source
-- **WHEN** the source is FLAC 24/88.2, the output is FLAC 24/88.2 and normalization is `dynamic`
-- **THEN** the quality label is "FLAC 24/88.2", it is Hi-Res, and the detail is "Normalized"
+#### Scenario: Normalised Hi-Res source
+- **WHEN** the source is FLAC 24/88.2, the output is FLAC 24/88.2 and normalisation is `dynamic`
+- **THEN** the quality label is "FLAC 24/88.2", it is Hi-Res, and the detail is "Normalised"
 
 ### Requirement: Up next
 The provider SHALL report the queue as available with the next entries after

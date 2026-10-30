@@ -22,7 +22,7 @@ which this change closes (see What Changes).
     Assistant server and the stream belongs to this player, decided from
     configuration alone.
   - While it drives the player, it supplies the track, artwork, per-track
-    position, source quality (with conversion and loudness normalization
+    position, source quality (with conversion and loudness normalisation
     noted), up next and the album's colours.
   - It names the music provider, so the session label reads for example
     "Music Assistant · Qobuz".
