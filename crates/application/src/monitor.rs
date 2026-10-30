@@ -1,6 +1,6 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, PoisonError};
 
-use futures::StreamExt;
+use futures::{StreamExt, stream};
 use jukelight_domain::{DeviceSnapshot, PlayerEvent, PlayerSnapshot, detect_changes};
 use tokio::sync::{broadcast, watch};
 
@@ -15,6 +15,8 @@ const EVENT_CAPACITY: usize = 64;
 /// normal progress, which is what live clients need.
 pub struct PlayerMonitor {
     providers: Vec<Arc<dyn SessionProvider>>,
+    /// The last device report, to rebuild from when a provider updates.
+    last_device: Mutex<Option<DeviceSnapshot>>,
     current: watch::Sender<PlayerSnapshot>,
     published: watch::Sender<PlayerSnapshot>,
     events: broadcast::Sender<PlayerEvent>,
@@ -36,6 +38,7 @@ impl PlayerMonitor {
         let (events, _) = broadcast::channel(EVENT_CAPACITY);
         Self {
             providers,
+            last_device: Mutex::new(None),
             current,
             published,
             events,
@@ -50,8 +53,33 @@ impl PlayerMonitor {
         }
     }
 
-    /// Processes one device snapshot.
+    /// Processes one device snapshot: providers are told about it first, then
+    /// the player snapshot is rebuilt.
     pub fn apply(&self, device: &DeviceSnapshot) {
+        for provider in &self.providers {
+            provider.follow(device);
+        }
+        *self
+            .last_device
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(device.clone());
+        self.rebuild(device);
+    }
+
+    /// Rebuilds the player snapshot from the last device report, after a
+    /// provider published new content.
+    pub fn refresh(&self) {
+        let device = self
+            .last_device
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone();
+        if let Some(device) = device {
+            self.rebuild(&device);
+        }
+    }
+
+    fn rebuild(&self, device: &DeviceSnapshot) {
         let next = arbitrate(device, &self.providers);
         let changes = detect_changes(&self.current.borrow(), &next);
 
@@ -65,11 +93,18 @@ impl PlayerMonitor {
         }
     }
 
-    /// Follows the device until its stream ends.
+    /// Follows the device and the providers until the device stream ends.
     pub async fn run(self, device: Arc<dyn DeviceMonitor>) {
         let mut snapshots = device.snapshots();
-        while let Some(snapshot) = snapshots.next().await {
-            self.apply(&snapshot);
+        let mut updates = stream::select_all(self.providers.iter().map(|p| p.updates()));
+        loop {
+            tokio::select! {
+                snapshot = snapshots.next() => match snapshot {
+                    Some(snapshot) => self.apply(&snapshot),
+                    None => return,
+                },
+                Some(()) = updates.next() => self.refresh(),
+            }
         }
     }
 }

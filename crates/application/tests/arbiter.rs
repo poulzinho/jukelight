@@ -19,6 +19,8 @@ fn content(title: &str) -> Content {
         position: None,
         quality: None,
         queue: QueueView::NotApplicable,
+        service: None,
+        palette: None,
     }
 }
 
@@ -144,4 +146,17 @@ fn claim_while_the_provider_is_down() {
         arbitrate(&device, &providers(vec![provider])).session.label,
         "Example Provider"
     );
+}
+
+#[test]
+fn provider_names_the_music_service() {
+    let mut named = content("Provider Song");
+    named.service = Some("Example Service".into());
+    let provider = FakeProvider::claiming("Example Provider", Some(named));
+    let snapshot = arbitrate(
+        &device(stream(), PlaybackState::Playing, "x"),
+        &providers(vec![provider]),
+    );
+
+    assert_eq!(snapshot.session.label, "Example Provider · Example Service");
 }

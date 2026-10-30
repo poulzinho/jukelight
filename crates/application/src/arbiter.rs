@@ -9,7 +9,8 @@ use crate::SessionProvider;
 /// Builds the player snapshot from what the device reports and the first
 /// session provider that claims the device's origin.
 ///
-/// - A claiming provider with content supplies the content and the label.
+/// - A claiming provider with content supplies the content and the label
+///   ("<label> · <service>" when the content names a music service).
 /// - A claiming provider without content gives "Playing from <label>".
 /// - Otherwise the device's own content is shown, labelled by its origin.
 ///
@@ -24,7 +25,10 @@ pub fn arbitrate(
         Some(provider) => match provider.content() {
             Some(content) => (
                 Session {
-                    label: provider.label().into(),
+                    label: match &content.service {
+                        Some(service) => format!("{} · {service}", provider.label()),
+                        None => provider.label().into(),
+                    },
                     available: true,
                 },
                 Some(content),
@@ -75,5 +79,7 @@ fn unreachable(label: &str) -> Content {
         position: None,
         quality: None,
         queue: QueueView::NotApplicable,
+        service: None,
+        palette: None,
     }
 }

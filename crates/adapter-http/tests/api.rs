@@ -86,6 +86,8 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
                     "http://192.168.1.40:11000/Artwork?songid=2",
                 )),
             }]),
+            service: None,
+            palette: None,
         }),
     }
 }

@@ -94,6 +94,8 @@ fn content(
         position: position(status, origin, now),
         quality: quality(status, origin),
         queue: queue(status, origin, playlist, base_url),
+        service: None,
+        palette: None,
     })
 }
 
