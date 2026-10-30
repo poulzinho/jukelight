@@ -796,9 +796,18 @@ dependencies = [
 name = "jukelight-adapter-music-assistant"
 version = "0.1.0"
 dependencies = [
+ "axum",
+ "futures",
  "jukelight-application",
  "jukelight-domain",
  "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -1174,6 +1183,8 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "rustls-platform-verifier",
+ "serde",
+ "serde_json",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",

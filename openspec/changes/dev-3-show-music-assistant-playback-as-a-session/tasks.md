@@ -9,10 +9,10 @@
 ## 2. Layer 2 (DEV-9): Music Assistant adapter
 
 - [x] 2.1 Record `players/get`, `player_queues/get`, `player_queues/items` and `providers` from the real Music Assistant into `crates/adapter-music-assistant/tests/fixtures/raw/` (git-ignored) while playing a Navidrome track and a Qobuz track through Music Assistant; commit scrubbed copies and a personal-data scan test (no IP outside 192.168.1.0/24, no MAC other than aa:bb:cc:dd:ee:ff, no token) that fails on a deliberately broken copy
-- [ ] 2.2 Write failing tests for every "Claiming the session" scenario, then implement the offline claim rule
-- [ ] 2.3 Write failing fixture tests for "Track and artwork", "Per-track position" (queue position, clock skew), "Source quality", "Music provider name" and "Album colours", then implement the pure mapping until they pass
-- [ ] 2.4 Write failing tests against a local test server replaying the fixtures for "Following the player" (claimed, not claimed, track change), "Up next" (following tracks, unchanged queue fetched once), "Unreachable Music Assistant" (server down, wrong token, back) and "Token handling", then implement the polling task and `updates()` until they pass
-- [ ] 2.5 Run the session provider contract suite against the Music Assistant adapter and verify it passes; verify the architecture test still passes (no adapter depends on another)
+- [x] 2.2 Write failing tests for every "Claiming the session" scenario, then implement the offline claim rule
+- [x] 2.3 Write failing fixture tests for "Track and artwork", "Per-track position" (queue position, clock skew), "Source quality", "Music provider name" and "Album colours", then implement the pure mapping until they pass
+- [x] 2.4 Write failing tests against a local test server replaying the fixtures for "Following the player" (claimed, not claimed, track change), "Up next" (following tracks, unchanged queue fetched once), "Unreachable Music Assistant" (server down, wrong token, back) and "Token handling", then implement the polling task and `updates()` until they pass
+- [x] 2.5 Run the session provider contract suite against the Music Assistant adapter and verify it passes; verify the architecture test still passes (no adapter depends on another)
 - [ ] 2.6 Verify the layer as in 1.5; open the layer's pull request on top of layer 1 and verify CI is green
 
 ## 3. Layer 3 (DEV-10): API, configuration and wiring
