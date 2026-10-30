@@ -82,3 +82,8 @@ rules:
       lint, typecheck and tests."
     - "Record device responses into fixtures/raw/ (git-ignored); commit only
       scrubbed fixtures."
+    - "Group tasks so each group becomes one layer of a gh stack: one branch,
+      one pull request and one Linear sub-issue of the change's issue. Each
+      layer builds and passes CI on its own; order layers bottom-up (for
+      example domain, adapters, API, kiosk, delivery). A change small enough
+      for one pull request has a single group and no stack."
