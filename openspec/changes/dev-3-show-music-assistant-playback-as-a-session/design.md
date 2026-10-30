@@ -33,6 +33,10 @@ prototype, that shape the approach:
 
 - WebSocket push, settings in the database, the admin app (see proposal).
 - Colour transitions (DEV-7 crossfades colours with opacity layers).
+- Playback to speaker groups (DEV-12): Music Assistant then sends to the
+  player over AirPlay or Sendspin, and the player reports only an AirPlay
+  session without Music Assistant's address, so the offline claim rule
+  does not apply.
 
 ## Decisions
 
@@ -184,6 +188,8 @@ DEV-3.
   returned; documentation recommends a dedicated non-admin MA user.
 - [MA stream on another port or proxy] → the claim compares host and player
   key, not the port.
+- [Grouped playback goes over AirPlay or Sendspin] → shown as "AirPlay"
+  as before; the README names the limitation; DEV-12 covers groups.
 
 ## Migration Plan
 
