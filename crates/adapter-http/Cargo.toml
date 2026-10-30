@@ -1,0 +1,29 @@
+[package]
+name = "jukelight-adapter-http"
+description = "Jukelight adapter-http"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+axum = "0.8.9"
+futures = "0.3.34"
+jukelight-application = { version = "0.1.0", path = "../application" }
+jukelight-domain = { version = "0.1.0", path = "../domain" }
+rust-embed = { version = "8.13.0", features = ["interpolate-folder-path", "mime-guess"] }
+serde = { version = "1.0.229", features = ["derive"] }
+tokio = { version = "1.54.1", features = ["sync", "rt", "macros", "time"] }
+tokio-stream = { version = "0.1.19", features = ["sync"] }
+tracing = "0.1.44"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+serde_json = "1.0.154"
+tokio = { version = "1.54.1", features = ["full"] }
+tower = { version = "0.5.3", features = ["util"] }

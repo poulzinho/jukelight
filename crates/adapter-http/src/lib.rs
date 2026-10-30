@@ -1,0 +1,135 @@
+//! HTTP adapter: the published API (v1), live updates over Server-Sent
+//! Events, the artwork proxy endpoint, and the embedded kiosk.
+
+mod dto;
+
+use std::convert::Infallible;
+use std::sync::Arc;
+use std::time::Duration;
+
+use axum::Router;
+use axum::body::Body;
+use axum::extract::{Path, State};
+use axum::http::{StatusCode, Uri, header};
+use axum::response::sse::{Event, KeepAlive, Sse};
+use axum::response::{IntoResponse, Json, Response};
+use axum::routing::get;
+use futures::{Stream, StreamExt, stream};
+use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, PlayerHandle};
+use rust_embed::RustEmbed;
+use tokio_stream::wrappers::WatchStream;
+
+pub use dto::PlayerDto;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct HttpConfig {
+    /// How often an idle event stream sends a comment line.
+    pub keep_alive: Duration,
+}
+
+impl Default for HttpConfig {
+    fn default() -> Self {
+        Self {
+            keep_alive: Duration::from_secs(15),
+        }
+    }
+}
+
+#[derive(Clone)]
+struct AppState {
+    player: PlayerHandle,
+    artwork: Arc<dyn ArtworkSource>,
+    keep_alive: Duration,
+}
+
+/// The kiosk build, embedded at compile time (see build.rs).
+#[derive(RustEmbed)]
+#[folder = "$OUT_DIR/kiosk"]
+struct Kiosk;
+
+pub fn router(
+    player: PlayerHandle,
+    artwork: Arc<dyn ArtworkSource>,
+    config: &HttpConfig,
+) -> Router {
+    let state = AppState {
+        player,
+        artwork,
+        keep_alive: config.keep_alive,
+    };
+    Router::new()
+        .route("/api/v1/player", get(player_snapshot))
+        .route("/api/v1/player/events", get(player_events))
+        .route("/api/v1/art/{id}", get(artwork_image))
+        .route("/api/{*rest}", get(|| async { StatusCode::NOT_FOUND }))
+        .fallback(get(kiosk))
+        .with_state(state)
+}
+
+async fn player_snapshot(State(state): State<AppState>) -> Json<PlayerDto> {
+    Json(dto::player_dto(
+        &state.player.current(),
+        state.artwork.as_ref(),
+    ))
+}
+
+/// The current snapshot first, then every snapshot that changed beyond
+/// normal progress.
+async fn player_events(
+    State(state): State<AppState>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    let artwork = Arc::clone(&state.artwork);
+    let current = stream::once(futures::future::ready(state.player.current()));
+    let changes = WatchStream::from_changes(state.player.subscribe_published());
+    let events = current.chain(changes).filter_map(move |snapshot| {
+        let event = Event::default().json_data(dto::player_dto(&snapshot, artwork.as_ref()));
+        futures::future::ready(event.ok().map(Ok))
+    });
+    Sse::new(events).keep_alive(KeepAlive::new().interval(state.keep_alive))
+}
+
+async fn artwork_image(State(state): State<AppState>, Path(id): Path<String>) -> Response {
+    match state.artwork.fetch(&ArtworkId::new(id)).await {
+        // Ids are derived from the source, so an id's image never changes.
+        Ok(image) => (
+            [
+                (header::CONTENT_TYPE, image.content_type),
+                (header::CACHE_CONTROL, "public, max-age=86400".into()),
+            ],
+            image.bytes,
+        )
+            .into_response(),
+        Err(ArtworkError::Unknown) => StatusCode::NOT_FOUND.into_response(),
+        Err(ArtworkError::Source(error)) => {
+            tracing::debug!(%error, "artwork source failed");
+            StatusCode::BAD_GATEWAY.into_response()
+        }
+    }
+}
+
+/// Kiosk files; any other path gets `index.html`, so client-side routes work.
+async fn kiosk(uri: Uri) -> Response {
+    let path = uri.path().trim_start_matches('/');
+    let (file, path) = match Kiosk::get(path).filter(|_| !path.is_empty()) {
+        Some(file) => (file, path),
+        None => match Kiosk::get("index.html") {
+            Some(file) => (file, "index.html"),
+            None => return StatusCode::NOT_FOUND.into_response(),
+        },
+    };
+    // Built assets carry a content hash in their name; the page itself must
+    // always be fetched fresh.
+    let cache = if path.starts_with("assets/") {
+        "public, max-age=31536000, immutable"
+    } else {
+        "no-cache"
+    };
+    (
+        [
+            (header::CONTENT_TYPE, file.metadata.mimetype().to_owned()),
+            (header::CACHE_CONTROL, cache.to_owned()),
+        ],
+        Body::from(file.data.into_owned()),
+    )
+        .into_response()
+}
