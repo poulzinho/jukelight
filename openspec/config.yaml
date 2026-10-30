@@ -1,32 +1,73 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Jukelight is a now-playing kiosk for a BluOS music player: a wall-mounted
+  screen shows what is playing, wakes when playback starts and turns off after
+  an idle grace period. Read-only: no playback control.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Stack
+  - Backend: Rust, Cargo workspace, hexagonal architecture:
+    domain -> application (ports + services) -> adapters -> app (composition root).
+    axum for REST and SSE, SQLite via sqlx (settings and encrypted secrets).
+  - Frontend: React, TypeScript (strict), Vite, Tailwind CSS v4 with
+    Jukelight's own vmin-based theme tokens, Inter bundled. Two apps:
+    kiosk and admin. Nothing is loaded from the internet at runtime.
+  - Delivery: one Docker image built from source (multi-stage), a basic
+    docker-compose.yml and .env.example. Only the reference host is tested
+    (docs/reference-setup.md).
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+  Domain language (use these words in code, specs and UI)
+  - Device: the player that makes sound (BluOS). Reports state and Origin.
+  - Session: whoever drives the device (native BluOS, Qobuz/Spotify Connect,
+    Music Assistant). A Session Provider claims an Origin and supplies Content.
+  - Snapshot, Position (elapsed + observed_at), Queue, Display decision,
+    Grace period.
+  - Bounded contexts: Playback Monitoring (core), Display Control,
+    Administration, Integrations (anti-corruption layers). Vendor terms
+    never pass an adapter.
+
+  Method
+  - Strategic DDD; no heavy tactical patterns (no CQRS, no event sourcing).
+  - TDD: every spec scenario becomes a failing test first.
+
+  Open source (MIT)
+  - No personal data in code, specs, fixtures or docs: no real IP addresses,
+    MAC addresses, device names or tokens. Use 192.168.1.x and
+    aa:bb:cc:dd:ee:ff as examples.
+  - No trademarked logos in the repository. The Hi-Res label image is
+    user-supplied.
+  - Secrets: outgoing tokens are encrypted at rest with a key kept outside
+    the database; APIs never return secrets; secrets are never logged.
+
+  Writing: plain language. Short sentences, active voice, one term per
+  concept.
+
+rules:
+  proposal:
+    - "Every change has a Linear issue DEV-<n> (team Development). The change
+      name is dev-<n>-<slug>, the same as the issue's git branch, and the
+      proposal title starts with DEV-<n>:."
+    - "State scope and non-goals explicitly, and list the capabilities touched."
+    - "Name the roadmap step (1 walking skeleton, 2 Music Assistant session,
+      3 display power, 4 finished kiosk and admin)."
+  specs:
+    - "Every requirement has at least one WHEN/THEN scenario that can become
+      an automated test directly."
+    - "Use the domain language. Vendor field names (BluOS, Music Assistant)
+      appear only in integration capabilities."
+    - "Example values only."
+  design:
+    - "Respect the dependency rule: domain has no IO dependencies; adapters
+      depend inward only."
+    - "Record each decision with the alternatives considered and why."
+    - "Name the tests per layer: domain unit, application with fake ports,
+      adapter fixtures, port contract suites, HTTP, kiosk components and
+      screenshots (landscape and portrait)."
+    - "Kiosk: theme tokens in vmin; animate only opacity and transform."
+  tasks:
+    - "Order work test-first: each task starts with the failing test derived
+      from a spec scenario."
+    - "Done includes cargo fmt, clippy -D warnings, tests, and frontend
+      lint, typecheck and tests."
+    - "Record device responses into fixtures/raw/ (git-ignored); commit only
+      scrubbed fixtures."
