@@ -82,7 +82,7 @@ fn provider_down() {
     assert!(!snapshot.session.available);
     let shown = snapshot.content.unwrap();
     assert_eq!(shown.track.title, "Playing from Example Provider");
-    assert!(shown.track.artists.is_empty());
+    assert_eq!(shown.track.artists, Vec::<String>::new());
     assert_eq!(shown.track.album, None);
     assert_eq!(shown.artwork, None);
     assert_eq!(shown.position, None);

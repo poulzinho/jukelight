@@ -84,7 +84,7 @@ fn no_personal_data_in_fixtures() {
 fn example_values_pass() {
     let text = r#"<SyncStatus id="192.168.1.40:11000" mac="AA:BB:CC:DD:EE:FF"/>
         <streamUrl>http://192.168.1.50:8097/flow/session1/aabbccddeeff/x.flac</streamUrl>"#;
-    assert!(personal_values(text).is_empty());
+    assert_eq!(personal_values(text), Vec::<String>::new());
 }
 
 #[test]
@@ -98,5 +98,5 @@ fn real_looking_values_are_found() {
 #[test]
 fn etags_are_not_mistaken_for_macs() {
     let text = r#"<status etag="016a10146240aa84c67b0f3c8a7fb215">"#;
-    assert!(personal_values(text).is_empty());
+    assert_eq!(personal_values(text), Vec::<String>::new());
 }

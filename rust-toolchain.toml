@@ -1,0 +1,5 @@
+# One Rust version for local builds, CI and the Docker image, so all of them
+# compile and lint with the same rules. Upgrade deliberately.
+[toolchain]
+channel = "1.93"
+components = ["rustfmt", "clippy"]

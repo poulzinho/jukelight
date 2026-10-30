@@ -60,7 +60,7 @@ fn normal_progress_produces_no_event() {
         &playing("Song A", 90, T.plus(secs(30))),
     );
 
-    assert!(changes.events.is_empty());
+    assert_eq!(changes.events, Vec::new());
     assert!(!changes.material);
 }
 
@@ -71,7 +71,7 @@ fn small_drift_is_tolerated() {
         &playing("Song A", 92, T.plus(secs(30))),
     );
 
-    assert!(changes.events.is_empty());
+    assert_eq!(changes.events, Vec::new());
 }
 
 #[test]
@@ -159,6 +159,6 @@ fn other_field_changes_are_material_without_an_event() {
     next.session.label = "Spotify".into();
 
     let changes = detect_changes(&previous, &next);
-    assert!(changes.events.is_empty());
+    assert_eq!(changes.events, Vec::new());
     assert!(changes.material);
 }

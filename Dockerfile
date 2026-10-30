@@ -10,7 +10,8 @@ COPY web/kiosk/ ./
 RUN npm run build
 
 # 2. Rust dependencies, cached separately from Jukelight's own code ----------
-FROM rust:1-slim-trixie AS chef
+# Same Rust version as rust-toolchain.toml.
+FROM rust:1.93-slim-trixie AS chef
 RUN cargo install cargo-chef --locked
 WORKDIR /src
 

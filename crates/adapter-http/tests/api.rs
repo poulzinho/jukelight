@@ -240,7 +240,7 @@ async fn track_change_produces_an_event_and_progress_does_not() {
     // Normal progress: no event.
     monitor.apply(&device("Song A", 40, 30_000));
     let (progress, _) = read_events(&mut body, Duration::from_millis(50)).await;
-    assert!(progress.is_empty(), "unexpected events: {progress:?}");
+    assert_eq!(progress, Vec::<Value>::new(), "unexpected events");
 
     // Track change: one event with the new snapshot.
     monitor.apply(&device("Song B", 0, 31_000));
