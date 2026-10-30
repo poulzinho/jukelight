@@ -39,6 +39,17 @@ context: |
   - Secrets: outgoing tokens are encrypted at rest with a key kept outside
     the database; APIs never return secrets; secrets are never logged.
 
+  Workflow
+  - Every change follows propose -> apply -> verify -> archive. Feedback on
+    an active change (review, verify, acceptance, CI) becomes a task in its
+    tasks.md first; after the archive it needs a new change.
+  - Commits and pull request titles use conventional commits in the form
+    `type(scope): DEV-<n> action verb description`, for example
+    `feat(kiosk): DEV-1 show the pause symbol over the artwork`.
+    Types: feat, fix, test, refactor, docs, build, ci, chore.
+    Scopes: domain, application, bluos, fake, artwork, api, app, kiosk,
+    docker, ci, openspec, docs.
+
   Writing: plain language. Short sentences, active voice, one term per
   concept.
 
