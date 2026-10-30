@@ -1,0 +1,766 @@
+[
+  {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "32e38d1a8955433db56a3223d5cf3194",
+    "name": "Led Zeppelin - Whole Lotta Love (Remaster)",
+    "duration": 334,
+    "sort_index": 1,
+    "streamdetails": {
+      "provider": "qobuz--instance1",
+      "item_id": "17110879",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "?",
+        "sample_rate": 96000,
+        "bit_depth": 24,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 334,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": null,
+      "loudness": null,
+      "loudness_album": null,
+      "prefer_album_loudness": false,
+      "volume_normalization_mode": "dynamic",
+      "volume_normalization_gain_correct": null,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "17110879",
+      "provider": "qobuz--instance1",
+      "name": "Whole Lotta Love",
+      "version": "Remaster",
+      "sort_name": "whole lotta love",
+      "uri": "qobuz--instance1://track/17110879",
+      "external_ids": [
+        [
+          "isrc",
+          "USAT21207009"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "17110879",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 96000,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/17110879",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+            "provider": "qobuz--instance1",
+            "remotely_accessible": true,
+            "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+          }
+        ],
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": "© 1969 Atlantic Recording Corporation, a Warner Music Group Company ℗ 2012 Atlantic Records",
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "WILLIE DIXON, Writer",
+          "Led Zeppelin, MainArtist",
+          "Mort Shuman, Writer",
+          "Gene Pitney, Writer",
+          "Arthur Crudup, Writer",
+          "John Bonham, Band Member, Drums, Writer",
+          "Robert Plant, Band Member, Vocals, Writer",
+          "John Lee Hooker, Writer",
+          "Jimmy Page, Producer, Band Member, Guitar, Writer, Theremin",
+          "Bukka White, Writer",
+          "Bernie Besman, Writer",
+          "James Oden, Writer",
+          "Doc Pomus, Writer",
+          "John Paul Jones, Band Member, Guitar, Writer"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": null,
+      "duration": 334,
+      "artists": [
+        {
+          "item_id": "350774",
+          "provider": "qobuz--instance1",
+          "name": "Led Zeppelin",
+          "version": "",
+          "sort_name": "led zeppelin",
+          "uri": "qobuz--instance1://artist/350774",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "provider_mappings": [
+            {
+              "item_id": "350774",
+              "provider_domain": "qobuz",
+              "provider_instance": "qobuz--instance1",
+              "available": true,
+              "in_library": null,
+              "is_unique": null,
+              "audio_format": {
+                "content_type": "?",
+                "codec_type": "?",
+                "sample_rate": 44100,
+                "bit_depth": 16,
+                "channels": 2,
+                "output_format_str": "?",
+                "bit_rate": 0
+              },
+              "url": "https://open.qobuz.com/artist/350774",
+              "details": null
+            }
+          ],
+          "metadata": {
+            "description": null,
+            "description_language": null,
+            "life_span": null,
+            "artist_entity_type": null,
+            "review": null,
+            "explicit": null,
+            "images": null,
+            "grouping": null,
+            "genres": null,
+            "mood": null,
+            "style": null,
+            "copyright": null,
+            "lyrics": null,
+            "lrc_lyrics": null,
+            "transcript": null,
+            "transcript_cues": null,
+            "has_transcript": null,
+            "label": null,
+            "links": null,
+            "performers": null,
+            "preview": null,
+            "popularity": null,
+            "release_date": null,
+            "languages": null,
+            "chapters": null,
+            "collections": null,
+            "last_refresh": null
+          },
+          "favorite": false,
+          "position": null,
+          "date_added": null,
+          "artist_type": "singer"
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "0603497920099",
+        "provider": "qobuz--instance1",
+        "name": "Led Zeppelin II",
+        "version": "Remaster",
+        "sort_name": "led zeppelin ii",
+        "uri": "qobuz--instance1://album/0603497920099",
+        "external_ids": [
+          [
+            "barcode",
+            "0603497920099"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+        },
+        "year": 1969
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "3be7ac90b957498eaea571b522d5cd06",
+    "name": "Curtis Harding - Keep On Shining",
+    "duration": 201,
+    "sort_index": 2,
+    "streamdetails": null,
+    "media_item": {
+      "item_id": "77665697",
+      "provider": "qobuz--instance1",
+      "name": "Keep On Shining",
+      "version": "",
+      "sort_name": "keep on shining",
+      "uri": "qobuz--instance1://track/77665697",
+      "external_ids": [
+        [
+          "isrc",
+          "USA2B1400665"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "77665697",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 88200,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/77665697",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": null,
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": null,
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": 4,
+      "date_added": null,
+      "duration": 201,
+      "artists": [
+        {
+          "item_id": "412464",
+          "provider": "qobuz--instance1",
+          "name": "Curtis Harding",
+          "version": "",
+          "sort_name": "curtis harding",
+          "uri": "qobuz--instance1://artist/412464",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "y68jmkps2z16a",
+        "provider": "qobuz--instance1",
+        "name": "Soul Power",
+        "version": "",
+        "sort_name": "soul power",
+        "uri": "qobuz--instance1://album/y68jmkps2z16a",
+        "external_ids": [
+          [
+            "barcode",
+            "0045778739660"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/6a/z1/y68jmkps2z16a_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "91b865de0967cc481a21c9cb42db099ec512cdbb7aca15c8e4d38b1afb43bd6c"
+        },
+        "year": 2014
+      },
+      "disc_number": 1,
+      "track_number": 3,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/6a/z1/y68jmkps2z16a_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "91b865de0967cc481a21c9cb42db099ec512cdbb7aca15c8e4d38b1afb43bd6c"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "4a9f3a9fe7254e2fbd0f39f2dd1889e3",
+    "name": "Michael Jackson - Billie Jean (Single Version)",
+    "duration": 293,
+    "sort_index": 3,
+    "streamdetails": null,
+    "media_item": {
+      "item_id": "7400",
+      "provider": "qobuz--instance1",
+      "name": "Billie Jean",
+      "version": "Single Version",
+      "sort_name": "billie jean",
+      "uri": "qobuz--instance1://track/7400",
+      "external_ids": [
+        [
+          "isrc",
+          "USSM19902991"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "7400",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 176400,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/7400",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": null,
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": null,
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": 5,
+      "date_added": null,
+      "duration": 293,
+      "artists": [
+        {
+          "item_id": "50195",
+          "provider": "qobuz--instance1",
+          "name": "Michael Jackson",
+          "version": "",
+          "sort_name": "michael jackson",
+          "uri": "qobuz--instance1://artist/50195",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "0074643811224",
+        "provider": "qobuz--instance1",
+        "name": "Thriller",
+        "version": "",
+        "sort_name": "thriller",
+        "uri": "qobuz--instance1://album/0074643811224",
+        "external_ids": [
+          [
+            "barcode",
+            "0074643811224"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/24/12/0074643811224_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "60e1669eeadef3db239a5433d59fb1b74bcf8d35c88aa4b8878d2d7df0ab972e"
+        },
+        "year": 1982
+      },
+      "disc_number": 1,
+      "track_number": 6,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/24/12/0074643811224_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "60e1669eeadef3db239a5433d59fb1b74bcf8d35c88aa4b8878d2d7df0ab972e"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "d920b7f0ff964e22a1aa8a7ab7bc994a",
+    "name": "Leon Bridges - Coming Home",
+    "duration": 206,
+    "sort_index": 4,
+    "streamdetails": null,
+    "media_item": {
+      "item_id": "25189571",
+      "provider": "qobuz--instance1",
+      "name": "Coming Home",
+      "version": "",
+      "sort_name": "coming home",
+      "uri": "qobuz--instance1://track/25189571",
+      "external_ids": [
+        [
+          "isrc",
+          "USQX91500057"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "25189571",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 96000,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/25189571",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": null,
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": null,
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": 6,
+      "date_added": null,
+      "duration": 206,
+      "artists": [
+        {
+          "item_id": "2115226",
+          "provider": "qobuz--instance1",
+          "name": "Leon Bridges",
+          "version": "",
+          "sort_name": "leon bridges",
+          "uri": "qobuz--instance1://artist/2115226",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "0886445223897",
+        "provider": "qobuz--instance1",
+        "name": "Coming Home",
+        "version": "",
+        "sort_name": "coming home",
+        "uri": "qobuz--instance1://album/0886445223897",
+        "external_ids": [
+          [
+            "barcode",
+            "0886445223897"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/97/38/0886445223897_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "3102ca15c2251a7c8d8b2723416c2ff5df8b310d2d6407efbd7264a42a27b552"
+        },
+        "year": 2015
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/97/38/0886445223897_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "3102ca15c2251a7c8d8b2723416c2ff5df8b310d2d6407efbd7264a42a27b552"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "ca8aed5a8f0842bd9bcfe570112bb5f4",
+    "name": "Todd Terje - Johnny and Mary",
+    "duration": 392,
+    "sort_index": 5,
+    "streamdetails": null,
+    "media_item": {
+      "item_id": "173063968",
+      "provider": "qobuz--instance1",
+      "name": "Johnny and Mary",
+      "version": "",
+      "sort_name": "johnny and mary",
+      "uri": "qobuz--instance1://track/173063968",
+      "external_ids": [
+        [
+          "isrc",
+          "NOOLS1401070"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "173063968",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 16,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/173063968",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": null,
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": null,
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": null,
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": 7,
+      "date_added": null,
+      "duration": 392,
+      "artists": [
+        {
+          "item_id": "636809",
+          "provider": "qobuz--instance1",
+          "name": "Todd Terje",
+          "version": "",
+          "sort_name": "todd terje",
+          "uri": "qobuz--instance1://artist/636809",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "available": true,
+          "image": null,
+          "year": null
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "itr0ymba8fypa",
+        "provider": "qobuz--instance1",
+        "name": "It's Album Time",
+        "version": "",
+        "sort_name": "it's album time",
+        "uri": "qobuz--instance1://album/itr0ymba8fypa",
+        "external_ids": [
+          [
+            "barcode",
+            "5060186922560"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/pa/fy/itr0ymba8fypa_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "a7148144cd8276be05ff353e7d0293bd204356fa7b070e0e26dc85dcb94b0a4b"
+        },
+        "year": 2014
+      },
+      "disc_number": 1,
+      "track_number": 7,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/pa/fy/itr0ymba8fypa_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "a7148144cd8276be05ff353e7d0293bd204356fa7b070e0e26dc85dcb94b0a4b"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  }
+]

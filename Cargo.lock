@@ -793,6 +793,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "jukelight-adapter-music-assistant"
+version = "0.1.0"
+dependencies = [
+ "jukelight-application",
+ "jukelight-domain",
+ "regex",
+]
+
+[[package]]
 name = "jukelight-application"
 version = "0.1.0"
 dependencies = [

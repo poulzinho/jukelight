@@ -16,6 +16,7 @@ jukelight-adapter-bluos = { path = "crates/adapter-bluos" }
 jukelight-adapter-fake = { path = "crates/adapter-fake" }
 jukelight-adapter-artwork = { path = "crates/adapter-artwork" }
 jukelight-adapter-http = { path = "crates/adapter-http" }
+jukelight-adapter-music-assistant = { path = "crates/adapter-music-assistant" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

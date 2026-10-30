@@ -1,0 +1,259 @@
+{
+  "player_id": "aabbccddeeff",
+  "provider": "bluesound",
+  "type": "player",
+  "name": "Bluesound Node",
+  "available": true,
+  "device_info": {
+    "model": "N130",
+    "manufacturer": "BluOS",
+    "software_version": null,
+    "model_id": null,
+    "manufacturer_id": null,
+    "identifiers": {
+      "ip_address": "192.168.1.40",
+      "mac_address": "aabbccddeeff"
+    },
+    "mac_address": "aabbccddeeff",
+    "ip_address": "192.168.1.40"
+  },
+  "supported_features": [
+    "pause",
+    "volume_mute",
+    "volume_set",
+    "play_media",
+    "next_previous",
+    "set_members",
+    "select_source",
+    "seek"
+  ],
+  "playback_state": "playing",
+  "elapsed_time": 0.0,
+  "elapsed_time_last_updated": 1793395216.71606,
+  "powered": true,
+  "volume_level": 36,
+  "volume_muted": false,
+  "group_members": [],
+  "static_group_members": [],
+  "can_group_with": [
+    "00000000-0000-4000-8000-000000000001",
+    "ma_companion_00000000-0000-4000-8000-000000000002",
+    "upc71c762e",
+    "up1349d4bd"
+  ],
+  "synced_to": null,
+  "active_sound_mode": null,
+  "sound_mode_list": [],
+  "options": [],
+  "active_source": "aabbccddeeff",
+  "source_list": [
+    {
+      "id": "preset-1",
+      "name": "Preset 01: CD",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-2",
+      "name": "Preset 02: Spotify",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-3",
+      "name": "Preset 03: Bluetooth ",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:bluez:bluetooth",
+      "name": "Input: Bluetooth",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input2",
+      "name": "Input: HDMI ARC",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input1",
+      "name": "Input: Optical Input",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Spotify:play",
+      "name": "Input: Spotify",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "aabbccddeeff",
+      "name": "Music Assistant Queue",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": true,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    }
+  ],
+  "active_group": null,
+  "current_media": {
+    "uri": "qobuz--instance1://track/38574594",
+    "media_type": "track",
+    "title": "At the Purchaser's Option",
+    "artist": "Rhiannon Giddens",
+    "album": "Freedom Highway",
+    "album_artist": null,
+    "image_url": "http://192.168.1.50:8095/imageproxy/758336b4501c623d60d59b95283d571e9f3afe9caae600cb0b70bc9dc87f0f5a?size=512&fmt=jpg",
+    "palette": {
+      "background_dark": [
+        49,
+        49,
+        49
+      ],
+      "background_light": [
+        195,
+        195,
+        195
+      ],
+      "primary": [
+        195,
+        195,
+        195
+      ],
+      "accent": [
+        40,
+        42,
+        43
+      ],
+      "on_dark": [
+        195,
+        195,
+        195
+      ],
+      "on_light": [
+        40,
+        42,
+        43
+      ]
+    },
+    "duration": 256,
+    "stream_duration": null,
+    "source_id": "aabbccddeeff",
+    "queue_item_id": "7c1140aeeb0a406caabe358e9db966f1",
+    "custom_data": null,
+    "elapsed_time": 0,
+    "elapsed_time_last_updated": 1793395216.7183313
+  },
+  "enabled": true,
+  "hide_in_ui": false,
+  "private": false,
+  "expose_to_ha": true,
+  "icon": "speaker",
+  "group_volume": 36,
+  "group_volume_muted": false,
+  "extra_attributes": {},
+  "power_control": "none",
+  "volume_control": "native",
+  "mute_control": "native",
+  "output_protocols": [
+    {
+      "output_protocol_id": "native",
+      "name": "Bluesound",
+      "protocol_domain": "bluesound",
+      "is_native": true,
+      "priority": 0,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "apaabbccddeeff",
+      "name": "AirPlay",
+      "protocol_domain": "airplay",
+      "is_native": false,
+      "priority": 10,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "spb_aabbccddeeff",
+      "name": "Sendspin",
+      "protocol_domain": "sendspin",
+      "is_native": false,
+      "priority": 40,
+      "available": true,
+      "derived_from": "apaabbccddeeff"
+    }
+  ],
+  "active_output_protocol": "native",
+  "needs_setup": false,
+  "setup_reason": null,
+  "has_setup_flow": true,
+  "sleep_timer_expires_at": null,
+  "active_source_audio": null,
+  "display_name": "Bluesound Node",
+  "state": "playing",
+  "group_childs": [],
+  "extra_data": {},
+  "hide_player_in_ui": [
+    "when_unavailable",
+    "when_synced",
+    "when_group_active"
+  ]
+}

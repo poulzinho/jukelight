@@ -142,6 +142,7 @@ fn adapters_do_not_depend_on_each_other() {
         "jukelight-adapter-fake",
         "jukelight-adapter-artwork",
         "jukelight-adapter-http",
+        "jukelight-adapter-music-assistant",
     ] {
         let others: Vec<_> = graph
             .reachable(adapter)

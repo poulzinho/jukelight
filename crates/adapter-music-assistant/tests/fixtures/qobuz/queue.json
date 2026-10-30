@@ -1,0 +1,569 @@
+{
+  "queue_id": "aabbccddeeff",
+  "active": true,
+  "display_name": "Bluesound Node",
+  "available": true,
+  "items": 104,
+  "shuffle_enabled": false,
+  "repeat_mode": "off",
+  "crossfade_enabled": false,
+  "autoplay_enabled": false,
+  "overlay_enabled": false,
+  "overlay_source": null,
+  "overlay_volume": 100,
+  "smart_fades_active": false,
+  "smart_shuffle_active": false,
+  "current_index": 0,
+  "index_in_buffer": 0,
+  "ended": false,
+  "elapsed_time": 0.7580947875976562,
+  "elapsed_time_last_updated": 1793395217.4742038,
+  "playback_speed": 1.0,
+  "state": "playing",
+  "current_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "7c1140aeeb0a406caabe358e9db966f1",
+    "name": "Rhiannon Giddens - At the Purchaser's Option",
+    "duration": 256,
+    "sort_index": 0,
+    "streamdetails": {
+      "provider": "qobuz--instance1",
+      "item_id": "38574594",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "flac",
+        "sample_rate": 88200,
+        "bit_depth": 24,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 255,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": {
+        "input_fidelity": {
+          "quality": "hi_res",
+          "bit_perfect": null
+        },
+        "queue_processing": {
+          "pcm_format": {
+            "content_type": "f32le",
+            "codec_type": "?",
+            "sample_rate": 88200,
+            "bit_depth": 32,
+            "channels": 2,
+            "output_format_str": "pcm;codec=pcm;rate=88200;bitrate=32;channels=2",
+            "bit_rate": 0
+          },
+          "normalization": {
+            "mode": "measurement_only",
+            "measurement_source": "track",
+            "target_lufs": -14.0,
+            "measured_lufs": -13.2,
+            "applied_gain_db": -0.8
+          },
+          "playback_speed": 1.0,
+          "crossfade_mode": "disabled",
+          "overlay_active": false
+        },
+        "outputs": [
+          {
+            "player_ids": [
+              "aabbccddeeff"
+            ],
+            "dsp": {
+              "state": "disabled",
+              "input_gain": 0.0,
+              "filters": [],
+              "output_gain": 0.0,
+              "preset_id": null
+            },
+            "source_channel": null,
+            "output_format": {
+              "content_type": "flac",
+              "codec_type": "?",
+              "sample_rate": 88200,
+              "bit_depth": 24,
+              "channels": 2,
+              "output_format_str": "flac",
+              "bit_rate": 3162
+            },
+            "fidelity": {
+              "quality": "hi_res",
+              "bit_perfect": false
+            }
+          }
+        ]
+      },
+      "loudness": -13.2,
+      "loudness_album": null,
+      "prefer_album_loudness": false,
+      "volume_normalization_mode": "measurement_only",
+      "volume_normalization_gain_correct": -0.8,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "38574594",
+      "provider": "qobuz--instance1",
+      "name": "At the Purchaser's Option",
+      "version": "",
+      "sort_name": "at the purchaser's option",
+      "uri": "qobuz--instance1://track/38574594",
+      "external_ids": [
+        [
+          "isrc",
+          "USNO11601040"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "38574594",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 88200,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/38574594",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "https://static.qobuz.com/images/covers/83/95/0075597939583_600.jpg",
+            "provider": "qobuz--instance1",
+            "remotely_accessible": true,
+            "proxy_id": "758336b4501c623d60d59b95283d571e9f3afe9caae600cb0b70bc9dc87f0f5a"
+          }
+        ],
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": "℗ 2017 Nonesuch Records Inc.",
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "Malcolm Parson, Cello",
+          "Producer",
+          "Hubby Jenkins, Mandolin",
+          "Dirk Powell, Bells, Mandolin, Electric Guitar, Co",
+          "Jason Sypher, Bass",
+          "Jamie Dick, Drums",
+          "Rhiannon Giddens, MainArtist, Banjo, Co",
+          "Joey Ryan, Lyricist",
+          "Producer, Lead Vocals, Lyricist, Writer"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": null,
+      "duration": 256,
+      "artists": [
+        {
+          "item_id": "513184",
+          "provider": "qobuz--instance1",
+          "name": "Rhiannon Giddens",
+          "version": "",
+          "sort_name": "rhiannon giddens",
+          "uri": "qobuz--instance1://artist/513184",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "provider_mappings": [
+            {
+              "item_id": "513184",
+              "provider_domain": "qobuz",
+              "provider_instance": "qobuz--instance1",
+              "available": true,
+              "in_library": null,
+              "is_unique": null,
+              "audio_format": {
+                "content_type": "?",
+                "codec_type": "?",
+                "sample_rate": 44100,
+                "bit_depth": 16,
+                "channels": 2,
+                "output_format_str": "?",
+                "bit_rate": 0
+              },
+              "url": "https://open.qobuz.com/artist/513184",
+              "details": null
+            }
+          ],
+          "metadata": {
+            "description": null,
+            "description_language": null,
+            "life_span": null,
+            "artist_entity_type": null,
+            "review": null,
+            "explicit": null,
+            "images": null,
+            "grouping": null,
+            "genres": null,
+            "mood": null,
+            "style": null,
+            "copyright": null,
+            "lyrics": null,
+            "lrc_lyrics": null,
+            "transcript": null,
+            "transcript_cues": null,
+            "has_transcript": null,
+            "label": null,
+            "links": null,
+            "performers": null,
+            "preview": null,
+            "popularity": null,
+            "release_date": null,
+            "languages": null,
+            "chapters": null,
+            "collections": null,
+            "last_refresh": null
+          },
+          "favorite": false,
+          "position": null,
+          "date_added": null,
+          "artist_type": "singer"
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "0075597939583",
+        "provider": "qobuz--instance1",
+        "name": "Freedom Highway",
+        "version": "",
+        "sort_name": "freedom highway",
+        "uri": "qobuz--instance1://album/0075597939583",
+        "external_ids": [
+          [
+            "barcode",
+            "0075597939583"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/83/95/0075597939583_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "758336b4501c623d60d59b95283d571e9f3afe9caae600cb0b70bc9dc87f0f5a"
+        },
+        "year": 2017
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": {
+        "bpm": 70.49219152236665,
+        "musical_key": "C minor"
+      }
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/83/95/0075597939583_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "758336b4501c623d60d59b95283d571e9f3afe9caae600cb0b70bc9dc87f0f5a"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "next_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "32e38d1a8955433db56a3223d5cf3194",
+    "name": "Led Zeppelin - Whole Lotta Love (Remaster)",
+    "duration": 334,
+    "sort_index": 1,
+    "streamdetails": {
+      "provider": "qobuz--instance1",
+      "item_id": "17110879",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "?",
+        "sample_rate": 96000,
+        "bit_depth": 24,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 334,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": null,
+      "loudness": null,
+      "loudness_album": null,
+      "prefer_album_loudness": false,
+      "volume_normalization_mode": "dynamic",
+      "volume_normalization_gain_correct": null,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "17110879",
+      "provider": "qobuz--instance1",
+      "name": "Whole Lotta Love",
+      "version": "Remaster",
+      "sort_name": "whole lotta love",
+      "uri": "qobuz--instance1://track/17110879",
+      "external_ids": [
+        [
+          "isrc",
+          "USAT21207009"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "17110879",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--instance1",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 96000,
+            "bit_depth": 24,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/17110879",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+            "provider": "qobuz--instance1",
+            "remotely_accessible": true,
+            "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+          }
+        ],
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": "© 1969 Atlantic Recording Corporation, a Warner Music Group Company ℗ 2012 Atlantic Records",
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "WILLIE DIXON, Writer",
+          "Led Zeppelin, MainArtist",
+          "Mort Shuman, Writer",
+          "Gene Pitney, Writer",
+          "Arthur Crudup, Writer",
+          "John Bonham, Band Member, Drums, Writer",
+          "Robert Plant, Band Member, Vocals, Writer",
+          "John Lee Hooker, Writer",
+          "Jimmy Page, Producer, Band Member, Guitar, Writer, Theremin",
+          "Bukka White, Writer",
+          "Bernie Besman, Writer",
+          "James Oden, Writer",
+          "Doc Pomus, Writer",
+          "John Paul Jones, Band Member, Guitar, Writer"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": null,
+      "duration": 334,
+      "artists": [
+        {
+          "item_id": "350774",
+          "provider": "qobuz--instance1",
+          "name": "Led Zeppelin",
+          "version": "",
+          "sort_name": "led zeppelin",
+          "uri": "qobuz--instance1://artist/350774",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "provider_mappings": [
+            {
+              "item_id": "350774",
+              "provider_domain": "qobuz",
+              "provider_instance": "qobuz--instance1",
+              "available": true,
+              "in_library": null,
+              "is_unique": null,
+              "audio_format": {
+                "content_type": "?",
+                "codec_type": "?",
+                "sample_rate": 44100,
+                "bit_depth": 16,
+                "channels": 2,
+                "output_format_str": "?",
+                "bit_rate": 0
+              },
+              "url": "https://open.qobuz.com/artist/350774",
+              "details": null
+            }
+          ],
+          "metadata": {
+            "description": null,
+            "description_language": null,
+            "life_span": null,
+            "artist_entity_type": null,
+            "review": null,
+            "explicit": null,
+            "images": null,
+            "grouping": null,
+            "genres": null,
+            "mood": null,
+            "style": null,
+            "copyright": null,
+            "lyrics": null,
+            "lrc_lyrics": null,
+            "transcript": null,
+            "transcript_cues": null,
+            "has_transcript": null,
+            "label": null,
+            "links": null,
+            "performers": null,
+            "preview": null,
+            "popularity": null,
+            "release_date": null,
+            "languages": null,
+            "chapters": null,
+            "collections": null,
+            "last_refresh": null
+          },
+          "favorite": false,
+          "position": null,
+          "date_added": null,
+          "artist_type": "singer"
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "0603497920099",
+        "provider": "qobuz--instance1",
+        "name": "Led Zeppelin II",
+        "version": "Remaster",
+        "sort_name": "led zeppelin ii",
+        "uri": "qobuz--instance1://album/0603497920099",
+        "external_ids": [
+          [
+            "barcode",
+            "0603497920099"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+          "provider": "qobuz--instance1",
+          "remotely_accessible": true,
+          "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+        },
+        "year": 1969
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": null
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/99/00/0603497920099_600.jpg",
+      "provider": "qobuz--instance1",
+      "remotely_accessible": true,
+      "proxy_id": "e1e69c23e70d03b5c780cf328124b3e4de4559dbc8719321d9beb7225aefc051"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "sources": [
+    {
+      "item_id": "10",
+      "provider": "library",
+      "name": "An Introduction to Qobuz",
+      "version": "",
+      "sort_name": "introduction to qobuz, an",
+      "uri": "library://playlist/10",
+      "external_ids": [],
+      "is_playable": true,
+      "media_type": "playlist",
+      "available": true,
+      "image": {
+        "type": "thumb",
+        "path": "https://static.qobuz.com/images/covers/24/12/0074643811224_300.jpg",
+        "provider": "qobuz--instance1",
+        "remotely_accessible": true,
+        "proxy_id": "e31193ed9c25f12296631a1ef524fb4efcb1ea6b2a0707708b7c5d0cf8cf1e61"
+      },
+      "year": null
+    }
+  ],
+  "flow_mode": true,
+  "resume_pos": 0,
+  "is_dynamic": false,
+  "extra_attributes": {
+    "play_action_in_progress": false
+  },
+  "dont_stop_the_music_enabled": false,
+  "radio_source": []
+}
