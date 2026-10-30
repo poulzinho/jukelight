@@ -10,17 +10,18 @@ use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, DeviceMonitor};
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, PlaybackState,
-    Position, QueueEntry, QueueView, Track,
+    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, Palette, PlaybackState,
+    Position, QueueEntry, QueueView, Rgb, Track,
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 8] = [
+pub const SCENARIOS: [&str; 9] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
     "no-artwork",
     "hi-res",
+    "album-colours",
     "paused",
     "stopped",
     "offline",
@@ -173,6 +174,13 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 sample_rate_hz: 96_000,
             }));
             content.artwork = Some(cover("Hi-Res Album", 30));
+        }
+        ("album-colours", Some(content)) => {
+            content.artwork = Some(cover("Colour Album", 20));
+            content.palette = Some(Palette {
+                background: Rgb(73, 51, 38),
+                accent: Rgb(209, 147, 108),
+            });
         }
         ("paused", _) => snapshot.state = PlaybackState::Paused,
         ("stopped", _) => snapshot.state = PlaybackState::Stopped,
