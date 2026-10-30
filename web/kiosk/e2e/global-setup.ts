@@ -37,8 +37,15 @@ export default async function globalSetup(): Promise<() => void> {
       stdio: 'inherit',
     }),
   )
-  await Promise.all(SCENARIOS.map((scenario) => waitForBackend(portFor(scenario))))
-  return () => {
+  const stopAll = () => {
     for (const child of processes) child.kill()
   }
+  try {
+    await Promise.all(SCENARIOS.map((scenario) => waitForBackend(portFor(scenario))))
+  } catch (error) {
+    // Without this, backends that did start would keep holding their ports.
+    stopAll()
+    throw error
+  }
+  return stopAll
 }
