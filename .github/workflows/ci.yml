@@ -46,6 +46,15 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  shell:
+    name: Shell (shellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # shellcheck is preinstalled on GitHub's Ubuntu runners.
+      - run: shellcheck --version
+      - run: shellcheck host/display-agent/jukelight-display-agent
+
   e2e:
     name: End to end (screenshots, landscape and portrait)
     runs-on: ubuntu-latest
