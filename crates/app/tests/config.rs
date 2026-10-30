@@ -172,3 +172,39 @@ mod music_assistant {
         }
     }
 }
+
+mod display_grace_period {
+    use std::time::Duration;
+
+    use super::*;
+
+    #[test]
+    fn ten_minutes_by_default() {
+        let config = parse(&[("BLUOS_HOST", "192.168.1.40")]).unwrap();
+        assert_eq!(config.display_grace, Duration::from_secs(600));
+    }
+
+    #[test]
+    fn whole_minutes_from_0_to_1440() {
+        for (value, minutes) in [("0", 0), ("3", 3), ("1440", 1440)] {
+            let config = parse(&[
+                ("BLUOS_HOST", "192.168.1.40"),
+                ("DISPLAY_GRACE_MINUTES", value),
+            ])
+            .unwrap();
+            assert_eq!(config.display_grace, Duration::from_secs(minutes * 60));
+        }
+    }
+
+    #[test]
+    fn invalid_values_name_the_variable() {
+        for value in ["1441", "-1", "2.5", "ten"] {
+            let error = parse(&[
+                ("BLUOS_HOST", "192.168.1.40"),
+                ("DISPLAY_GRACE_MINUTES", value),
+            ])
+            .unwrap_err();
+            assert!(error.contains("DISPLAY_GRACE_MINUTES"), "{error}");
+        }
+    }
+}
