@@ -111,3 +111,29 @@ test('the API sends a Date header for the clock offset', async ({ request }) => 
   const response = await request.get(`http://127.0.0.1:${portFor('playing-with-queue')}/api/v1/player`)
   expect(response.headers()['date']).toBeTruthy()
 })
+
+// Spec: kiosk-display, "Reduced motion".
+async function motion(page: Page) {
+  await open(page, 'playing-with-queue')
+  const animation = await page
+    .getByRole('main')
+    .evaluate((element) => getComputedStyle(element).animationName)
+  const transition = await page
+    .getByRole('progressbar')
+    .locator('div')
+    .evaluate((element) => getComputedStyle(element).transitionDuration)
+  return { animation, transition }
+}
+
+test('reduced motion switches states without transitions', async ({ page }) => {
+  // The project runs with reducedMotion: 'reduce'.
+  expect(await motion(page)).toEqual({ animation: 'none', transition: '0s' })
+})
+
+test.describe('without reduced motion', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('states fade and progress moves smoothly', async ({ page }) => {
+    expect(await motion(page)).toEqual({ animation: 'fade-in', transition: '0.3s' })
+  })
+})
