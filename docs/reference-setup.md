@@ -125,6 +125,10 @@ sudo usermod -aG docker "$USER"     # log out and in again to apply
 sudo systemctl enable --now docker
 ```
 
+Membership of `docker` is as powerful as root (see
+[Who logs in where](#who-logs-in-where)): add only your own account, never
+the kiosk user.
+
 **Google Chrome**, from Google's package (it also adds Google's apt
 repository, so Chrome updates with the system):
 
@@ -298,7 +302,44 @@ id kiosk
 ```
 
 Keep it that way: no password, no `sudo` or `docker` group, no `bindsym`
-lines in its sway configuration.
+lines in its sway configuration. Why:
+
+- **No password:** nobody can log in as `kiosk` with a password, on a
+  console or over SSH. The kiosk session does not need one: the service
+  starts it.
+- **No `sudo` or `docker`:** the kiosk runs a browser that shows a web page;
+  if that browser were ever compromised, the attacker would hold only the
+  kiosk user's rights. `docker` would give them the whole host (see below).
+- **`video` and `render` only:** `render` gives Chrome the GPU for hardware
+  rendering; `video` gives access to the display devices.
+- **No key bindings:** someone at the host's keyboard cannot open a terminal
+  or quit sway.
+
+Two more steps close what a locked password leaves open:
+
+```sh
+# No login shell: the account cannot be used to log in interactively at all.
+sudo usermod -s /usr/sbin/nologin kiosk
+# SSH refuses the kiosk user even with a key.
+echo 'DenyUsers kiosk' | sudo tee /etc/ssh/sshd_config.d/jukelight.conf
+sudo sshd -t && sudo systemctl reload ssh
+sudo systemctl restart jukelight-kiosk     # the kiosk still starts
+```
+
+- **Login shell:** a locked password stops password logins, but not other
+  ways in, such as an SSH key someone adds to `/home/kiosk/.ssh`. Without a
+  login shell there is nothing to log in to. The kiosk does not need one:
+  the service starts sway directly, and sway's `exec` lines run `sh`
+  explicitly.
+- **`DenyUsers`:** Ubuntu's SSH server accepts key logins for accounts with
+  a locked password. `DenyUsers kiosk` makes it refuse the kiosk user
+  whatever the credentials. `sshd -t` checks the configuration before the
+  reload, so a typo cannot lock you out.
+
+**Your own account** is effectively root: members of the `docker` group can
+start a container with access to the whole host. Protect it like a root
+account: SSH keys only (`PasswordAuthentication no` in the SSH server's
+configuration) and a password nobody else knows.
 
 ## Monitor settings
 
