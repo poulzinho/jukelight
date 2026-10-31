@@ -435,4 +435,4 @@ Recorded on the reference host.
 | Docker Engine | 29.9.0 |
 | Docker Compose | v5.6.0 |
 | Mesa | 26.0.8 (`libgl1-mesa-dri` 26.0.8-1ubuntu0.3) |
-| BluOS player firmware | (to record) |
+| BluOS player firmware | 4.18.18 (Bluesound Node) |
