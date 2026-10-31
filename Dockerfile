@@ -41,7 +41,6 @@ RUN apt-get update \
 COPY --from=builder /src/target/release/jukelight /usr/local/bin/jukelight
 USER jukelight
 ENV HTTP_PORT=8080
-EXPOSE 8080
 # No curl in the image: a plain HTTP request through bash.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/${HTTP_PORT} && printf 'GET /api/v1/player HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"]

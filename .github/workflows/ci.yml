@@ -98,5 +98,14 @@ jobs:
         with:
           context: .
           push: false
+          load: true
+          tags: jukelight:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # The port is published from HTTP_PORT by docker-compose.yml; a port
+      # declared in the image would be wrong for every other HTTP_PORT.
+      - name: The image declares no port
+        run: |
+          ports=$(docker image inspect --format '{{json .Config.ExposedPorts}}' jukelight:ci)
+          echo "declared ports: $ports"
+          test "$ports" = "null"
