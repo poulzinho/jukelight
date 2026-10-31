@@ -429,10 +429,10 @@ Recorded on the reference host.
 | Component | Version |
 | --- | --- |
 | Ubuntu Server | 26.04 LTS |
-| Kernel | (to record) |
-| sway | (to record) |
-| Google Chrome | (to record) |
+| Kernel | 7.0.0-38-generic |
+| sway | 1.11 |
+| Google Chrome | 156.0.8078.79 |
 | Docker Engine | 29.9.0 |
 | Docker Compose | v5.6.0 |
-| Mesa | (to record) |
+| Mesa | 26.0.8 (`libgl1-mesa-dri` 26.0.8-1ubuntu0.3) |
 | BluOS player firmware | (to record) |
