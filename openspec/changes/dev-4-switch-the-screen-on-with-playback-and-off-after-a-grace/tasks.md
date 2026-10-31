@@ -7,9 +7,9 @@
 
 ## 2. Layer 2 (DEV-15): display stream and configuration
 
-- [ ] 2.1 Write failing HTTP tests for the display stream ("Connect", "Decision changes", "Heartbeat", "Shutdown"), then add `GET /api/v1/display` until they pass
-- [ ] 2.2 Write failing configuration tests for `DISPLAY_GRACE_MINUTES` (default 10, 0 to 1440, invalid values name the variable), then implement it and wire the display controller into `app`; check with the fake device that `/api/v1/display` sends `on` and, with a grace period of 0 and the `paused` scenario, `off`
-- [ ] 2.3 Add `DISPLAY_GRACE_MINUTES` to `.env.example` and the README configuration table
+- [x] 2.1 Write failing HTTP tests for the display stream ("Connect", "Decision changes", "Heartbeat", "Shutdown"), then add `GET /api/v1/display` until they pass
+- [x] 2.2 Write failing configuration tests for `DISPLAY_GRACE_MINUTES` (default 10, 0 to 1440, invalid values name the variable), then implement it and wire the display controller into `app`; check with the fake device that `/api/v1/display` sends `on` and, with a grace period of 0 and the `paused` scenario, `off`
+- [x] 2.3 Add `DISPLAY_GRACE_MINUTES` to `.env.example` and the README configuration table
 - [ ] 2.4 Verify the layer as in 1.3; open the layer's pull request on top of layer 1 and verify CI is green
 
 ## 3. Layer 3 (DEV-16): display agent

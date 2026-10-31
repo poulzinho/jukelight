@@ -9,7 +9,10 @@ use jukelight_adapter_bluos::{BluosConfig, BluosMonitor};
 use jukelight_adapter_fake::FakeDevice;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
 use jukelight_adapter_music_assistant::{MusicAssistantProvider, UrlError};
-use jukelight_application::{Clock, DeviceMonitor, PlayerMonitor, SessionProvider, SystemClock};
+use jukelight_application::{
+    Clock, DeviceMonitor, DisplayController, PlayerMonitor, SessionProvider, SystemClock,
+};
+use jukelight_domain::DisplayPolicy;
 
 use crate::config::{Config, DeviceConfig};
 
@@ -57,11 +60,15 @@ pub async fn run(config: Config) -> Result<(), RunError> {
 
     let monitor = PlayerMonitor::new(providers);
     let player = monitor.handle();
+    let display = DisplayController::new(DisplayPolicy::new(config.display_grace));
+    let display_handle = display.handle();
+    tokio::spawn(display.run(player.subscribe_published()));
     tokio::spawn(monitor.run(device));
 
     let (stop, shutdown) = tokio::sync::watch::channel(false);
     let app = router_with_shutdown(
         player,
+        display_handle,
         Arc::new(ArtworkProxy::new()),
         &HttpConfig::default(),
         shutdown,

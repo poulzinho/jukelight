@@ -36,6 +36,7 @@ Set these in `.env` (see `.env.example`):
 | `BLUOS_PORT` | no | `11000` | The player's API port |
 | `HTTP_PORT` | no | `8080` | Port for the kiosk and the API |
 | `LOG_LEVEL` | no | `info` | `trace`, `debug`, `info`, `warn` or `error` |
+| `DISPLAY_GRACE_MINUTES` | no | `10` | Minutes the screen stays on after playback stops (0 to 1440). Needs the display agent on the host, see [docs/reference-setup.md](docs/reference-setup.md) |
 | `JUKELIGHT_DEVICE` | no | | `fake:<scenario>` runs without a player (see below) |
 | `MA_URL` | no | | Music Assistant's address, e.g. `http://192.168.1.50:8095` |
 | `MA_TOKEN` | with `MA_URL` | | A long-lived Music Assistant token |

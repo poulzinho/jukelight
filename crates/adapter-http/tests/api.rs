@@ -12,7 +12,9 @@ use futures::FutureExt;
 use futures::future::BoxFuture;
 use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
-use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, Image, PlayerMonitor};
+use jukelight_application::{
+    ArtworkError, ArtworkId, ArtworkSource, DisplayController, DisplayHandle, Image, PlayerMonitor,
+};
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, Palette, PlaybackState,
     Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
@@ -92,11 +94,19 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
     }
 }
 
+/// A display decision that stays on; the display stream has its own tests.
+fn display() -> DisplayHandle {
+    DisplayController::new(jukelight_domain::DisplayPolicy::new(Duration::from_secs(
+        600,
+    )))
+    .handle()
+}
+
 fn app(monitor: &PlayerMonitor) -> Router {
     let config = HttpConfig {
         keep_alive: Duration::from_millis(100),
     };
-    router(monitor.handle(), Arc::new(TestArtwork), &config)
+    router(monitor.handle(), display(), Arc::new(TestArtwork), &config)
 }
 
 async fn get(app: &Router, path: &str) -> (StatusCode, Vec<u8>, Option<String>) {
@@ -390,7 +400,13 @@ async fn shutdown_ends_live_streams() {
     let config = HttpConfig {
         keep_alive: Duration::from_millis(100),
     };
-    let app = router_with_shutdown(monitor.handle(), Arc::new(TestArtwork), &config, shutdown);
+    let app = router_with_shutdown(
+        monitor.handle(),
+        display(),
+        Arc::new(TestArtwork),
+        &config,
+        shutdown,
+    );
     let mut body = open_events(&app).await;
     let _ = read_events(&mut body, Duration::from_millis(50)).await;
 

@@ -1,5 +1,6 @@
-//! HTTP adapter: the published API (v1), live updates over Server-Sent
-//! Events, the artwork proxy endpoint, and the embedded kiosk.
+//! HTTP adapter: the published API (v1), live updates and display decisions
+//! over Server-Sent Events, the artwork proxy endpoint, and the embedded
+//! kiosk.
 
 mod dto;
 
@@ -15,7 +16,8 @@ use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::response::{IntoResponse, Json, Response};
 use axum::routing::get;
 use futures::{Stream, StreamExt, stream};
-use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, PlayerHandle};
+use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, DisplayHandle, PlayerHandle};
+use jukelight_domain::DisplayPower;
 use rust_embed::RustEmbed;
 use tokio::sync::watch;
 use tokio_stream::wrappers::WatchStream;
@@ -39,6 +41,7 @@ impl Default for HttpConfig {
 #[derive(Clone)]
 struct AppState {
     player: PlayerHandle,
+    display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
     keep_alive: Duration,
     shutdown: watch::Receiver<bool>,
@@ -52,23 +55,26 @@ struct Kiosk;
 /// The router without a shutdown signal: live streams run until clients leave.
 pub fn router(
     player: PlayerHandle,
+    display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
     config: &HttpConfig,
 ) -> Router {
     let (_, never) = watch::channel(false);
-    router_with_shutdown(player, artwork, config, never)
+    router_with_shutdown(player, display, artwork, config, never)
 }
 
 /// The router; setting `shutdown` to `true` ends every live event stream, so a
 /// graceful shutdown does not wait for kiosks that never disconnect.
 pub fn router_with_shutdown(
     player: PlayerHandle,
+    display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
     config: &HttpConfig,
     shutdown: watch::Receiver<bool>,
 ) -> Router {
     let state = AppState {
         player,
+        display,
         artwork,
         keep_alive: config.keep_alive,
         shutdown,
@@ -76,6 +82,7 @@ pub fn router_with_shutdown(
     Router::new()
         .route("/api/v1/player", get(player_snapshot))
         .route("/api/v1/player/events", get(player_events))
+        .route("/api/v1/display", get(display_events))
         .route("/api/v1/art/{id}", get(artwork_image))
         .route("/api/{*rest}", get(|| async { StatusCode::NOT_FOUND }))
         .fallback(get(kiosk))
@@ -102,6 +109,23 @@ async fn player_events(
         futures::future::ready(event.ok().map(Ok))
     });
     let events = events.take_until(shutdown_requested(state.shutdown));
+    Sse::new(events).keep_alive(KeepAlive::new().interval(state.keep_alive))
+}
+
+/// The current display decision first, then every new one, as `display`
+/// events with the data `on` or `off`.
+async fn display_events(
+    State(state): State<AppState>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    let events = WatchStream::new(state.display.subscribe())
+        .map(|power| {
+            let data = match power {
+                DisplayPower::On => "on",
+                DisplayPower::Off => "off",
+            };
+            Ok(Event::default().event("display").data(data))
+        })
+        .take_until(shutdown_requested(state.shutdown));
     Sse::new(events).keep_alive(KeepAlive::new().interval(state.keep_alive))
 }
 
