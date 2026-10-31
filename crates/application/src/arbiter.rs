@@ -76,7 +76,7 @@ fn origin_label(origin: &Origin) -> String {
 fn input_label(kind: InputKind) -> &'static str {
     match kind {
         InputKind::Optical => "Optical input",
-        InputKind::Analog => "Analog input",
+        InputKind::Analog => "Analogue input",
         InputKind::HdmiArc => "HDMI ARC",
         InputKind::Other => "Input",
     }

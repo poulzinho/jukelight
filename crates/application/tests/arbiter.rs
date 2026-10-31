@@ -195,7 +195,7 @@ fn optical_input() {
 #[test]
 fn input_kind_labels() {
     for (kind, label) in [
-        (InputKind::Analog, "Analog input"),
+        (InputKind::Analog, "Analogue input"),
         (InputKind::HdmiArc, "HDMI ARC"),
         (InputKind::Other, "Input"),
     ] {

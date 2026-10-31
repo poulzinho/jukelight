@@ -4,7 +4,7 @@
 When no session provider claims the origin, the snapshot SHALL use the
 content the device reports. The session label SHALL be the service name for
 a service origin, "Stream" for a stream origin, the input's kind for an
-input origin ("Optical input", "Analog input", "HDMI ARC", "Input"), and
+input origin ("Optical input", "Analogue input", "HDMI ARC", "Input"), and
 empty when there is no origin. For an input origin the snapshot SHALL carry
 the input.
 

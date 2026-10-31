@@ -40,7 +40,7 @@ name: String, started_at: Option<Timestamp> }` (`None` while waiting for a
 signal) and `InputKind { Optical, Analog,
 HdmiArc, Other }`. The device reports no content for an input. The player
 snapshot gains `input: Option<AudioInput>`, set by the arbiter for an input
-origin; the session label is the kind's label ("Optical input", "Analog
+origin; the session label is the kind's label ("Optical input", "Analogue
 input", "HDMI ARC", "Input").
 
 - Alternative: keep a service origin and fill `Content` with the input's

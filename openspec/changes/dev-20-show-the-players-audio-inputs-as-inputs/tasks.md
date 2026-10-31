@@ -4,8 +4,9 @@
 - [x] 1.2 Write failing domain tests for the display policy's input time limit ("Within the input time limit", "Past the limit and the grace period", a limit of 0), then extend `DisplayPolicy` until they pass
 - [x] 1.3 Write a failing arbiter test for "Optical input" (label "Optical input", input carried, no track) and the other kind labels, then implement them
 - [x] 1.4 Write failing display controller tests with tokio's paused time and a fixed clock ("Within the input time limit", "Past the limit and the grace period", "Input selected again", "Another source"), then give the controller the `Clock` port and the input limit until they pass; keep the existing controller tests passing
-- [x] 1.6 Finding from recording the reference player (task 2.1): `secs` counts from when the signal starts, and `connecting` means waiting for a signal. Rename the input's selection time to `started_at` (optional, none while waiting), count a waiting input as not playing, and adapt the tests ("Signal arrives", "Start time jitter", "Waiting for a signal", "Signal starts again")
 - [ ] 1.5 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, the architecture test, and kiosk lint, typecheck and tests; open the layer's pull request and verify CI is green
+- [x] 1.6 Finding from recording the reference player (task 2.1): `secs` counts from when the signal starts, and `connecting` means waiting for a signal. Rename the input's selection time to `started_at` (optional, none while waiting), count a waiting input as not playing, and adapt the tests ("Signal arrives", "Start time jitter", "Waiting for a signal", "Signal starts again")
+- [x] 1.7 Review feedback (PR #14): British spelling for the analogue input's label ("Analogue input"); the identifiers (`InputKind::Analog`, API `analog`) stay
 
 ## 2. Layer 2 (DEV-23): BluOS audio inputs
 
