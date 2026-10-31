@@ -119,6 +119,26 @@ into the systemd user environment and starts the agent:
 - Alternative: search `/run/user/<uid>/sway-ipc.*.sock` in the script.
   Rejected: guessing breaks with several sessions; importing is explicit.
 
+### 7a. Kiosk session: a system service instead of auto-login
+
+Decided during the reference host setup (layer 4). A system unit
+`jukelight-kiosk.service` runs sway as the `kiosk` user on tty1 with a
+proper login session (`PAMName=login`, `TTYPath=/dev/tty1`), without a
+login prompt or a shell, and restarts it if it exits
+(`Restart=always`). It replaces the getty auto-login and the `.profile`
+snippet in `docs/reference-setup.md`. The display agent's user service
+and `loginctl enable-linger kiosk` stay as they are.
+
+- Alternative: getty auto-login on tty1 with `exec sway` in `.profile`
+  (the original reference setup). Rejected: a shell session sits under
+  the kiosk, a missing or crashing sway falls back to a shell or loops,
+  and nothing restarts sway.
+- Alternative: a login manager with auto-login (greetd, LightDM, GDM).
+  Rejected: an extra component that does the same, configured elsewhere.
+- Alternative: Ubuntu Frame (snaps). Rejected: a different browser and
+  no `swaymsg`, so the display agent would need another way to switch
+  the monitor.
+
 ### 7. Testing the agent in CI
 
 A Rust integration test in the `app` crate starts a local SSE test server,
