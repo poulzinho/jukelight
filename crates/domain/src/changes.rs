@@ -15,8 +15,8 @@ pub enum PlayerEvent {
     },
     QueueChanged,
     PositionResynced,
-    /// An input appeared or went away, or its kind, name or selection time
-    /// changed.
+    /// An input appeared or went away, its kind or name changed, its signal
+    /// started, or its start time moved.
     InputChanged,
     PlayerWentOffline,
     PlayerCameOnline,

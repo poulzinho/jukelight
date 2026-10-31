@@ -7,11 +7,12 @@
 - [ ] 1.5 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, the architecture test, and kiosk lint, typecheck and tests; open the layer's pull request and verify CI is green
 - [x] 1.6 Finding from recording the reference player (task 2.1): `secs` counts from when the signal starts, and `connecting` means waiting for a signal. Rename the input's selection time to `started_at` (optional, none while waiting), count a waiting input as not playing, and adapt the tests ("Signal arrives", "Start time jitter", "Waiting for a signal", "Signal starts again")
 - [x] 1.7 Review feedback (PR #14): British spelling for the analogue input's label ("Analogue input"); the identifiers (`InputKind::Analog`, API `analog`) stay
+- [x] 1.8 Review feedback (PR #14): the `InputChanged` doc comment and task 2.2 still said "selection time"; they now say the start of the input's signal
 
 ## 2. Layer 2 (DEV-23): BluOS audio inputs
 
 - [ ] 2.1 Record `/Status` and `/Playlist` from the reference player while the optical input waits for a signal (`connecting`) and while it streams, into `crates/adapter-bluos/tests/fixtures/raw/` (git-ignored); commit scrubbed copies (input name changed to an example name) and keep the personal-data scan passing
-- [ ] 2.2 Write failing parsing and mapping tests for "Optical input", "Bluetooth input", "Named optical input", "Waiting for a signal" and "Unknown input kind", then implement the input origin, kind, name and selection time, with no content
+- [ ] 2.2 Write failing parsing and mapping tests for "Optical input", "Bluetooth input", "Named optical input", "Waiting for a signal" and "Unknown input kind", then implement the input origin, kind, name and the start of its signal, with no content
 - [ ] 2.3 Write a failing monitor test against the local test player for "Stale playlist while an input plays" (no `/Playlist` request, queue not applicable), then exclude inputs from `is_native`
 - [ ] 2.4 Verify the layer as in 1.5; open the layer's pull request on top of layer 1 and verify CI is green
 
