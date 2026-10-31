@@ -25,8 +25,8 @@
 
 ## 4. Layer 4 (DEV-17): reference host acceptance
 
-- [ ] 4.1 On the reference host, follow `docs/reference-setup.md` (Docker, sway, Chrome kiosk, agent); record findings that change the document (DisplayPort or HDMI, Deep Sleep Mode, outputs reappearing) and update it
-- [ ] 4.2 Acceptance on the reference host and record it on DEV-4: playback wakes the monitor in under 5 s; pause and stop switch it off after the grace period (checked with a short grace period and with the default); the agent reconnects after `docker compose restart` and applies the current decision; the fail-safe switches off when the container is stopped; the page shows the current track at once after waking
-- [ ] 4.3 Run the deferred DEV-1 acceptance on the reference host (playing, paused, stopped, offline, cast session, 4K landscape and portrait) and record it on DEV-1
-- [ ] 4.4 Fill in "Tested versions" in `docs/reference-setup.md` (kernel, sway, Chrome, Docker, Mesa, player firmware)
-- [ ] 4.5 Verify the layer as in 1.3; open the layer's pull request on top of layer 3; after approval, sync the delta specs, archive the change on this layer and verify CI is green before merging
+- [x] 4.1 On the reference host, follow `docs/reference-setup.md` (Docker, sway, Chrome kiosk, agent); record findings that change the document and update it: the kiosk session as `jukelight-kiosk.service` instead of the getty auto-login (design 7a), who logs in where, the SSH forms of the `swaymsg` and `systemctl --user` checks, Chrome starting before Jukelight answers, DisplayPort or HDMI, Deep Sleep Mode, outputs reappearing
+- [x] 4.2 Acceptance on the reference host and record it on DEV-4: playback switches the output on (picture back; measure the time); pause and stop switch it off after the grace period (checked with a short grace period and with the default); the agent reconnects after `docker compose restart` and applies the current decision; the fail-safe switches the output off when the container is stopped; the page shows the current track at once after waking. The monitor itself does not go into standby behind the reference host's wireless extender (its receiver shows a logo): record that as a finding; DEV-18 switches the monitor's power with a smart plug
+- [x] 4.3 Run the deferred DEV-1 acceptance on the reference host (playing, paused, stopped, offline, cast session, 4K landscape and portrait) and record it on DEV-1
+- [x] 4.4 Fill in "Tested versions" in `docs/reference-setup.md` (kernel, sway, Chrome, Docker, Mesa, player firmware)
+- [x] 4.5 Verify the layer as in 1.3; open the layer's pull request on top of layer 3; after approval, sync the delta specs, archive the change on this layer and verify CI is green before merging

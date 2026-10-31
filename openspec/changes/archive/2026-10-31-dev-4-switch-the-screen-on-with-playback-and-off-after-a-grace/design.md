@@ -119,6 +119,32 @@ into the systemd user environment and starts the agent:
 - Alternative: search `/run/user/<uid>/sway-ipc.*.sock` in the script.
   Rejected: guessing breaks with several sessions; importing is explicit.
 
+### 7a. Kiosk session: a system service instead of auto-login
+
+Decided during the reference host setup (layer 4). A system unit
+`jukelight-kiosk.service` runs sway as the `kiosk` user on tty1 with a
+proper login session (`PAMName=login`, `TTYPath=/dev/tty1`), without a
+login prompt or a shell, and restarts it if it exits
+(`Restart=always`). It replaces the getty auto-login and the `.profile`
+snippet in `docs/reference-setup.md`. The display agent's user service
+and `loginctl enable-linger kiosk` stay as they are.
+
+Both services read Jukelight's address (`JUKELIGHT_URL`) from one host
+file, `/etc/jukelight/host.env` (`EnvironmentFile=`), instead of writing it
+into the sway configuration and the agent's unit. Jukelight's own `.env`
+is not shared with them: it can hold the Music Assistant token, which the
+kiosk user must not read.
+
+- Alternative: getty auto-login on tty1 with `exec sway` in `.profile`
+  (the original reference setup). Rejected: a shell session sits under
+  the kiosk, a missing or crashing sway falls back to a shell or loops,
+  and nothing restarts sway.
+- Alternative: a login manager with auto-login (greetd, LightDM, GDM).
+  Rejected: an extra component that does the same, configured elsewhere.
+- Alternative: Ubuntu Frame (snaps). Rejected: a different browser and
+  no `swaymsg`, so the display agent would need another way to switch
+  the monitor.
+
 ### 7. Testing the agent in CI
 
 A Rust integration test in the `app` crate starts a local SSE test server,
@@ -159,6 +185,10 @@ No kiosk change, so no new kiosk component tests or screenshots.
   back] → the troubleshooting order in `docs/reference-setup.md` (Deep
   Sleep off, re-enable the output, HDMI); the acceptance records which one
   works.
+- [A wireless HDMI extender keeps the monitor awake: its receiver shows a
+  logo when the output is off (found on the reference host)] → switching
+  the output still blanks the picture; DEV-18 adds configurable power
+  commands and a smart plug for the monitor.
 - [Screen off while someone looks at it after pausing] → grace period of 10
   minutes by default, configurable; playback wakes it at once.
 - [Agent and backend disagree after a network glitch] → the agent applies
