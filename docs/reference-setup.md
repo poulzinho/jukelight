@@ -155,7 +155,7 @@ curl -s localhost:8080/api/v1/player
 The container restarts by itself after a reboot (`restart: unless-stopped`),
 unless it was stopped with `docker compose stop` or `down`.
 
-If you use another port than 8080, set `HTTP_PORT` in `.env`; the address in
+If you use a port other than 8080, set `HTTP_PORT` in `.env`; the address in
 `/etc/jukelight/host.env` (next section) must match it.
 
 For a private copy of the repository, give the host a read-only deploy key
