@@ -269,8 +269,10 @@ configuration (step 3).
 From the repository, as your own user:
 
 ```sh
-sudo install -D -o kiosk -g kiosk -m 0755 host/display-agent/jukelight-display-agent /home/kiosk/.local/bin/jukelight-display-agent
-sudo install -D -o kiosk -g kiosk -m 0644 host/display-agent/jukelight-display-agent.service /home/kiosk/.config/systemd/user/jukelight-display-agent.service
+# The folders first, as the kiosk user: install -D would create them as root.
+sudo -u kiosk mkdir -p /home/kiosk/.local/bin /home/kiosk/.config/systemd/user
+sudo install -o kiosk -g kiosk -m 0755 host/display-agent/jukelight-display-agent /home/kiosk/.local/bin/jukelight-display-agent
+sudo install -o kiosk -g kiosk -m 0644 host/display-agent/jukelight-display-agent.service /home/kiosk/.config/systemd/user/jukelight-display-agent.service
 sudo systemctl restart jukelight-kiosk
 ```
 
