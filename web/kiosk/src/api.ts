@@ -16,6 +16,8 @@ export interface Player {
   queue: { title: string; artists: string[]; artUrl: string | null }[] | null
   /** Album colours as `[red, green, blue]`; `null` when unknown. */
   palette: { background: Rgb; accent: Rgb } | null
+  /** The audio input while one plays; `startedAt` (epoch ms) is `null` while waiting for a signal. */
+  input: { kind: 'optical' | 'analog' | 'hdmi-arc' | 'other'; name: string; startedAt: number | null } | null
 }
 
 export type Rgb = [number, number, number]

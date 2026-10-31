@@ -31,6 +31,14 @@
   --color-kiosk-text: rgb(var(--text));
 
   --animate-fade-in: fade-in 600ms ease-out;
+  /* One turn every 24 s: calm, not a loading spinner. */
+  --animate-disc: disc-turn 24s linear infinite;
+
+  @keyframes disc-turn {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
   @keyframes fade-in {
     from {

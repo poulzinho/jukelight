@@ -13,6 +13,7 @@ export function player(overrides: Partial<Player> = {}): Player {
     quality: { label: 'FLAC 16/44.1', detail: 'CD quality', hiRes: false },
     queue: null,
     palette: null,
+    input: null,
     ...overrides,
   }
 }
