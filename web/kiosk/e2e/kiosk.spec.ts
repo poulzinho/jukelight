@@ -156,6 +156,16 @@ test('offline keeps the screen and shows the indicator', async ({ page }) => {
   await screenshot(page, 'offline')
 })
 
+// Spec: kiosk-display, "No translation prompt".
+test('the page asks browsers not to translate it', async ({ page }) => {
+  await open(page, 'playing-with-queue')
+  const marks = await page.evaluate(() => ({
+    translate: document.documentElement.getAttribute('translate'),
+    meta: document.querySelector('meta[name="google"]')?.getAttribute('content') ?? null,
+  }))
+  expect(marks).toEqual({ translate: 'no', meta: 'notranslate' })
+})
+
 test('the API sends a Date header for the clock offset', async ({ request }) => {
   const response = await request.get(`http://127.0.0.1:${portFor('playing-with-queue')}/api/v1/player`)
   expect(response.headers()['date']).toBeTruthy()

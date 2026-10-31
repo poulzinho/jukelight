@@ -256,8 +256,10 @@ sudo mkdir -p /etc/opt/chrome/policies/managed
 echo '{ "TranslateEnabled": false }' | sudo tee /etc/opt/chrome/policies/managed/jukelight.json
 ```
 
-The command-line flag `--disable-features=Translate` does not stop the
-prompt (checked with Chrome 156). A normal Chrome window on the host shows
+Jukelight's page itself asks browsers not to translate it (`translate="no"`),
+which prevents the prompt; the policy also covers other pages and older
+Jukelight versions. The command-line flag `--disable-features=Translate`
+does not stop the prompt (checked with Chrome 156). A normal Chrome window on the host shows
 the active policies at `chrome://policy`.
 
 ### 5. Start sway on tty1 as a service
