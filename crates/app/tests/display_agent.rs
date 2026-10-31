@@ -226,12 +226,19 @@ impl Agent {
 }
 
 impl Drop for Agent {
+    /// Kills the agent's whole process group (curl, watchdog, sleep), with
+    /// SIGKILL so no deferred trap can keep it alive, and never waits long:
+    /// a stuck clean-up must not hang the test run.
     fn drop(&mut self) {
         let _ = Command::new("kill")
-            .arg("-TERM")
-            .arg(format!("-{}", self.child.id()))
+            .args(["-KILL", "--", &format!("-{}", self.child.id())])
             .stderr(Stdio::null())
             .status();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while matches!(self.child.try_wait(), Ok(None)) && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        let _ = self.child.kill();
         let _ = self.child.wait();
         let _ = std::fs::remove_dir_all(&self.dir);
     }

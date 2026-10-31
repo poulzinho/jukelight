@@ -21,6 +21,7 @@
 - [ ] 3.5 Verify the layer as in 1.3 plus `shellcheck`; open the layer's pull request on top of layer 2 and verify CI is green
 - [x] 3.6 Review feedback (PR #11): write the timestamp files through a rename and let the watchdog skip an empty read, so a concurrent truncated write cannot end the watchdog under dash
 - [x] 3.7 Review feedback (PR #11): give the right reason for the timestamp files (the background watchdog reads them), not a subshell around the stream reader
+- [x] 3.8 CI failure (PR #11): the agent tests hung on GitHub's runner while stopping the agent; stop its whole process group with SIGKILL (`kill -KILL -- -<pgid>`) and wait at most 5 seconds
 
 ## 4. Layer 4 (DEV-17): reference host acceptance
 
