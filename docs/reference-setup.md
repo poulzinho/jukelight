@@ -38,8 +38,7 @@ host, because it needs the monitor.
   Monitor (sleeps without a signal, wakes when the signal returns)
 ```
 
-The display agent arrives with the display power feature. Until then, the
-monitor simply stays on.
+Without the display agent, the monitor simply stays on.
 
 ## Hardware
 
@@ -136,6 +135,13 @@ exec google-chrome --kiosk --noerrdialogs --no-first-run \
   --ozone-platform=wayland http://localhost:8080
 ```
 
+The display agent (step 5) needs one more line in the same file, so its
+user service can reach sway:
+
+```
+exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
+```
+
 Do not run `swayidle` or any other idle daemon.
 
 ### 4. Start Jukelight
@@ -149,8 +155,43 @@ docker compose up --build -d
 
 ### 5. Display agent
 
-Installed as a systemd user service for the kiosk user. The service file and
-script are added with the display power feature.
+The agent follows Jukelight's display decisions and switches the monitor
+with `swaymsg`: on while music plays, off a grace period after it stops
+(`DISPLAY_GRACE_MINUTES` in `.env`, 10 minutes by default). It is a shell
+script run as a systemd user service of the kiosk user.
+
+As the kiosk user, from the repository:
+
+```sh
+install -D -m 0755 host/display-agent/jukelight-display-agent ~/.local/bin/jukelight-display-agent
+install -D -m 0644 host/display-agent/jukelight-display-agent.service ~/.config/systemd/user/jukelight-display-agent.service
+systemctl --user daemon-reload
+```
+
+The sway configuration (step 3) starts the service when sway starts. To start
+it now, inside the sway session:
+
+```sh
+systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY
+systemctl --user start jukelight-display-agent
+```
+
+Check it:
+
+```sh
+systemctl --user status jukelight-display-agent
+journalctl --user -u jukelight-display-agent -f   # "display on", "display off"
+```
+
+Settings, in the service file (`systemctl --user edit jukelight-display-agent`
+to override):
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `JUKELIGHT_URL` | `http://localhost:8080` | Where Jukelight runs |
+| `RETRY_SECONDS` | `5` | Wait between connection attempts |
+| `SILENCE_SECONDS` | `60` | Reconnect after this long without data or heartbeat |
+| `FAILSAFE_SECONDS` | `600` | Switch the monitor off after this long without Jukelight |
 
 ## Monitor settings
 

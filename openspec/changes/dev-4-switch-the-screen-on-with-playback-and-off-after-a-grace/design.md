@@ -83,9 +83,17 @@ variable, like the other settings. DEV-6 moves it to the database.
 `host/display-agent/jukelight-display-agent` (POSIX `sh`, `curl`,
 `swaymsg`), installed to `~/.local/bin` of the kiosk user, with a systemd
 user unit `jukelight-display-agent.service` (`Restart=always`). It reads
-the stream with `curl --no-buffer`, uses curl's low-speed limit as the
-silence limit, applies the first decision of every connection, and keeps a
-timestamp of the last successful connection for the fail-safe.
+the stream with `curl --no-buffer` through a named pipe, applies the first
+decision of every connection, and keeps the time of the backend's last data
+for the fail-safe. A watchdog subshell ends the connection once nothing
+(not even a heartbeat) has arrived for the silence limit. After a
+connection that delivered data and lasted at least the retry interval, the
+agent reconnects at once; otherwise it waits the retry interval, so a
+backend or proxy that closes every connection at once is not hammered.
+
+- Alternative: curl's low-speed limit (`--speed-limit 1 --speed-time N`).
+  Rejected: curl averages the speed over several seconds, so a 2-second
+  limit took 8 seconds in a measurement; too coarse for a specified limit.
 
 Settings from the environment, with defaults: `JUKELIGHT_URL`
 (`http://localhost:8080`), `RETRY_SECONDS` (5), `SILENCE_SECONDS` (60),

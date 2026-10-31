@@ -718,6 +718,7 @@ name = "jukelight"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "futures",
  "jukelight-adapter-artwork",
  "jukelight-adapter-bluos",
  "jukelight-adapter-fake",

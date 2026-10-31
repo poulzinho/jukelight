@@ -1,0 +1,16 @@
+# Jukelight display agent: switches the monitor with the music.
+# Install for the kiosk user; see docs/reference-setup.md.
+[Unit]
+Description=Jukelight display agent
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/jukelight-display-agent
+# Defaults shown; change them here if needed.
+Environment=JUKELIGHT_URL=http://localhost:8080
+Environment=FAILSAFE_SECONDS=600
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
