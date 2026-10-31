@@ -208,3 +208,42 @@ mod display_grace_period {
         }
     }
 }
+
+mod input_display_time {
+    use std::time::Duration;
+
+    use super::*;
+
+    #[test]
+    fn ninety_minutes_by_default() {
+        let config = parse(&[("BLUOS_HOST", "192.168.1.40")]).unwrap();
+        assert_eq!(config.input_display_limit, Duration::from_secs(90 * 60));
+    }
+
+    #[test]
+    fn whole_minutes_from_0_to_1440() {
+        for (value, minutes) in [("0", 0), ("80", 80), ("1440", 1440)] {
+            let config = parse(&[
+                ("BLUOS_HOST", "192.168.1.40"),
+                ("INPUT_DISPLAY_MINUTES", value),
+            ])
+            .unwrap();
+            assert_eq!(
+                config.input_display_limit,
+                Duration::from_secs(minutes * 60)
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_values_name_the_variable() {
+        for value in ["1441", "-5", "1.5", "ninety"] {
+            let error = parse(&[
+                ("BLUOS_HOST", "192.168.1.40"),
+                ("INPUT_DISPLAY_MINUTES", value),
+            ])
+            .unwrap_err();
+            assert!(error.contains("INPUT_DISPLAY_MINUTES"), "{error}");
+        }
+    }
+}
