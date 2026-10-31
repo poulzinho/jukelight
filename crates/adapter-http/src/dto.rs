@@ -2,7 +2,9 @@
 //! domain can change without breaking the kiosk.
 
 use jukelight_application::ArtworkSource;
-use jukelight_domain::{ArtworkRef, PlaybackState, PlayerSnapshot, QueueView, Rgb};
+use jukelight_domain::{
+    ArtworkRef, AudioInput, InputKind, PlaybackState, PlayerSnapshot, QueueView, Rgb,
+};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -19,6 +21,7 @@ pub struct PlayerDto {
     /// `None` when the session has no queue.
     pub queue: Option<Vec<QueueEntryDto>>,
     pub palette: Option<PaletteDto>,
+    pub input: Option<InputDto>,
 }
 
 #[derive(Debug, Serialize)]
@@ -66,6 +69,18 @@ pub struct QueueEntryDto {
 pub struct PaletteDto {
     pub background: [u8; 3],
     pub accent: [u8; 3],
+}
+
+/// An audio input while it plays.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InputDto {
+    /// `optical`, `analog`, `hdmi-arc` or `other`.
+    pub kind: &'static str,
+    pub name: String,
+    /// When its signal started (milliseconds since the Unix epoch); `None`
+    /// while the player waits for a signal.
+    pub started_at: Option<u64>,
 }
 
 pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> PlayerDto {
@@ -117,6 +132,20 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             background: rgb(p.background),
             accent: rgb(p.accent),
         }),
+        input: snapshot.input.as_ref().map(input_dto),
+    }
+}
+
+fn input_dto(input: &AudioInput) -> InputDto {
+    InputDto {
+        kind: match input.kind {
+            InputKind::Optical => "optical",
+            InputKind::Analog => "analog",
+            InputKind::HdmiArc => "hdmi-arc",
+            InputKind::Other => "other",
+        },
+        name: input.name.clone(),
+        started_at: input.started_at.map(|t| t.as_millis()),
     }
 }
 
