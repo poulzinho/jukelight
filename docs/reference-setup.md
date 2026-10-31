@@ -244,7 +244,23 @@ another language, use another locale in the Chrome line (for example
 `LANGUAGE=en LC_ALL=en_US.UTF-8`); it must be installed (`locale -a`). Do not run `swayidle` or any
 other idle daemon.
 
-### 4. Start sway on tty1 as a service
+### 4. Chrome policies
+
+Chrome in kiosk mode still shows some of its own prompts. When its language
+(from the sway configuration, step 3) differs from the page's, it offers to
+translate the page, and the prompt stays on the screen. Switch translation
+off with a Chrome policy, which applies to every Chrome on the host:
+
+```sh
+sudo mkdir -p /etc/opt/chrome/policies/managed
+echo '{ "TranslateEnabled": false }' | sudo tee /etc/opt/chrome/policies/managed/jukelight.json
+```
+
+The command-line flag `--disable-features=Translate` does not stop the
+prompt (checked with Chrome 156). A normal Chrome window on the host shows
+the active policies at `chrome://policy`.
+
+### 5. Start sway on tty1 as a service
 
 A system service runs sway as the kiosk user on tty1, with a login session
 but without a login prompt or a shell, and starts it again if it exits:
@@ -282,7 +298,7 @@ Check it: `systemctl status jukelight-kiosk` is active, and
 After a change to the sway configuration: `sudo systemctl restart
 jukelight-kiosk`.
 
-### 5. Display agent
+### 6. Display agent
 
 The agent follows Jukelight's display decisions and switches the monitor
 with `swaymsg`: on while music plays, off a grace period after it stops
