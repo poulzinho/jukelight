@@ -15,6 +15,9 @@ pub enum PlayerEvent {
     },
     QueueChanged,
     PositionResynced,
+    /// An input appeared or went away, or its kind, name or selection time
+    /// changed.
+    InputChanged,
     PlayerWentOffline,
     PlayerCameOnline,
 }
@@ -62,6 +65,10 @@ pub fn detect_changes(previous: &PlayerSnapshot, next: &PlayerSnapshot) -> Chang
         events.push(PlayerEvent::PositionResynced);
     }
 
+    if input_changed(previous, next) {
+        events.push(PlayerEvent::InputChanged);
+    }
+
     let material = !events.is_empty() || without_progress(previous) != without_progress(next);
     Changes { events, material }
 }
@@ -79,13 +86,32 @@ fn jumped(previous: &PlayerSnapshot, next: &PlayerSnapshot) -> bool {
     predicted.abs_diff(after.elapsed) > POSITION_TOLERANCE
 }
 
-/// The snapshot with its moving parts (elapsed time and observation time)
-/// cleared, so normal progress compares equal.
+/// True when an input appeared or went away, its kind or name changed, or
+/// its selection time moved by more than the tolerance (the player reports
+/// it in whole seconds, so each report shifts it slightly).
+fn input_changed(previous: &PlayerSnapshot, next: &PlayerSnapshot) -> bool {
+    match (&previous.input, &next.input) {
+        (None, None) => false,
+        (Some(before), Some(after)) => {
+            before.kind != after.kind
+                || before.name != after.name
+                || before.selected_at.since(after.selected_at) > POSITION_TOLERANCE
+                || after.selected_at.since(before.selected_at) > POSITION_TOLERANCE
+        }
+        _ => true,
+    }
+}
+
+/// The snapshot with its moving parts (elapsed time, observation time and
+/// an input's selection time) cleared, so normal progress compares equal.
 fn without_progress(snapshot: &PlayerSnapshot) -> PlayerSnapshot {
     let mut copy = snapshot.clone();
     if let Some(position) = copy.content.as_mut().and_then(|c| c.position.as_mut()) {
         position.elapsed = Duration::ZERO;
         position.observed_at = Timestamp::default();
+    }
+    if let Some(input) = copy.input.as_mut() {
+        input.selected_at = Timestamp::default();
     }
     copy
 }

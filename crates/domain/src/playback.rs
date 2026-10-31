@@ -83,7 +83,28 @@ pub enum Origin {
         name: String,
         cast: bool,
     },
+    /// The device plays one of its audio inputs.
+    Input(AudioInput),
     None,
+}
+
+/// The kind of an audio input.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum InputKind {
+    Optical,
+    Analog,
+    HdmiArc,
+    Other,
+}
+
+/// An audio input the player plays: nobody knows what comes in on it, only
+/// which input it is and since when it is selected.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct AudioInput {
+    pub kind: InputKind,
+    /// The name the user gave the input in the player's app.
+    pub name: String,
+    pub selected_at: Timestamp,
 }
 
 /// A colour as red, green and blue from 0 to 255.
@@ -138,6 +159,8 @@ pub struct PlayerSnapshot {
     pub state: PlaybackState,
     pub session: Session,
     pub content: Option<Content>,
+    /// The audio input, while one plays.
+    pub input: Option<AudioInput>,
 }
 
 impl PlayerSnapshot {
@@ -149,6 +172,7 @@ impl PlayerSnapshot {
             state: PlaybackState::Stopped,
             session: Session::default(),
             content: None,
+            input: None,
         }
     }
 }

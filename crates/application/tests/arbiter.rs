@@ -6,7 +6,10 @@ use std::sync::Arc;
 
 use jukelight_application::testing::FakeProvider;
 use jukelight_application::{SessionProvider, arbitrate};
-use jukelight_domain::{Content, DeviceSnapshot, Origin, PlaybackState, QueueView, Track};
+use jukelight_domain::{
+    AudioInput, Content, DeviceSnapshot, InputKind, Origin, PlaybackState, QueueView, Timestamp,
+    Track,
+};
 
 fn content(title: &str) -> Content {
     Content {
@@ -159,4 +162,49 @@ fn provider_names_the_music_service() {
     );
 
     assert_eq!(snapshot.session.label, "Example Provider · Example Service");
+}
+
+// An input origin: its kind as the label, the input on the snapshot, no track.
+
+fn input_device(kind: InputKind) -> DeviceSnapshot {
+    DeviceSnapshot {
+        content: None,
+        ..device(
+            Origin::Input(AudioInput {
+                kind,
+                name: "Example Input".into(),
+                selected_at: Timestamp::from_millis(1_000_000),
+            }),
+            PlaybackState::Playing,
+            "unused",
+        )
+    }
+}
+
+#[test]
+fn optical_input() {
+    let snapshot = arbitrate(&input_device(InputKind::Optical), &[]);
+    assert_eq!(snapshot.session.label, "Optical input");
+    assert!(snapshot.session.available);
+    let input = snapshot.input.expect("the input");
+    assert_eq!(input.name, "Example Input");
+    assert_eq!(input.kind, InputKind::Optical);
+    assert_eq!(snapshot.content, None);
+}
+
+#[test]
+fn input_kind_labels() {
+    for (kind, label) in [
+        (InputKind::Analog, "Analog input"),
+        (InputKind::HdmiArc, "HDMI ARC"),
+        (InputKind::Other, "Input"),
+    ] {
+        assert_eq!(arbitrate(&input_device(kind), &[]).session.label, label);
+    }
+}
+
+#[test]
+fn other_origins_have_no_input() {
+    let snapshot = arbitrate(&device(stream(), PlaybackState::Playing, "Song"), &[]);
+    assert_eq!(snapshot.input, None);
 }

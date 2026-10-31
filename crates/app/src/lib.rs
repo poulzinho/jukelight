@@ -60,7 +60,8 @@ pub async fn run(config: Config) -> Result<(), RunError> {
 
     let monitor = PlayerMonitor::new(providers);
     let player = monitor.handle();
-    let display = DisplayController::new(DisplayPolicy::new(config.display_grace));
+    let display =
+        DisplayController::new(DisplayPolicy::new(config.display_grace), Arc::clone(&clock));
     let display_handle = display.handle();
     tokio::spawn(display.run(player.subscribe_published()));
     tokio::spawn(monitor.run(device));

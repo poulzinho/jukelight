@@ -13,7 +13,7 @@ use futures::future::BoxFuture;
 use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
 use jukelight_application::{
-    ArtworkError, ArtworkId, ArtworkSource, DisplayController, Image, PlayerMonitor,
+    ArtworkError, ArtworkId, ArtworkSource, DisplayController, Image, PlayerMonitor, SystemClock,
 };
 use jukelight_domain::{ArtworkRef, DeviceSnapshot, DisplayPolicy, Origin, PlaybackState};
 use tokio::sync::watch;
@@ -52,7 +52,8 @@ struct Setup {
 fn setup() -> Setup {
     let monitor = PlayerMonitor::new(Vec::new());
     monitor.apply(&device(PlaybackState::Playing));
-    let controller = DisplayController::new(DisplayPolicy::new(Duration::ZERO));
+    let controller =
+        DisplayController::new(DisplayPolicy::new(Duration::ZERO), Arc::new(SystemClock));
     let display = controller.handle();
     tokio::spawn(controller.run(monitor.handle().subscribe_published()));
     let (stop, shutdown) = watch::channel(false);

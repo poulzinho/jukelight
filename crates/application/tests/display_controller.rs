@@ -4,11 +4,13 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)] // tests may panic on bad test data
 
+use std::sync::Arc;
 use std::time::Duration;
 
-use jukelight_application::{DisplayController, DisplayHandle, PlayerMonitor};
+use jukelight_application::{Clock, DisplayController, DisplayHandle, PlayerMonitor};
 use jukelight_domain::{
-    Content, DeviceSnapshot, DisplayPolicy, DisplayPower, Origin, PlaybackState, QueueView, Track,
+    AudioInput, Content, DeviceSnapshot, DisplayPolicy, DisplayPower, InputKind, Origin,
+    PlaybackState, QueueView, Timestamp, Track,
 };
 
 const MINUTE: Duration = Duration::from_secs(60);
@@ -48,13 +50,58 @@ fn paused(title: &str) -> DeviceSnapshot {
     device(title, true, PlaybackState::Paused)
 }
 
+/// Wall time that moves with tokio's (paused) time.
+struct TokioClock {
+    start: tokio::time::Instant,
+}
+
+/// The wall time when a test starts.
+const START: Timestamp = Timestamp::from_millis(1_000_000_000);
+
+impl Clock for TokioClock {
+    fn now(&self) -> Timestamp {
+        START.plus(self.start.elapsed())
+    }
+}
+
 /// A monitor and a running controller with the given grace period.
 fn start(grace: Duration) -> (PlayerMonitor, DisplayHandle) {
+    start_with_input_limit(grace, 90 * MINUTE)
+}
+
+fn start_with_input_limit(
+    grace: Duration,
+    input_limit: Duration,
+) -> (PlayerMonitor, DisplayHandle) {
     let monitor = PlayerMonitor::new(Vec::new());
-    let controller = DisplayController::new(DisplayPolicy::new(grace));
+    let clock = Arc::new(TokioClock {
+        start: tokio::time::Instant::now(),
+    });
+    let controller = DisplayController::new(
+        DisplayPolicy::new(grace).with_input_limit(input_limit),
+        clock,
+    );
     let display = controller.handle();
     tokio::spawn(controller.run(monitor.handle().subscribe_published()));
     (monitor, display)
+}
+
+/// The player playing its optical input, selected `ago` before the test's
+/// start.
+fn optical_input(selected_at: Timestamp) -> DeviceSnapshot {
+    DeviceSnapshot {
+        origin: Origin::Input(AudioInput {
+            kind: InputKind::Optical,
+            name: "Example Input".into(),
+            selected_at,
+        }),
+        content: None,
+        ..playing("unused")
+    }
+}
+
+fn before_start(ago: Duration) -> Timestamp {
+    Timestamp::from_millis(START.as_millis() - u64::try_from(ago.as_millis()).unwrap())
 }
 
 /// Lets the controller react to what just happened, without moving time
@@ -171,4 +218,62 @@ async fn pause_and_resume_within_the_grace_period() {
         !decisions.has_changed().unwrap(),
         "no new decision expected"
     );
+}
+
+// Spec: display-control, "Inputs count as playing for a limited time".
+
+#[tokio::test(start_paused = true)]
+async fn within_the_input_time_limit() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&optical_input(before_start(80 * MINUTE)));
+    wait(9 * MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::On);
+}
+
+#[tokio::test(start_paused = true)]
+async fn past_the_limit_and_the_grace_period() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&optical_input(before_start(80 * MINUTE)));
+    // The limit passes after 10 minutes, the grace period 10 minutes later.
+    wait(19 * MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::On);
+    wait(MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::Off);
+}
+
+#[tokio::test(start_paused = true)]
+async fn start_long_after_the_input_was_selected() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&optical_input(before_start(100 * MINUTE)));
+    wait(Duration::ZERO).await;
+    assert_eq!(display.current(), DisplayPower::Off);
+}
+
+#[tokio::test(start_paused = true)]
+async fn input_selected_again() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&optical_input(before_start(100 * MINUTE)));
+    wait(MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::Off);
+
+    // Selected again, one minute after the start.
+    monitor.apply(&optical_input(START.plus(MINUTE)));
+    wait(Duration::ZERO).await;
+    assert_eq!(display.current(), DisplayPower::On);
+}
+
+#[tokio::test(start_paused = true)]
+async fn another_source() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&playing("Example Song"));
+    wait(180 * MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::On);
+}
+
+#[tokio::test(start_paused = true)]
+async fn input_limit_of_zero() {
+    let (monitor, display) = start_with_input_limit(Duration::ZERO, Duration::ZERO);
+    monitor.apply(&optical_input(START));
+    wait(Duration::ZERO).await;
+    assert_eq!(display.current(), DisplayPower::Off);
 }

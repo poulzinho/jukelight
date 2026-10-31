@@ -44,6 +44,7 @@ fn snapshot_of_a_playing_track() {
             None,
             QueueView::NotApplicable,
         )),
+        input: None,
     };
 
     assert_eq!(snapshot.state, PlaybackState::Playing);

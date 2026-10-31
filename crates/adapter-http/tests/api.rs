@@ -96,9 +96,10 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
 
 /// A display decision that stays on; the display stream has its own tests.
 fn display() -> DisplayHandle {
-    DisplayController::new(jukelight_domain::DisplayPolicy::new(Duration::from_secs(
-        600,
-    )))
+    DisplayController::new(
+        jukelight_domain::DisplayPolicy::new(Duration::from_secs(600)),
+        Arc::new(jukelight_application::SystemClock),
+    )
     .handle()
 }
 
