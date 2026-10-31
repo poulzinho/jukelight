@@ -108,6 +108,29 @@ test('without album colours the default theme applies', async ({ page }) => {
   expect((await colours(page)).background).toBe('rgb(18, 18, 22)')
 })
 
+// Spec: kiosk-display, "Input screen".
+test('optical input shows the input screen', async ({ page }) => {
+  await open(page, 'optical-input')
+  const disc = await box(page, ['img', { name: 'Disc' }])
+  const name = await box(page, ['heading', { name: 'Example Input' }])
+  if (portrait()) {
+    expect(disc.y + disc.height).toBeLessThanOrEqual(name.y)
+  } else {
+    expect(disc.x + disc.width).toBeLessThanOrEqual(name.x)
+  }
+  await expect(page.getByRole('timer')).toBeVisible()
+  await expect(page.getByText('Optical input', { exact: true })).toBeVisible()
+  await expect(page.getByText('for 23 min')).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveCount(0)
+  await expect(page.getByRole('list', { name: 'Up next' })).toHaveCount(0)
+  // The project runs with reduced motion: the disc stands still.
+  const animation = await page
+    .getByRole('img', { name: 'Disc' })
+    .evaluate((element) => getComputedStyle(element).animationName)
+  expect(animation).toBe('none')
+  await screenshot(page, 'optical-input')
+})
+
 test('paused shows the pause symbol', async ({ page }) => {
   await open(page, 'paused')
   const symbol = await box(page, ['status', { name: 'Paused' }])
@@ -158,6 +181,14 @@ test('reduced motion switches states without transitions', async ({ page }) => {
 
 test.describe('without reduced motion', () => {
   test.use({ reducedMotion: 'no-preference' })
+
+  test('the disc turns', async ({ page }) => {
+    await open(page, 'optical-input')
+    const animation = await page
+      .getByRole('img', { name: 'Disc' })
+      .evaluate((element) => getComputedStyle(element).animationName)
+    expect(animation).toBe('disc-turn')
+  })
 
   test('states fade and progress moves smoothly', async ({ page }) => {
     expect(await motion(page)).toEqual({ animation: 'fade-in', transition: '0.3s' })

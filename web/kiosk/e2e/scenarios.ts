@@ -6,6 +6,7 @@ export const SCENARIOS = [
   'no-artwork',
   'hi-res',
   'album-colours',
+  'optical-input',
   'paused',
   'stopped',
   'offline',

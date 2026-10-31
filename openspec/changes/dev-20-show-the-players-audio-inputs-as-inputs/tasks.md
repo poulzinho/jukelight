@@ -26,8 +26,8 @@
 
 ## 4. Layer 4 (DEV-25): kiosk input screen and acceptance
 
-- [ ] 4.1 Write failing component tests for "Optical input" (time, disc, name, badge, "for 23 min", no progress bar or "Up next"), "Just started" ("for 0 min"), "Waiting for a signal" and the idle screen still shown when stopped, then add the input screen until they pass
-- [ ] 4.2 Write a failing test for "Reduced motion" (the disc's animation is none), then implement it
-- [ ] 4.3 Extend the Playwright suite with the `optical-input` scenario in landscape and portrait; review the screenshots
+- [x] 4.1 Write failing component tests for "Optical input" (time, disc, name, badge, "for 23 min", no progress bar or "Up next"), "Just started" ("for 0 min"), "Waiting for a signal" and the idle screen still shown when stopped, then add the input screen until they pass
+- [x] 4.2 Write a failing test for "Reduced motion" (the disc's animation is none), then implement it
+- [x] 4.3 Extend the Playwright suite with the `optical-input` scenario in landscape and portrait; review the screenshots
 - [ ] 4.4 Acceptance on the reference host with the CD transport on the optical input, and record it on DEV-20: the input screen (name from BluOS, badge, "for N min", turning disc, no queue); with a short `INPUT_DISPLAY_MINUTES` the screen goes off after the limit plus the grace period, a selected input without a signal goes off after the grace period, and starting the CD again wakes it; streaming sources unchanged
 - [ ] 4.5 Verify the layer as in 1.5; open the layer's pull request on top of layer 3; after approval, sync the delta specs, archive the change on this layer and verify CI is green before merging
