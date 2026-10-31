@@ -185,6 +185,10 @@ No kiosk change, so no new kiosk component tests or screenshots.
   back] → the troubleshooting order in `docs/reference-setup.md` (Deep
   Sleep off, re-enable the output, HDMI); the acceptance records which one
   works.
+- [A wireless HDMI extender keeps the monitor awake: its receiver shows a
+  logo when the output is off (found on the reference host)] → switching
+  the output still blanks the picture; DEV-18 adds configurable power
+  commands and a smart plug for the monitor.
 - [Screen off while someone looks at it after pausing] → grace period of 10
   minutes by default, configurable; playback wakes it at once.
 - [Agent and backend disagree after a network glitch] → the agent applies
