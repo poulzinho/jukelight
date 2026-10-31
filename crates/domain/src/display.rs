@@ -9,15 +9,15 @@ pub enum DisplayPower {
     Off,
 }
 
-/// Inputs count as playing for this long after they were selected, unless
+/// Inputs count as playing for this long after their signal started, unless
 /// configured otherwise: a full CD (at most 80 minutes) and some slack.
 pub const DEFAULT_INPUT_LIMIT: Duration = Duration::from_secs(90 * 60);
 
 /// When the display is on: while music plays, and for a grace period after
-/// it stops. An audio input counts as playing only for a limited time after
-/// it was selected: the player cannot tell whether a signal comes in. Knows
-/// no timer: the caller says the time and how long the player has been
-/// inactive.
+/// it stops. An audio input counts as playing only once its signal started,
+/// and then for a limited time: the player notices when a signal starts but
+/// not when it stops. Knows no timer: the caller says the time and how long
+/// the player has been inactive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DisplayPolicy {
     grace: Duration,
@@ -46,25 +46,29 @@ impl DisplayPolicy {
         self.input_limit
     }
 
-    /// Online and playing or buffering, and for an input within its time
-    /// limit. Offline counts as inactive, whatever state the player last
-    /// reported.
+    /// Online and playing or buffering; for an input, only once its signal
+    /// started and within its time limit. Offline counts as inactive,
+    /// whatever state the player last reported.
     pub fn is_active(&self, player: &PlayerSnapshot, now: Timestamp) -> bool {
         player.online
             && matches!(
                 player.state,
                 PlaybackState::Playing | PlaybackState::Buffering
             )
-            && self.input_time_left(player, now) != Some(Duration::ZERO)
+            && match &player.input {
+                Some(input) => {
+                    input.started_at.is_some()
+                        && self.input_time_left(player, now) != Some(Duration::ZERO)
+                }
+                None => true,
+            }
     }
 
-    /// How long an input still counts as playing (`None` without an input).
+    /// How long an input whose signal started still counts as playing
+    /// (`None` without an input or before its signal started).
     pub fn input_time_left(&self, player: &PlayerSnapshot, now: Timestamp) -> Option<Duration> {
-        let input = player.input.as_ref()?;
-        Some(
-            self.input_limit
-                .saturating_sub(now.since(input.selected_at)),
-        )
+        let started_at = player.input.as_ref()?.started_at?;
+        Some(self.input_limit.saturating_sub(now.since(started_at)))
     }
 
     /// The decision, given how long the player has been inactive (`None`

@@ -173,7 +173,7 @@ fn input_device(kind: InputKind) -> DeviceSnapshot {
             Origin::Input(AudioInput {
                 kind,
                 name: "Example Input".into(),
-                selected_at: Timestamp::from_millis(1_000_000),
+                started_at: Some(Timestamp::from_millis(1_000_000)),
             }),
             PlaybackState::Playing,
             "unused",

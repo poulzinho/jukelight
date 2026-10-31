@@ -12,11 +12,11 @@ use jukelight_domain::{
 
 const T: Timestamp = Timestamp::from_millis(10_000_000);
 
-fn input(kind: InputKind, name: &str, selected_at: Timestamp) -> AudioInput {
+fn input(kind: InputKind, name: &str, started_at: Timestamp) -> AudioInput {
     AudioInput {
         kind,
         name: name.into(),
-        selected_at,
+        started_at: Some(started_at),
     }
 }
 
@@ -33,12 +33,8 @@ fn playing_input(input: Option<AudioInput>) -> PlayerSnapshot {
     }
 }
 
-fn optical(selected_at: Timestamp) -> PlayerSnapshot {
-    playing_input(Some(input(
-        InputKind::Optical,
-        "Example Input",
-        selected_at,
-    )))
+fn optical(started_at: Timestamp) -> PlayerSnapshot {
+    playing_input(Some(input(InputKind::Optical, "Example Input", started_at)))
 }
 
 #[test]
@@ -47,7 +43,7 @@ fn input_plays() {
     let input = snapshot.input.as_ref().unwrap();
     assert_eq!(input.kind, InputKind::Optical);
     assert_eq!(input.name, "Example Input");
-    assert_eq!(input.selected_at, T);
+    assert_eq!(input.started_at, Some(T));
     assert_eq!(snapshot.content, None);
 }
 
@@ -60,14 +56,14 @@ fn nothing_playing_has_no_input() {
 }
 
 #[test]
-fn input_selected_again() {
+fn signal_starts_again() {
     let changes = detect_changes(&optical(T), &optical(T.plus(Duration::from_secs(30 * 60))));
     assert_eq!(changes.events, [PlayerEvent::InputChanged]);
     assert!(changes.material);
 }
 
 #[test]
-fn selection_time_jitter() {
+fn start_time_jitter() {
     for jitter in [1, 2] {
         let changes = detect_changes(&optical(T), &optical(T.plus(Duration::from_secs(jitter))));
         assert!(
@@ -80,7 +76,7 @@ fn selection_time_jitter() {
 }
 
 #[test]
-fn selection_time_moving_back_is_also_a_change() {
+fn start_time_moving_back_is_also_a_change() {
     let later = T.plus(Duration::from_secs(600));
     let changes = detect_changes(&optical(later), &optical(T));
     assert_eq!(changes.events, [PlayerEvent::InputChanged]);
@@ -111,4 +107,25 @@ fn input_appears_and_goes_away() {
         detect_changes(&optical(T), &none).events,
         [PlayerEvent::InputChanged]
     );
+}
+
+fn waiting() -> PlayerSnapshot {
+    playing_input(Some(AudioInput {
+        kind: InputKind::Optical,
+        name: "Example Input".into(),
+        started_at: None,
+    }))
+}
+
+#[test]
+fn signal_arrives() {
+    assert_eq!(
+        detect_changes(&waiting(), &optical(T)).events,
+        [PlayerEvent::InputChanged]
+    );
+}
+
+#[test]
+fn still_waiting() {
+    assert!(detect_changes(&waiting(), &waiting()).events.is_empty());
 }

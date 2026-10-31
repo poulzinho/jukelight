@@ -86,15 +86,24 @@ fn start_with_input_limit(
     (monitor, display)
 }
 
-/// The player playing its optical input, selected `ago` before the test's
-/// start.
-fn optical_input(selected_at: Timestamp) -> DeviceSnapshot {
+/// The player playing its optical input, its signal started at `started_at`.
+fn optical_input(started_at: Timestamp) -> DeviceSnapshot {
+    optical(Some(started_at), PlaybackState::Playing)
+}
+
+/// The optical input, waiting for a signal.
+fn waiting_input() -> DeviceSnapshot {
+    optical(None, PlaybackState::Buffering)
+}
+
+fn optical(started_at: Option<Timestamp>, state: PlaybackState) -> DeviceSnapshot {
     DeviceSnapshot {
         origin: Origin::Input(AudioInput {
             kind: InputKind::Optical,
             name: "Example Input".into(),
-            selected_at,
+            started_at,
         }),
+        state,
         content: None,
         ..playing("unused")
     }
@@ -250,13 +259,13 @@ async fn start_long_after_the_input_was_selected() {
 }
 
 #[tokio::test(start_paused = true)]
-async fn input_selected_again() {
+async fn signal_starts_again() {
     let (monitor, display) = start(10 * MINUTE);
     monitor.apply(&optical_input(before_start(100 * MINUTE)));
     wait(MINUTE).await;
     assert_eq!(display.current(), DisplayPower::Off);
 
-    // Selected again, one minute after the start.
+    // The signal starts again, one minute after the test's start.
     monitor.apply(&optical_input(START.plus(MINUTE)));
     wait(Duration::ZERO).await;
     assert_eq!(display.current(), DisplayPower::On);
@@ -276,4 +285,19 @@ async fn input_limit_of_zero() {
     monitor.apply(&optical_input(START));
     wait(Duration::ZERO).await;
     assert_eq!(display.current(), DisplayPower::Off);
+}
+
+#[tokio::test(start_paused = true)]
+async fn waiting_for_a_signal() {
+    let (monitor, display) = start(10 * MINUTE);
+    monitor.apply(&waiting_input());
+    wait(9 * MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::On);
+    wait(MINUTE).await;
+    assert_eq!(display.current(), DisplayPower::Off);
+
+    // The CD starts.
+    monitor.apply(&optical_input(START.plus(10 * MINUTE)));
+    wait(Duration::ZERO).await;
+    assert_eq!(display.current(), DisplayPower::On);
 }

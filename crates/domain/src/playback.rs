@@ -98,13 +98,15 @@ pub enum InputKind {
 }
 
 /// An audio input the player plays: nobody knows what comes in on it, only
-/// which input it is and since when it is selected.
+/// which input it is and, once a signal arrived, since when it plays. The
+/// player notices when a signal starts, not when it stops.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AudioInput {
     pub kind: InputKind,
     /// The name the user gave the input in the player's app.
     pub name: String,
-    pub selected_at: Timestamp,
+    /// When the signal started; `None` while waiting for a signal.
+    pub started_at: Option<Timestamp>,
 }
 
 /// A colour as red, green and blue from 0 to 255.

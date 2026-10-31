@@ -75,14 +75,14 @@ fn remaining_time_until_off() {
 
 // Spec: display-control, "Inputs count as playing for a limited time".
 
-fn input_selected(ago: Duration) -> PlayerSnapshot {
+fn input_started(ago: Duration) -> PlayerSnapshot {
     PlayerSnapshot {
         input: Some(AudioInput {
             kind: InputKind::Optical,
             name: "Example Input".into(),
-            selected_at: Timestamp::from_millis(
+            started_at: Some(Timestamp::from_millis(
                 NOW.as_millis() - u64::try_from(ago.as_millis()).unwrap(),
-            ),
+            )),
         }),
         ..player(true, PlaybackState::Playing)
     }
@@ -90,14 +90,14 @@ fn input_selected(ago: Duration) -> PlayerSnapshot {
 
 #[test]
 fn within_the_input_time_limit() {
-    let player = input_selected(80 * MINUTE);
+    let player = input_started(80 * MINUTE);
     assert!(policy().is_active(&player, NOW));
     assert_eq!(policy().input_time_left(&player, NOW), Some(10 * MINUTE));
 }
 
 #[test]
 fn past_the_input_time_limit() {
-    let player = input_selected(100 * MINUTE);
+    let player = input_started(100 * MINUTE);
     assert!(!policy().is_active(&player, NOW));
     assert_eq!(policy().input_time_left(&player, NOW), Some(Duration::ZERO));
     // Inactive since the limit passed, 10 minutes ago: past the grace period.
@@ -107,7 +107,7 @@ fn past_the_input_time_limit() {
 #[test]
 fn input_limit_of_zero() {
     let policy = DisplayPolicy::new(10 * MINUTE).with_input_limit(Duration::ZERO);
-    assert!(!policy.is_active(&input_selected(Duration::ZERO), NOW));
+    assert!(!policy.is_active(&input_started(Duration::ZERO), NOW));
 }
 
 #[test]
@@ -121,7 +121,21 @@ fn another_source_has_no_time_limit() {
 fn paused_input_is_not_active() {
     let player = PlayerSnapshot {
         state: PlaybackState::Paused,
-        ..input_selected(MINUTE)
+        ..input_started(MINUTE)
+    };
+    assert!(!policy().is_active(&player, NOW));
+}
+
+#[test]
+fn waiting_for_a_signal_is_not_active() {
+    let player = PlayerSnapshot {
+        input: Some(AudioInput {
+            kind: InputKind::Optical,
+            name: "Example Input".into(),
+            started_at: None,
+        }),
+        state: PlaybackState::Buffering,
+        ..player(true, PlaybackState::Playing)
     };
     assert!(!policy().is_active(&player, NOW));
 }

@@ -11,7 +11,7 @@ use crate::Clock;
 /// remembers since when the player is inactive and switches off when the
 /// grace period ends. Waits with monotonic time, so clock changes cannot
 /// switch the display; reads the wall clock only to know how long an audio
-/// input has been selected.
+/// input's signal has been playing.
 pub struct DisplayController {
     policy: DisplayPolicy,
     clock: Arc<dyn Clock>,
@@ -92,9 +92,10 @@ impl DisplayController {
         let overdue = player
             .input
             .as_ref()
+            .and_then(|input| input.started_at)
             .filter(|_| self.policy.input_time_left(player, now) == Some(Duration::ZERO))
-            .map(|input| {
-                now.since(input.selected_at)
+            .map(|started_at| {
+                now.since(started_at)
                     .saturating_sub(self.policy.input_limit())
             });
         let at = Instant::now();
