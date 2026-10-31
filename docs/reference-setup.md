@@ -69,6 +69,14 @@ from its own USB power adapter or the monitor, not from the music player.
 
 - **Ubuntu Server 26.04 LTS**, without a desktop environment, with OpenSSH
   so the host can be managed remotely.
+- The time zone, so the kiosk's clock shows local time (`Europe/Berlin` as
+  an example), and the locales the kiosk uses:
+
+  ```sh
+  sudo timedatectl set-timezone Europe/Berlin
+  locale -a        # de_DE.utf8 (or another locale) must be listed
+  ```
+
 - The host must never suspend:
 
   ```sh
@@ -220,7 +228,10 @@ default_border none
 
 # Start Chrome once Jukelight answers (it may start later than sway at boot).
 # JUKELIGHT_URL comes from /etc/jukelight/host.env (jukelight-kiosk.service).
-exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
+# LANGUAGE and LC_ALL set the clock's format (here 24 hours): on Linux
+# Chrome ignores --lang, and the login session replaces LANG with the
+# system locale.
+exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec env LANGUAGE=de LC_ALL=de_DE.UTF-8 google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
 
 # The display agent's user service needs sway's socket.
 exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
@@ -228,7 +239,9 @@ EOF
 ```
 
 `output *` applies to whichever output is connected, so the configuration
-survives switching between DisplayPort and HDMI. Do not run `swayidle` or any
+survives switching between DisplayPort and HDMI. For a 12-hour clock or
+another language, use another locale in the Chrome line (for example
+`LANGUAGE=en LC_ALL=en_US.UTF-8`); it must be installed (`locale -a`). Do not run `swayidle` or any
 other idle daemon.
 
 ### 4. Start sway on tty1 as a service
