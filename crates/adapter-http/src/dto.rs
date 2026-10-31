@@ -3,7 +3,7 @@
 
 use jukelight_application::ArtworkSource;
 use jukelight_domain::{
-    ArtworkRef, AudioInput, InputKind, PlaybackState, PlayerSnapshot, QueueView, Rgb,
+    ArtworkRef, AudioInput, InputKind, PlaybackState, PlayerSnapshot, QueueView, Rgb, Timestamp,
 };
 use serde::Serialize;
 
@@ -145,7 +145,7 @@ fn input_dto(input: &AudioInput) -> InputDto {
             InputKind::Other => "other",
         },
         name: input.name.clone(),
-        started_at: input.started_at.map(|t| t.as_millis()),
+        started_at: input.started_at.map(Timestamp::as_millis),
     }
 }
 

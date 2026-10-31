@@ -19,9 +19,9 @@
 ## 3. Layer 3 (DEV-24): API, configuration and fake scenario
 
 - [x] 3.1 Write failing HTTP tests for "Input plays" and "No input", then add `input` to the player DTO until they pass
-- [ ] 3.2 Write failing configuration tests for `INPUT_DISPLAY_MINUTES` (default 90, 0 to 1440, invalid values name the variable), then implement it and wire the clock and the input limit into the display controller in `app`
-- [ ] 3.3 Write a failing fake device test, then add the `optical-input` scenario (optical, "Example Input", streaming since 23 minutes before the start)
-- [ ] 3.4 Add `INPUT_DISPLAY_MINUTES` to `.env.example` and the README configuration table, and the new scenario to the README's list
+- [x] 3.2 Write failing configuration tests for `INPUT_DISPLAY_MINUTES` (default 90, 0 to 1440, invalid values name the variable), then implement it and wire the clock and the input limit into the display controller in `app`
+- [x] 3.3 Write a failing fake device test, then add the `optical-input` scenario (optical, "Example Input", streaming since 23 minutes before the start)
+- [x] 3.4 Add `INPUT_DISPLAY_MINUTES` to `.env.example` and the README configuration table, and the new scenario to the README's list
 - [ ] 3.5 Verify the layer as in 1.5; open the layer's pull request on top of layer 2 and verify CI is green
 
 ## 4. Layer 4 (DEV-25): kiosk input screen and acceptance
