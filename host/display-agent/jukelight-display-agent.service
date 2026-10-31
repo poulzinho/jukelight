@@ -6,9 +6,10 @@ After=graphical-session.target
 
 [Service]
 ExecStart=%h/.local/bin/jukelight-display-agent
-# Defaults shown; change them here if needed.
-Environment=JUKELIGHT_URL=http://localhost:8080
-Environment=FAILSAFE_SECONDS=600
+# JUKELIGHT_URL (where Jukelight runs) comes from the host's shared file;
+# without it the agent uses http://localhost:8080. Other settings:
+# systemctl --user edit jukelight-display-agent.
+EnvironmentFile=-/etc/jukelight/host.env
 Restart=always
 RestartSec=5
 

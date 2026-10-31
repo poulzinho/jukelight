@@ -129,6 +129,12 @@ login prompt or a shell, and restarts it if it exits
 snippet in `docs/reference-setup.md`. The display agent's user service
 and `loginctl enable-linger kiosk` stay as they are.
 
+Both services read Jukelight's address (`JUKELIGHT_URL`) from one host
+file, `/etc/jukelight/host.env` (`EnvironmentFile=`), instead of writing it
+into the sway configuration and the agent's unit. Jukelight's own `.env`
+is not shared with them: it can hold the Music Assistant token, which the
+kiosk user must not read.
+
 - Alternative: getty auto-login on tty1 with `exec sway` in `.profile`
   (the original reference setup). Rejected: a shell session sits under
   the kiosk, a missing or crashing sway falls back to a shell or loops,

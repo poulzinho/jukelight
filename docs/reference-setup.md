@@ -10,11 +10,14 @@ the only one we test. Adapt it to your own hardware as needed.
 2. [Hardware](#hardware)
 3. [Operating system](#operating-system)
 4. [Software](#software)
-5. [Kiosk session](#kiosk-session)
-6. [Monitor settings](#monitor-settings)
-7. [Checks after setup](#checks-after-setup)
-8. [Troubleshooting](#troubleshooting)
-9. [Tested versions](#tested-versions)
+5. [Jukelight](#jukelight)
+6. [Kiosk session](#kiosk-session)
+7. [Who logs in where](#who-logs-in-where)
+8. [Monitor settings](#monitor-settings)
+9. [Working over SSH](#working-over-ssh)
+10. [Checks after setup](#checks-after-setup)
+11. [Troubleshooting](#troubleshooting)
+12. [Tested versions](#tested-versions)
 
 ## What runs where
 
@@ -24,18 +27,19 @@ host, because it needs the monitor.
 ```
   Host (Ubuntu Server, no desktop environment)
   +--------------------------------------------------------------+
-  |  Docker:  jukelight container  (backend + kiosk + admin)     |
-  |                 ^  http://localhost:8080                     |
+  |  Docker:  jukelight container  (backend + kiosk)             |
+  |                 ^  http://localhost:<HTTP_PORT>              |
   |                 |                                            |
-  |  tty1 auto-login (user "kiosk")                              |
-  |    +-- sway (Wayland compositor: no bar, no idle daemon)     |
-  |          +-- browser in kiosk mode -> http://localhost:8080  |
-  |    +-- display agent (systemd user service): follows         |
-  |        /api/v1/display and turns the output on or off        |
+  |  jukelight-kiosk.service (system): sway on tty1 as "kiosk"   |
+  |    +-- Chrome in kiosk mode -> Jukelight                     |
+  |  jukelight-display-agent.service (kiosk's user service):     |
+  |    follows /api/v1/display and switches the monitor          |
+  |                                                              |
+  |  /etc/jukelight/host.env: JUKELIGHT_URL for both services    |
   +--------------------------------------------------------------+
-            | DisplayPort (preferred) or HDMI (fallback)
+            | HDMI (here through a wireless HDMI extender)
             v
-  Monitor (sleeps without a signal, wakes when the signal returns)
+  Monitor
 ```
 
 Without the display agent, the monitor simply stays on.
@@ -46,18 +50,25 @@ Without the display agent, the monitor simply stays on.
 | --- | --- | --- |
 | Machine | Lenovo ThinkCentre M920q Tiny, Intel Core i7-9700T, 32 GB RAM, 512 GB SSD | 64-bit x86, 2 cores, 4 GB RAM, 10 GB free disk |
 | Graphics | Intel UHD Graphics 630 (integrated) | A GPU with open-source Mesa drivers and 4K output |
-| Video output | DisplayPort 1.2 (4K at 60 Hz). HDMI as fallback, probably 4K at 30 Hz | DisplayPort or HDMI capable of 4K |
-| Monitor | LG 27UD68-W (27", 4K) | Sleeps on signal loss and wakes on signal |
+| Video output | HDMI, 4K at 30 Hz, through a wireless HDMI extender (Digitus DS-55323) | DisplayPort or HDMI capable of 4K |
+| Monitor | LG 27UD68-W (27", 4K), mounted in portrait | Sleeps on signal loss and wakes on signal, or switches on by itself when its power returns |
 | Music player | Bluesound Node (BluOS) | A BluOS player |
 | Network | Same LAN as the player | Same LAN as the player |
 
-Why DisplayPort first: the UHD 630 supports HDMI 1.4 natively, which limits 4K
-to 30 Hz. That is acceptable for this mostly static screen, so HDMI is a valid
-fallback (see [Troubleshooting](#troubleshooting)).
+DisplayPort gives 4K at 60 Hz; the UHD 630 supports HDMI 1.4 natively, which
+limits 4K to 30 Hz. That is acceptable for this mostly static screen.
+
+**The wireless extender.** Its receiver identifies itself to the host
+(`swaymsg` lists the output as `VIP UHD4000`), not as the monitor. When the
+host stops sending a picture, the receiver shows its own logo, so the monitor
+never sleeps from signal loss: see
+[Troubleshooting](#troubleshooting). The receiver needs USB power; take it
+from its own USB power adapter or the monitor, not from the music player.
 
 ## Operating system
 
-- **Ubuntu Server 26.04 LTS**, without a desktop environment.
+- **Ubuntu Server 26.04 LTS**, without a desktop environment, with OpenSSH
+  so the host can be managed remotely.
 - The host must never suspend:
 
   ```sh
@@ -72,119 +83,196 @@ fallback (see [Troubleshooting](#troubleshooting)).
 | Component | Source | Why |
 | --- | --- | --- |
 | Docker Engine and the Compose plugin | Docker's official apt repository (not the snap) | Runs Jukelight |
-| sway | Ubuntu package `sway` | Minimal Wayland compositor. `swaymsg "output * power off"` and `power on` control the monitor |
+| sway | Ubuntu package `sway` | Minimal Wayland compositor. `swaymsg "output * power off"` and `power on` switch the output |
 | Mesa graphics drivers | Ubuntu packages (usually installed already) | Hardware rendering for sway and the browser |
-| Browser | Google Chrome (`.deb` from Google's apt repository) | Kiosk mode. Ubuntu's `chromium` package is a snap, which can be unreliable with Wayland and GPU access outside a desktop environment |
+| Browser | Google Chrome (`.deb` from Google) | Kiosk mode. Ubuntu's `chromium` package is a snap, which can be unreliable with Wayland and GPU access outside a desktop environment |
 | Fonts | `fonts-noto-core`, `fonts-noto-cjk`, `fonts-noto-color-emoji` | Jukelight bundles its own font, but track titles can contain Japanese, Chinese or Korean characters and emoji, which need system fallback fonts |
-| `curl` | Ubuntu package | Used by the display agent |
+| `curl`, `git` | Ubuntu packages | The display agent and the kiosk use `curl`; `git` fetches Jukelight |
 | `ddcutil` (optional) | Ubuntu package | Fallback if the monitor does not sleep and wake on signal |
 
 Install the Ubuntu packages:
 
 ```sh
-sudo apt install sway curl fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
+sudo apt install sway curl git fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
 ```
 
-For Docker and Chrome, follow their official installation instructions for
-Ubuntu. A new Ubuntu LTS is sometimes added to third-party repositories a few
-weeks after its release: check that 26.04 is listed.
+**Docker**, from Docker's apt repository:
+
+```sh
+sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+A new Ubuntu LTS is sometimes added to Docker's repository a few weeks after
+its release. Until then, Ubuntu's own packages work: `sudo apt install
+docker.io docker-compose-v2`.
+
+Let your own user run Docker, and start Docker at boot:
+
+```sh
+sudo usermod -aG docker "$USER"     # log out and in again to apply
+sudo systemctl enable --now docker
+```
+
+**Google Chrome**, from Google's package (it also adds Google's apt
+repository, so Chrome updates with the system):
+
+```sh
+cd /tmp
+curl -fLO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install -y ./google-chrome-stable_current_amd64.deb
+rm google-chrome-stable_current_amd64.deb
+```
+
+## Jukelight
+
+As your own user (not the kiosk user), in a folder of your choice:
+
+```sh
+git clone https://github.com/poulzinho/jukelight.git
+cd jukelight
+cp .env.example .env      # set BLUOS_HOST, and the other values you need
+docker compose up --build -d
+docker compose ps         # "healthy" after about 30 seconds
+curl -s localhost:8080/api/v1/player
+```
+
+The container restarts by itself after a reboot (`restart: unless-stopped`),
+unless it was stopped with `docker compose stop` or `down`.
+
+If you use another port than 8080, set `HTTP_PORT` in `.env`; the address in
+`/etc/jukelight/host.env` (next section) must match it.
+
+For a private copy of the repository, give the host a read-only deploy key
+(an SSH key added under the repository's Settings, Deploy keys, without
+write access) instead of your own credentials.
 
 ## Kiosk session
 
-### 1. Create the kiosk user
+### 1. Tell the host where Jukelight runs
+
+The kiosk and the display agent run outside Docker and read Jukelight's
+address from one file:
+
+```sh
+sudo install -d /etc/jukelight
+echo 'JUKELIGHT_URL=http://localhost:8080' | sudo tee /etc/jukelight/host.env
+```
+
+Jukelight's own `.env` stays private to Docker: it can contain the Music
+Assistant token, which the kiosk user must not read.
+
+### 2. Create the kiosk user
 
 ```sh
 sudo useradd --create-home --groups video,render kiosk
 sudo loginctl enable-linger kiosk   # lets its user services run without a login
 ```
 
-### 2. Log in automatically on tty1
-
-Create `/etc/systemd/system/getty@tty1.service.d/autologin.conf`:
-
-```ini
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin kiosk --noclear %I $TERM
-```
-
-Start sway from the kiosk user's `~/.profile`, only on tty1:
-
-```sh
-if [ "$(tty)" = "/dev/tty1" ]; then
-  exec sway
-fi
-```
+Do not give it a password, `sudo` or the `docker` group: see
+[Who logs in where](#who-logs-in-where).
 
 ### 3. Configure sway
 
-`~/.config/sway/config` for the kiosk user:
-
-```
-# One output, no bar, no idle or blanking: only Jukelight decides when the
-# screen turns off.
-output * bg #000000 solid_color
-# Portrait monitor: uncomment and use the name from `swaymsg -t get_outputs`
-# output DP-1 transform 90
-
-seat * hide_cursor 1000
-default_border none
-
-exec google-chrome --kiosk --noerrdialogs --no-first-run \
-  --disable-background-timer-throttling --disable-renderer-backgrounding \
-  --ozone-platform=wayland http://localhost:8080
-```
-
-The display agent (step 5) needs one more line in the same file, so its
-user service can reach sway:
-
-```
-exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
-```
-
-Do not run `swayidle` or any other idle daemon.
-
-### 4. Start Jukelight
-
-From the repository, on the host:
+`/home/kiosk/.config/sway/config` for the kiosk user. It replaces sway's
+default configuration entirely, so the kiosk has no bar and no key bindings:
 
 ```sh
-cp .env.example .env      # then set your player's address and other values
-docker compose up --build -d
+sudo -u kiosk mkdir -p /home/kiosk/.config/sway
+sudo -u kiosk tee /home/kiosk/.config/sway/config > /dev/null <<'EOF'
+# Jukelight kiosk. One output, no bar, no idle or blanking: only Jukelight
+# decides when the screen turns off.
+output * bg #000000 solid_color
+# Portrait mounting: 270 or 90 depending on how the monitor hangs. Remove
+# the line for landscape.
+output * transform 270
+
+# Hide the pointer: move it to a corner at start, hide it after 1 s.
+seat * hide_cursor 1000
+exec swaymsg seat seat0 cursor set 10000 10000
+default_border none
+
+# Start Chrome once Jukelight answers (it may start later than sway at boot).
+# JUKELIGHT_URL comes from /etc/jukelight/host.env (jukelight-kiosk.service).
+exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
+
+# The display agent's user service needs sway's socket.
+exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
+EOF
 ```
+
+`output *` applies to whichever output is connected, so the configuration
+survives switching between DisplayPort and HDMI. Do not run `swayidle` or any
+other idle daemon.
+
+### 4. Start sway on tty1 as a service
+
+A system service runs sway as the kiosk user on tty1, with a login session
+but without a login prompt or a shell, and starts it again if it exits:
+
+```sh
+sudo tee /etc/systemd/system/jukelight-kiosk.service > /dev/null <<'EOF'
+[Unit]
+Description=Jukelight kiosk (sway on tty1)
+After=systemd-user-sessions.service
+Conflicts=getty@tty1.service
+
+[Service]
+EnvironmentFile=/etc/jukelight/host.env
+User=kiosk
+PAMName=login
+TTYPath=/dev/tty1
+StandardInput=tty
+UtmpIdentifier=tty1
+# Show tty1 first; sway needs the active console.
+ExecStartPre=+/usr/bin/chvt 1
+ExecStart=/usr/bin/sway
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl set-default graphical.target
+sudo systemctl enable --now jukelight-kiosk
+```
+
+Check it: `systemctl status jukelight-kiosk` is active, and
+`loginctl list-sessions` lists a session of `kiosk` on `seat0`, `tty1`.
+After a change to the sway configuration: `sudo systemctl restart
+jukelight-kiosk`.
 
 ### 5. Display agent
 
 The agent follows Jukelight's display decisions and switches the monitor
 with `swaymsg`: on while music plays, off a grace period after it stops
 (`DISPLAY_GRACE_MINUTES` in `.env`, 10 minutes by default). It is a shell
-script run as a systemd user service of the kiosk user.
+script run as a systemd user service of the kiosk user, started by the sway
+configuration (step 3).
 
-As the kiosk user, from the repository:
-
-```sh
-install -D -m 0755 host/display-agent/jukelight-display-agent ~/.local/bin/jukelight-display-agent
-install -D -m 0644 host/display-agent/jukelight-display-agent.service ~/.config/systemd/user/jukelight-display-agent.service
-systemctl --user daemon-reload
-```
-
-The sway configuration (step 3) starts the service when sway starts. To start
-it now, inside the sway session:
+From the repository, as your own user:
 
 ```sh
-systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY
-systemctl --user start jukelight-display-agent
+sudo install -D -o kiosk -g kiosk -m 0755 host/display-agent/jukelight-display-agent /home/kiosk/.local/bin/jukelight-display-agent
+sudo install -D -o kiosk -g kiosk -m 0644 host/display-agent/jukelight-display-agent.service /home/kiosk/.config/systemd/user/jukelight-display-agent.service
+sudo systemctl restart jukelight-kiosk
 ```
 
-Check it:
-
-```sh
-systemctl --user status jukelight-display-agent
-journalctl --user -u jukelight-display-agent -f   # "display on", "display off"
-```
-
-Settings, in the service file (`systemctl --user edit jukelight-display-agent`
-to override):
+The service reads `JUKELIGHT_URL` from `/etc/jukelight/host.env`. Other
+settings, with `systemctl --user edit jukelight-display-agent` as the kiosk
+user (see [Working over SSH](#working-over-ssh)):
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -193,6 +281,25 @@ to override):
 | `SILENCE_SECONDS` | `60` | Reconnect after this long without data or heartbeat |
 | `FAILSAFE_SECONDS` | `600` | Switch the monitor off after this long without Jukelight |
 
+## Who logs in where
+
+| Where | Who | How |
+| --- | --- | --- |
+| tty1 (the monitor) | `kiosk` | Started by `jukelight-kiosk.service`; no prompt, no shell, no key bindings |
+| tty2 to tty6 (Ctrl+Alt+F2 to F6 on the host's keyboard) | anyone with an account | The usual login prompt with a password |
+| SSH | your own account | As usual; the `kiosk` user cannot log in (no password) |
+
+The kiosk user has a locked password and belongs only to `kiosk`, `video` and
+`render`. Check it:
+
+```sh
+sudo passwd -S kiosk   # "L" means locked
+id kiosk
+```
+
+Keep it that way: no password, no `sudo` or `docker` group, no `bindsym`
+lines in its sway configuration.
+
 ## Monitor settings
 
 LG 27UD68-W, in the on-screen menu (Settings, then General):
@@ -200,23 +307,55 @@ LG 27UD68-W, in the on-screen menu (Settings, then General):
 | Setting | Value | Why |
 | --- | --- | --- |
 | Automatic Standby | Off | Otherwise the monitor may sleep while music plays |
-| Input | DisplayPort (or the HDMI port in use) | |
+| Input | The HDMI or DisplayPort input in use | |
 | Automatic input switching | Off | Keeps the monitor on the right input while asleep |
 | Deep Sleep Mode | Test both values | It saves power, but on DisplayPort it can stop the monitor from waking (see Troubleshooting) |
+
+The LG switches on by itself when its power returns, which a switched power
+socket relies on (see Troubleshooting).
+
+## Working over SSH
+
+The kiosk's sway session and user services belong to the kiosk user. From
+your own account over SSH:
+
+```sh
+# swaymsg: the socket lies in the kiosk user's private runtime folder.
+S=$(sudo -u kiosk sh -c 'ls /run/user/$(id -u)/sway-ipc.*.sock')
+sw() { sudo -u kiosk SWAYSOCK="$S" swaymsg "$@"; }
+sw -p -t get_outputs            # outputs, mode, scale, rotation
+sw 'output * power off'         # and 'output * power on'
+
+# The display agent's user service.
+k() { sudo -u kiosk XDG_RUNTIME_DIR=/run/user/$(id -u kiosk) "$@"; }
+k systemctl --user status jukelight-display-agent
+k journalctl --user -u jukelight-display-agent -f   # "display on", "display off"
+```
+
+`swaymsg` prints JSON when its output goes into a pipe; `-p` keeps the
+readable form.
 
 ## Checks after setup
 
 | Check | Command or place | Expected |
 | --- | --- | --- |
-| Resolution and refresh rate | `swaymsg -t get_outputs` | 3840x2160 at 60 Hz on DisplayPort (30 Hz on HDMI is acceptable) |
+| Resolution and refresh rate | `sw -p -t get_outputs` | 3840x2160 at 60 Hz on DisplayPort, 30 Hz on HDMI (acceptable) |
+| Rotation | the monitor | Jukelight upright; otherwise swap 270 and 90 in the sway configuration |
+| Pointer | the monitor | No pointer after a second |
 | Hardware acceleration | `chrome://gpu` in the kiosk browser | Hardware accelerated, not software only |
-| Monitor sleeps | `swaymsg "output * power off"` | The monitor goes into standby |
-| Monitor wakes | `swaymsg "output * power on"` | Picture back in under 5 seconds |
+| Monitor sleeps | `sw 'output * power off'` | The monitor goes into standby (not with a wireless extender, see Troubleshooting) |
+| Monitor wakes | `sw 'output * power on'` | Picture back in under 5 seconds |
 | Page stays current | Play music with the output off, then turn it on | The screen shows the current track at once, without reloading |
-
-Run the `swaymsg` commands as the kiosk user, inside its sway session.
+| Restart | `sudo reboot` | The monitor shows Jukelight again without any input |
 
 ## Troubleshooting
+
+**The monitor stays on with an extender's logo.** A wireless HDMI extender's
+receiver shows its own logo when the host stops sending (measured with the
+Digitus DS-55323: still there after 10 minutes), so the monitor never sleeps.
+Switching the output off then only blanks the picture. Switching the monitor's
+power instead (a smart plug) needs a monitor that switches on by itself when
+its power returns; the LG does.
 
 **The monitor does not wake, or the output disappears in sway.** Some monitors
 drop the DisplayPort connection in deep sleep. The output then vanishes and
@@ -226,10 +365,17 @@ may not come back. Try, in this order:
 2. Re-enable the output when it reappears (sway configuration).
 3. Use HDMI instead (4K at 30 Hz).
 4. Use DDC/CI (`ddcutil setvcp D6 ...`) as a last resort; many monitors stop
-   answering DDC once asleep.
+   answering DDC once asleep, and wireless extenders do not pass it on.
 
-**The browser shows a black or blank page.** Check that the container runs
-(`docker compose ps`) and that `http://localhost:8080` answers on the host.
+**The monitor shows sway's grey default look with a bar, a pointer and small
+text.** The kiosk's sway configuration is missing or unreadable: check
+`/home/kiosk/.config/sway/config` (with `sudo`) and restart
+`jukelight-kiosk`.
+
+**The browser shows a black or blank page, or Chrome does not start.** Check
+that the container runs (`docker compose ps`), that `JUKELIGHT_URL` in
+`/etc/jukelight/host.env` answers (`curl -s "$JUKELIGHT_URL/api/v1/player"`),
+and `journalctl -u jukelight-kiosk -b`.
 
 **Animations stutter.** Check `chrome://gpu`: if rendering is in software
 mode, the browser is not using the GPU. Check that the kiosk user is in the
@@ -237,7 +383,7 @@ mode, the browser is not using the GPU. Check that the kiosk user is in the
 
 ## Tested versions
 
-Recorded on the reference host when the display power feature is set up.
+Recorded on the reference host.
 
 | Component | Version |
 | --- | --- |
@@ -245,6 +391,7 @@ Recorded on the reference host when the display power feature is set up.
 | Kernel | (to record) |
 | sway | (to record) |
 | Google Chrome | (to record) |
-| Docker Engine / Compose | (to record) |
+| Docker Engine | 29.9.0 |
+| Docker Compose | v5.6.0 |
 | Mesa | (to record) |
 | BluOS player firmware | (to record) |
