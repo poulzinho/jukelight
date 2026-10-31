@@ -155,6 +155,17 @@ curl -s localhost:8080/api/v1/player
 The container restarts by itself after a reboot (`restart: unless-stopped`),
 unless it was stopped with `docker compose stop` or `down`.
 
+**After an update** (`git pull` and `docker compose up --build -d`), restart
+the kiosk once the kiosk session is set up, so the browser loads the new
+page:
+
+```sh
+sudo systemctl restart jukelight-kiosk
+```
+
+The open page reconnects to the new backend by itself, but keeps running the
+old page's code until it is reloaded, so new screens would not appear.
+
 If you use a port other than 8080, set `HTTP_PORT` in `.env`; the address in
 `/etc/jukelight/host.env` (next section) must match it.
 
