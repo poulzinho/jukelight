@@ -42,11 +42,22 @@ stamp() {
 
 stamp "$contact"
 
+# Switches failed in a row. After 3 the agent stops, so its service manager
+# starts it again with the current environment: a stale sway socket (sway
+# restarted after the agent) must not keep it failing unnoticed.
+failures=0
+
 power() {
   if swaymsg "output * power $1" > /dev/null; then
     echo "display $1"
+    failures=0
   else
-    echo "swaymsg failed to switch the display $1" >&2
+    failures=$((failures + 1))
+    echo "swaymsg failed to switch the display $1 ($failures in a row)" >&2
+    if [ "$failures" -ge 3 ]; then
+      echo "stopping after $failures failed switches; sway may have restarted" >&2
+      exit 1
+    fi
   fi
 }
 

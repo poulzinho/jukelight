@@ -147,6 +147,16 @@ fn changes(receiver: watch::Receiver<&'static str>) -> impl Stream<Item = &'stat
     })
 }
 
+/// How the fake `swaymsg` behaves.
+#[derive(Clone, Copy)]
+enum Swaymsg {
+    Records,
+    /// Every call fails, like a stale sway socket.
+    Fails,
+    /// The first call fails, later ones succeed.
+    FailsOnce,
+}
+
 /// The agent script, run with a fake `swaymsg` first in `PATH`.
 struct Agent {
     child: Child,
@@ -156,6 +166,10 @@ struct Agent {
 
 impl Agent {
     fn start(url: &str, failsafe_seconds: u32) -> Self {
+        Self::start_with(url, failsafe_seconds, Swaymsg::Records)
+    }
+
+    fn start_with(url: &str, failsafe_seconds: u32, fake: Swaymsg) -> Self {
         static NEXT: AtomicUsize = AtomicUsize::new(0);
         let dir = std::env::temp_dir().join(format!(
             "jukelight-agent-test-{}-{}",
@@ -166,14 +180,17 @@ impl Agent {
         let calls = dir.join("calls");
         std::fs::write(&calls, "").unwrap();
         let swaymsg = dir.join("swaymsg");
-        std::fs::write(
-            &swaymsg,
-            format!(
-                "#!/bin/sh\nprintf '%s\\n' \"$*\" >> '{}'\n",
-                calls.display()
+        // Every call is recorded; a failing fake then exits with status 1.
+        let record = format!("printf '%s\\n' \"$*\" >> '{}'", calls.display());
+        let body = match fake {
+            Swaymsg::Records => record,
+            Swaymsg::Fails => format!("{record}\nexit 1"),
+            Swaymsg::FailsOnce => format!(
+                "{record}\n[ \"$(wc -l < '{calls}')\" -gt 1 ] || exit 1",
+                calls = calls.display()
             ),
-        )
-        .unwrap();
+        };
+        std::fs::write(&swaymsg, format!("#!/bin/sh\n{body}\n")).unwrap();
         Command::new("chmod")
             .arg("+x")
             .arg(&swaymsg)
@@ -201,6 +218,18 @@ impl Agent {
             .spawn()
             .unwrap();
         Self { child, calls, dir }
+    }
+
+    /// The agent's exit status, if it ends within `limit`.
+    async fn exit_status(&mut self, limit: Duration) -> Option<std::process::ExitStatus> {
+        let deadline = Instant::now() + limit;
+        while Instant::now() < deadline {
+            if let Some(status) = self.child.try_wait().unwrap() {
+                return Some(status);
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        None
     }
 
     fn calls(&self) -> Vec<String> {
@@ -348,5 +377,43 @@ mod fail_safe_without_the_backend {
 
         backend.restart("on").await;
         agent.wait_for(&[OFF, ON], SOON).await;
+    }
+}
+
+// Spec: display-agent, "Stop after repeated failed switches".
+mod stop_after_repeated_failed_switches {
+    use super::*;
+
+    #[tokio::test]
+    async fn stale_sway_session() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let mut agent = Agent::start_with(&backend.url(), 600, Swaymsg::Fails);
+        agent.wait_for(&[ON], SOON).await;
+        backend.set("off");
+        agent.wait_for(&[ON, OFF], SOON).await;
+        backend.set("on");
+
+        let status = agent.exit_status(SOON).await.expect("the agent stops");
+        assert_eq!(status.code(), Some(1));
+        assert_eq!(agent.calls(), [ON, OFF, ON]);
+    }
+
+    #[tokio::test]
+    async fn occasional_failure() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let mut agent = Agent::start_with(&backend.url(), 600, Swaymsg::FailsOnce);
+        agent.wait_for(&[ON], SOON).await;
+        backend.set("off");
+        agent.wait_for(&[ON, OFF], SOON).await;
+        backend.set("on");
+        agent.wait_for(&[ON, OFF, ON], SOON).await;
+        backend.set("off");
+        agent.wait_for(&[ON, OFF, ON, OFF], SOON).await;
+
+        assert_eq!(
+            agent.exit_status(Duration::from_millis(500)).await,
+            None,
+            "keeps running"
+        );
     }
 }
