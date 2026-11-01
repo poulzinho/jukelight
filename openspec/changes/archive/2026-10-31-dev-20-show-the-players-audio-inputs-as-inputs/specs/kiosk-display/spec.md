@@ -34,3 +34,12 @@ still.
 #### Scenario: Reduced motion
 - **WHEN** the browser prefers reduced motion and an input plays
 - **THEN** the disc does not turn
+
+### Requirement: No translation prompt
+The kiosk page SHALL tell browsers not to translate it, so a browser set to
+another language than the page's does not show a translation prompt on the
+screen.
+
+#### Scenario: Browser in another language
+- **WHEN** the kiosk page is loaded
+- **THEN** its `html` element has `translate="no"` and the page has the meta tag `google` with the content `notranslate`

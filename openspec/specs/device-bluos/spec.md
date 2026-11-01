@@ -60,8 +60,10 @@ buffering, and every other value to stopped.
 ### Requirement: Origin
 The device monitor SHALL report where the audio comes from as an origin:
 a stream origin with its URL when `streamUrl` is an `http` or `https` URL;
-otherwise a service origin with the `service` id and `serviceName`, marked as
-a cast session when `serviceType` is `Endpoint`; otherwise no origin.
+an input origin when `serviceType` is `AudioInputs` and the input is not
+Bluetooth; otherwise a service origin with the `service` id and
+`serviceName`, marked as a cast session when `serviceType` is `Endpoint`;
+otherwise no origin.
 
 #### Scenario: Music Assistant stream
 - **WHEN** `/Status` reports `<streamUrl>http://192.168.1.50:8097/flow/abc/aabbccddeeff/def/aabbccddeeff.flac</streamUrl>`
@@ -74,6 +76,14 @@ a cast session when `serviceType` is `Endpoint`; otherwise no origin.
 #### Scenario: Native service
 - **WHEN** `/Status` reports `<service>Qobuz</service>` and `<serviceType>CloudService</serviceType>`
 - **THEN** the origin is a service origin "Qobuz" not marked as a cast session
+
+#### Scenario: Optical input
+- **WHEN** `/Status` reports `<service>Capture</service>`, `<serviceType>AudioInputs</serviceType>` and `<inputTypeIndex>spdif-1</inputTypeIndex>`
+- **THEN** the origin is an input origin
+
+#### Scenario: Bluetooth input
+- **WHEN** `/Status` reports `<serviceType>AudioInputs</serviceType>` and `<inputTypeIndex>bluetooth-1</inputTypeIndex>`
+- **THEN** the origin is a service origin, as before
 
 ### Requirement: The player's own content
 The device monitor SHALL report the content the player knows: title from
@@ -130,8 +140,9 @@ converted, for example from 16 to 24 bits), not the source.
 For a service origin that is not a cast session, the device monitor SHALL
 read the queue from `/Playlist`, reload it whenever the playlist id (`pid`)
 changes, and report the entries after the current index (`song`) as the
-upcoming entries. For cast sessions, stream origins and no origin, it SHALL
-report the queue as not applicable, even when `/Playlist` contains entries.
+upcoming entries. For cast sessions, input origins, stream origins and no
+origin, it SHALL report the queue as not applicable, even when `/Playlist`
+contains entries, and SHALL NOT read `/Playlist` for input origins.
 
 #### Scenario: Native queue
 - **WHEN** the origin is the native service "Qobuz", `song` is 0 and `/Playlist` holds 12 entries
@@ -140,6 +151,10 @@ report the queue as not applicable, even when `/Playlist` contains entries.
 #### Scenario: Stale playlist during a cast session
 - **WHEN** the origin is the cast service "Spotify" and `/Playlist` still holds 12 entries from an earlier session
 - **THEN** the queue view is not applicable
+
+#### Scenario: Stale playlist while an input plays
+- **WHEN** the origin is the optical input and `/Playlist` still holds 12 entries from an earlier session
+- **THEN** the queue view is not applicable and `/Playlist` is not requested
 
 ### Requirement: Recorded responses as tests
 Every requirement of this capability SHALL be covered by tests against
@@ -150,3 +165,25 @@ paused and stopped. Recorded responses SHALL contain example values only.
 #### Scenario: No personal data in fixtures
 - **WHEN** the test fixtures are checked
 - **THEN** they contain no IP address outside 192.168.1.0/24 and no MAC address other than aa:bb:cc:dd:ee:ff
+
+### Requirement: Audio inputs
+For an input origin the device monitor SHALL report the input's kind from
+`inputTypeIndex` (`spdif` optical, `analog` analog, `arc` or `hdmi` HDMI
+ARC, anything else other), its name from `title1` (as set in the player's
+app; "Input" when empty), and when its signal started (the observation time
+minus `secs`) while `state` is `stream`. While `state` is `connecting` the
+player waits for a signal: the input has no start time. The device monitor
+SHALL report no track content: no title, artists, album, artwork, position,
+quality or queue.
+
+#### Scenario: Named optical input
+- **WHEN** `/Status` reports an input origin with `<inputTypeIndex>spdif-1</inputTypeIndex>`, `<title1>Leak CDT</title1>`, `<state>stream</state>` and `<secs>314</secs>`, observed at time T
+- **THEN** the input is optical, named "Leak CDT", its signal started at T minus 314 s, and the device reports no content
+
+#### Scenario: Waiting for a signal
+- **WHEN** `/Status` reports the input with `<state>connecting</state>` and `<secs>0</secs>`
+- **THEN** the input has no start time and the playback state is buffering
+
+#### Scenario: Unknown input kind
+- **WHEN** `/Status` reports an input origin with `<inputTypeIndex>usb-1</inputTypeIndex>`
+- **THEN** the input's kind is other

@@ -69,6 +69,14 @@ from its own USB power adapter or the monitor, not from the music player.
 
 - **Ubuntu Server 26.04 LTS**, without a desktop environment, with OpenSSH
   so the host can be managed remotely.
+- The time zone, so the kiosk's clock shows local time (`Europe/Berlin` as
+  an example), and the locales the kiosk uses:
+
+  ```sh
+  sudo timedatectl set-timezone Europe/Berlin
+  locale -a        # de_DE.utf8 (or another locale) must be listed
+  ```
+
 - The host must never suspend:
 
   ```sh
@@ -155,6 +163,17 @@ curl -s localhost:8080/api/v1/player
 The container restarts by itself after a reboot (`restart: unless-stopped`),
 unless it was stopped with `docker compose stop` or `down`.
 
+**After an update** (`git pull` and `docker compose up --build -d`), restart
+the kiosk once the kiosk session is set up, so the browser loads the new
+page:
+
+```sh
+sudo systemctl restart jukelight-kiosk
+```
+
+The open page reconnects to the new backend by itself, but keeps running the
+old page's code until it is reloaded, so new screens would not appear.
+
 If you use a port other than 8080, set `HTTP_PORT` in `.env`; the address in
 `/etc/jukelight/host.env` (next section) must match it.
 
@@ -209,7 +228,10 @@ default_border none
 
 # Start Chrome once Jukelight answers (it may start later than sway at boot).
 # JUKELIGHT_URL comes from /etc/jukelight/host.env (jukelight-kiosk.service).
-exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
+# LANGUAGE and LC_ALL set the clock's format (here 24 hours): on Linux
+# Chrome ignores --lang, and the login session replaces LANG with the
+# system locale.
+exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec env LANGUAGE=de LC_ALL=de_DE.UTF-8 google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
 
 # The display agent's user service needs sway's socket.
 exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
@@ -217,10 +239,30 @@ EOF
 ```
 
 `output *` applies to whichever output is connected, so the configuration
-survives switching between DisplayPort and HDMI. Do not run `swayidle` or any
+survives switching between DisplayPort and HDMI. For a 12-hour clock or
+another language, use another locale in the Chrome line (for example
+`LANGUAGE=en LC_ALL=en_US.UTF-8`); it must be installed (`locale -a`). Do not run `swayidle` or any
 other idle daemon.
 
-### 4. Start sway on tty1 as a service
+### 4. Chrome policies
+
+Chrome in kiosk mode still shows some of its own prompts. When its language
+(from the sway configuration, step 3) differs from the page's, it offers to
+translate the page, and the prompt stays on the screen. Switch translation
+off with a Chrome policy, which applies to every Chrome on the host:
+
+```sh
+sudo mkdir -p /etc/opt/chrome/policies/managed
+echo '{ "TranslateEnabled": false }' | sudo tee /etc/opt/chrome/policies/managed/jukelight.json
+```
+
+Jukelight's page itself asks browsers not to translate it (`translate="no"`),
+which prevents the prompt; the policy also covers other pages and older
+Jukelight versions. The command-line flag `--disable-features=Translate`
+does not stop the prompt (checked with Chrome 156). A normal Chrome window on the host shows
+the active policies at `chrome://policy`.
+
+### 5. Start sway on tty1 as a service
 
 A system service runs sway as the kiosk user on tty1, with a login session
 but without a login prompt or a shell, and starts it again if it exits:
@@ -258,7 +300,7 @@ Check it: `systemctl status jukelight-kiosk` is active, and
 After a change to the sway configuration: `sudo systemctl restart
 jukelight-kiosk`.
 
-### 5. Display agent
+### 6. Display agent
 
 The agent follows Jukelight's display decisions and switches the monitor
 with `swaymsg`: on while music plays, off a grace period after it stops

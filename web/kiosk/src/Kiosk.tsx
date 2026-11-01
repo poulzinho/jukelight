@@ -3,6 +3,7 @@ import { Artwork } from './components/Artwork'
 import { Badges } from './components/Badges'
 import { ConnectionIndicator } from './components/ConnectionIndicator'
 import { IdleScreen } from './components/IdleScreen'
+import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
 import { Progress } from './components/Progress'
 import { TrackInfo } from './components/TrackInfo'
@@ -26,7 +27,9 @@ export function Kiosk({ player, connection, clockOffsetMs }: Props) {
 
   return (
     <>
-      {player?.track && playing ? (
+      {player?.input && player.state !== 'stopped' ? (
+        <InputScreen player={player} input={player.input} clockOffsetMs={clockOffsetMs} />
+      ) : player?.track && playing ? (
         <PlayingScreen player={player} track={player.track} clockOffsetMs={clockOffsetMs} />
       ) : (
         <IdleScreen deviceName={player?.deviceName || null} />
