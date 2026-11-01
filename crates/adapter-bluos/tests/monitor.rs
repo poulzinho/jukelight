@@ -240,3 +240,25 @@ async fn offline_on_failure_with_capped_backoff() {
         "delay should reach the cap: {gaps:?}"
     );
 }
+
+// Spec: device-bluos, "Native queue" ("Stale playlist while an input plays").
+
+#[tokio::test]
+async fn stale_playlist_while_an_input_plays() {
+    // The recorded /Playlist still holds an earlier Qobuz session's queue.
+    let (player, port) =
+        TestPlayer::start("optical-input-playing", Duration::from_millis(200)).await;
+    let mut snapshots = monitor(port, fast_timing()).snapshots();
+
+    let first = snapshots.next().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let playlist_requests = player
+        .requests()
+        .into_iter()
+        .filter(|(_, r)| r.starts_with("Playlist"))
+        .count();
+    assert_eq!(playlist_requests, 0, "no /Playlist request for an input");
+    assert!(matches!(first.origin, jukelight_domain::Origin::Input(_)));
+    assert_eq!(first.content, None);
+}

@@ -11,9 +11,9 @@
 
 ## 2. Layer 2 (DEV-23): BluOS audio inputs
 
-- [ ] 2.1 Record `/Status` and `/Playlist` from the reference player while the optical input waits for a signal (`connecting`) and while it streams, into `crates/adapter-bluos/tests/fixtures/raw/` (git-ignored); commit scrubbed copies (input name changed to an example name) and keep the personal-data scan passing
-- [ ] 2.2 Write failing parsing and mapping tests for "Optical input", "Bluetooth input", "Named optical input", "Waiting for a signal" and "Unknown input kind", then implement the input origin, kind, name and the start of its signal, with no content
-- [ ] 2.3 Write a failing monitor test against the local test player for "Stale playlist while an input plays" (no `/Playlist` request, queue not applicable), then exclude inputs from `is_native`
+- [x] 2.1 Record `/Status` and `/Playlist` from the reference player while the optical input waits for a signal (`connecting`) and while it streams, into `crates/adapter-bluos/tests/fixtures/raw/` (git-ignored); commit scrubbed copies (input name changed to an example name) and keep the personal-data scan passing
+- [x] 2.2 Write failing parsing and mapping tests for "Optical input", "Bluetooth input", "Named optical input", "Waiting for a signal" and "Unknown input kind", then implement the input origin, kind, name and the start of its signal, with no content
+- [x] 2.3 Write a failing monitor test against the local test player for "Stale playlist while an input plays" (no `/Playlist` request, queue not applicable), then exclude inputs from `is_native`
 - [ ] 2.4 Verify the layer as in 1.5; open the layer's pull request on top of layer 1 and verify CI is green
 
 ## 3. Layer 3 (DEV-24): API, configuration and fake scenario

@@ -9,7 +9,8 @@ use std::time::Duration;
 use jukelight_adapter_bluos::parse::{Identity, parse_playlist, parse_status, parse_sync_status};
 use jukelight_adapter_bluos::to_device_snapshot;
 use jukelight_domain::{
-    AudioQuality, DeviceSnapshot, Origin, PlaybackState, QualityMeasure, QueueView, Timestamp,
+    AudioInput, AudioQuality, DeviceSnapshot, InputKind, Origin, PlaybackState, QualityMeasure,
+    QueueView, Timestamp,
 };
 
 const BASE: &str = "http://192.168.1.40:11000";
@@ -321,4 +322,97 @@ fn status_etag() {
     let status = parse_status(&fixture("qobuz-native-playing", "status.xml")).unwrap();
     assert!(!status.etag.is_empty());
     assert_eq!(status.get("pid"), Some("426"));
+}
+
+// Audio inputs (recorded on the reference player with a CD transport on the
+// optical input; the input's name is an example)
+
+fn input_of(snapshot: &DeviceSnapshot) -> &AudioInput {
+    match &snapshot.origin {
+        Origin::Input(input) => input,
+        other => panic!("expected an input origin, got {other:?}"),
+    }
+}
+
+#[test]
+fn optical_input() {
+    let snapshot = snapshot("optical-input-playing");
+    let input = input_of(&snapshot);
+    assert_eq!(input.kind, InputKind::Optical);
+    assert_eq!(input.name, "Example Input");
+    assert_eq!(snapshot.state, PlaybackState::Playing);
+    // Not a track: no title, no queue, even though /Playlist still holds
+    // an earlier session's entries.
+    assert_eq!(snapshot.content, None);
+}
+
+#[test]
+fn named_optical_input() {
+    let snapshot = inline_status(
+        "<service>Capture</service><serviceType>AudioInputs</serviceType>\
+         <inputTypeIndex>spdif-1</inputTypeIndex><title1>Leak</title1>\
+         <state>stream</state><secs>314</secs>",
+    );
+    let input = input_of(&snapshot);
+    assert_eq!(input.name, "Leak");
+    assert_eq!(
+        input.started_at,
+        Some(Timestamp::from_millis(NOW.as_millis() - 314_000))
+    );
+    assert_eq!(snapshot.content, None);
+}
+
+#[test]
+fn waiting_for_a_signal() {
+    let snapshot = snapshot("optical-input-connecting");
+    let input = input_of(&snapshot);
+    assert_eq!(input.started_at, None);
+    assert_eq!(snapshot.state, PlaybackState::Buffering);
+}
+
+#[test]
+fn streaming_input_has_a_start_time() {
+    let snapshot = snapshot("optical-input-playing");
+    // Recorded right when the signal started (`secs` 0).
+    assert_eq!(input_of(&snapshot).started_at, Some(NOW));
+}
+
+#[test]
+fn bluetooth_input() {
+    let snapshot = inline_status(
+        "<service>Capture</service><serviceType>AudioInputs</serviceType>\
+         <inputTypeIndex>bluetooth-1</inputTypeIndex><title1>Bluetooth</title1>\
+         <state>stream</state>",
+    );
+    assert!(
+        matches!(snapshot.origin, Origin::Service { .. }),
+        "{:?}",
+        snapshot.origin
+    );
+}
+
+#[test]
+fn input_kinds() {
+    for (index, kind) in [
+        ("spdif-1", InputKind::Optical),
+        ("analog-1", InputKind::Analog),
+        ("arc-1", InputKind::HdmiArc),
+        ("hdmi-1", InputKind::HdmiArc),
+        ("usb-1", InputKind::Other),
+    ] {
+        let snapshot = inline_status(&format!(
+            "<serviceType>AudioInputs</serviceType><inputTypeIndex>{index}</inputTypeIndex>\
+             <title1>In</title1><state>stream</state><secs>1</secs>"
+        ));
+        assert_eq!(input_of(&snapshot).kind, kind, "{index}");
+    }
+}
+
+#[test]
+fn unnamed_input() {
+    let snapshot = inline_status(
+        "<serviceType>AudioInputs</serviceType><inputTypeIndex>analog-1</inputTypeIndex>\
+         <state>stream</state><secs>5</secs>",
+    );
+    assert_eq!(input_of(&snapshot).name, "Input");
 }

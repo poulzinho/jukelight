@@ -4,8 +4,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, PlaybackState,
-    Position, QueueEntry, QueueView, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
+    PlaybackState, Position, QueueEntry, QueueView, Timestamp, Track,
 };
 
 use crate::parse::{Identity, PlaylistEntry, Status};
@@ -21,7 +21,7 @@ pub fn to_device_snapshot(
     base_url: &str,
     now: Timestamp,
 ) -> DeviceSnapshot {
-    let origin = origin(status);
+    let origin = origin(status, now);
     DeviceSnapshot {
         name: identity.name.clone(),
         player_key: identity.player_key.clone(),
@@ -47,11 +47,14 @@ fn playback_state(state: Option<&str>) -> PlaybackState {
     }
 }
 
-fn origin(status: &Status) -> Origin {
+fn origin(status: &Status, now: Timestamp) -> Origin {
     if let Some(url) = status.get("streamUrl").filter(|url| is_http(url)) {
         return Origin::Stream {
             url: url.to_owned(),
         };
+    }
+    if let Some(input) = audio_input(status, now) {
+        return Origin::Input(input);
     }
     match status.get("service") {
         Some(id) => Origin::Service {
@@ -63,6 +66,44 @@ fn origin(status: &Status) -> Origin {
     }
 }
 
+/// An audio input (not Bluetooth, which may carry track data and stays a
+/// service). `secs` counts from when the signal started; while the player
+/// is `connecting` it waits for a signal.
+fn audio_input(status: &Status, now: Timestamp) -> Option<AudioInput> {
+    if status.get("serviceType") != Some("AudioInputs") {
+        return None;
+    }
+    let index = status.get("inputTypeIndex").unwrap_or_default();
+    let kind = match index.split('-').next().unwrap_or_default() {
+        "bluetooth" => return None,
+        "spdif" => InputKind::Optical,
+        "analog" => InputKind::Analog,
+        "arc" | "hdmi" => InputKind::HdmiArc,
+        _ => InputKind::Other,
+    };
+    let started_at = match status.get("state") {
+        Some("stream" | "play") => {
+            let secs = status
+                .get("secs")
+                .and_then(|secs| secs.parse::<u64>().ok())
+                .unwrap_or(0);
+            Some(Timestamp::from_millis(
+                now.as_millis().saturating_sub(secs.saturating_mul(1000)),
+            ))
+        }
+        _ => None,
+    };
+    Some(AudioInput {
+        kind,
+        name: status
+            .get("title1")
+            .filter(|name| !name.is_empty())
+            .unwrap_or("Input")
+            .to_owned(),
+        started_at,
+    })
+}
+
 fn content(
     status: &Status,
     origin: &Origin,
@@ -70,6 +111,10 @@ fn content(
     base_url: &str,
     now: Timestamp,
 ) -> Option<Content> {
+    // An input has no track: nobody knows what comes in on it.
+    if matches!(origin, Origin::Input(_)) {
+        return None;
+    }
     let title = status.get("title1")?;
     let track = Track {
         title: title.to_owned(),
