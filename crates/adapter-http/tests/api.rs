@@ -16,8 +16,8 @@ use jukelight_application::{
     ArtworkError, ArtworkId, ArtworkSource, DisplayController, DisplayHandle, Image, PlayerMonitor,
 };
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, Palette, PlaybackState,
-    Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
+    Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
 };
 use serde_json::Value;
 use tower::ServiceExt;
@@ -217,6 +217,70 @@ async fn no_album_colours() {
     let json = player_json(&app(&monitor)).await;
     assert!(json.as_object().unwrap().contains_key("palette"));
     assert!(json["palette"].is_null());
+}
+
+fn optical_input(started_at: Option<u64>) -> DeviceSnapshot {
+    DeviceSnapshot {
+        origin: Origin::Input(AudioInput {
+            kind: InputKind::Optical,
+            name: "Example Input".into(),
+            started_at: started_at.map(Timestamp::from_millis),
+        }),
+        content: None,
+        ..device("unused", 0, 0)
+    }
+}
+
+#[tokio::test]
+async fn input_plays() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&optical_input(Some(1_000_000)));
+
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(json["input"]["kind"], "optical");
+    assert_eq!(json["input"]["name"], "Example Input");
+    assert_eq!(json["input"]["startedAt"], 1_000_000);
+    assert_eq!(json["session"]["label"], "Optical input");
+    assert!(json["track"].is_null());
+    assert!(json["queue"].is_null());
+}
+
+#[tokio::test]
+async fn input_waiting_for_a_signal() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&optical_input(None));
+
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(json["input"]["name"], "Example Input");
+    assert!(json["input"].as_object().unwrap().contains_key("startedAt"));
+    assert!(json["input"]["startedAt"].is_null());
+}
+
+#[tokio::test]
+async fn input_kinds() {
+    for (kind, name) in [
+        (InputKind::Analog, "analog"),
+        (InputKind::HdmiArc, "hdmi-arc"),
+        (InputKind::Other, "other"),
+    ] {
+        let monitor = PlayerMonitor::new(Vec::new());
+        let mut device = optical_input(Some(1));
+        if let Origin::Input(input) = &mut device.origin {
+            input.kind = kind;
+        }
+        monitor.apply(&device);
+        assert_eq!(player_json(&app(&monitor)).await["input"]["kind"], name);
+    }
+}
+
+#[tokio::test]
+async fn no_input() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&device("Example Song", 42, 1_000_000));
+
+    let json = player_json(&app(&monitor)).await;
+    assert!(json.as_object().unwrap().contains_key("input"));
+    assert!(json["input"].is_null());
 }
 
 // 7.2 Live updates

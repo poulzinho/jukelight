@@ -8,8 +8,10 @@ use jukelight_adapter_music_assistant::{ClaimRule, MusicAssistantConfig, Token};
 
 const LOG_LEVELS: [&str; 5] = ["trace", "debug", "info", "warn", "error"];
 const DEFAULT_GRACE_MINUTES: u64 = 10;
-/// One day.
-const MAX_GRACE_MINUTES: u64 = 1440;
+/// A full CD (at most 80 minutes) and some slack.
+const DEFAULT_INPUT_DISPLAY_MINUTES: u64 = 90;
+/// One day, for any setting in minutes.
+const MAX_MINUTES: u64 = 1440;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeviceConfig {
@@ -24,6 +26,8 @@ pub struct Config {
     pub log_level: String,
     /// How long the display stays on after playback stops.
     pub display_grace: Duration,
+    /// How long an audio input counts as playing after its signal started.
+    pub input_display_limit: Duration,
     /// `None`: Music Assistant streams show as plain streams.
     pub music_assistant: Option<MusicAssistantConfig>,
 }
@@ -95,22 +99,36 @@ impl Config {
             device,
             http_port: port("HTTP_PORT", get("HTTP_PORT"), 8080)?,
             log_level,
-            display_grace: grace_period(get("DISPLAY_GRACE_MINUTES"))?,
+            display_grace: minutes(
+                "DISPLAY_GRACE_MINUTES",
+                get("DISPLAY_GRACE_MINUTES"),
+                DEFAULT_GRACE_MINUTES,
+            )?,
+            input_display_limit: minutes(
+                "INPUT_DISPLAY_MINUTES",
+                get("INPUT_DISPLAY_MINUTES"),
+                DEFAULT_INPUT_DISPLAY_MINUTES,
+            )?,
             music_assistant: music_assistant(get("MA_URL"), get("MA_TOKEN"))?,
         })
     }
 }
 
-fn grace_period(value: Option<String>) -> Result<Duration, ConfigError> {
+/// Whole minutes from 0 to one day; `default` when unset.
+fn minutes(
+    key: &'static str,
+    value: Option<String>,
+    default: u64,
+) -> Result<Duration, ConfigError> {
     let Some(value) = value else {
-        return Ok(Duration::from_secs(DEFAULT_GRACE_MINUTES * 60));
+        return Ok(Duration::from_secs(default * 60));
     };
     match value.trim().parse::<u64>() {
-        Ok(minutes) if minutes <= MAX_GRACE_MINUTES => Ok(Duration::from_secs(minutes * 60)),
+        Ok(minutes) if minutes <= MAX_MINUTES => Ok(Duration::from_secs(minutes * 60)),
         _ => Err(invalid(
-            "DISPLAY_GRACE_MINUTES",
+            key,
             &value,
-            format!("expected whole minutes from 0 to {MAX_GRACE_MINUTES}"),
+            format!("expected whole minutes from 0 to {MAX_MINUTES}"),
         )),
     }
 }

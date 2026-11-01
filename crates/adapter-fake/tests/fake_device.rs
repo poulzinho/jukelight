@@ -9,7 +9,7 @@ use jukelight_adapter_fake::{FakeControls, FakeDevice, SCENARIOS};
 use jukelight_application::DeviceMonitor;
 use jukelight_application::testing::FixedClock;
 use jukelight_application::testing::contract::{DeviceHarness, device_monitor_contract};
-use jukelight_domain::{Palette, PlaybackState, QueueView, Rgb};
+use jukelight_domain::{InputKind, Origin, Palette, PlaybackState, QueueView, Rgb, Timestamp};
 
 struct Harness(FakeControls);
 
@@ -22,8 +22,11 @@ impl DeviceHarness for Harness {
     }
 }
 
+/// The test clock's time, in milliseconds since the Unix epoch.
+const CLOCK: u64 = 10_000_000;
+
 fn device(scenario: &str) -> (FakeDevice, FakeControls) {
-    FakeDevice::new(scenario, Arc::new(FixedClock::at(1_000_000))).unwrap()
+    FakeDevice::new(scenario, Arc::new(FixedClock::at(CLOCK))).unwrap()
 }
 
 async fn first(scenario: &str) -> jukelight_domain::DeviceSnapshot {
@@ -48,6 +51,7 @@ fn all_scenarios_exist() {
             "no-artwork",
             "hi-res",
             "album-colours",
+            "optical-input",
             "paused",
             "stopped",
             "offline",
@@ -149,5 +153,23 @@ async fn paused_stopped_and_offline() {
 #[tokio::test]
 async fn position_is_observed_now() {
     let content = first("playing-with-queue").await.content.unwrap();
-    assert_eq!(content.position.unwrap().observed_at.as_millis(), 1_000_000);
+    assert_eq!(content.position.unwrap().observed_at.as_millis(), CLOCK);
+}
+
+#[tokio::test]
+async fn optical_input() {
+    let snapshot = first("optical-input").await;
+    let Origin::Input(input) = snapshot.origin else {
+        panic!("expected an input origin, got {:?}", snapshot.origin)
+    };
+    assert_eq!(input.kind, InputKind::Optical);
+    assert_eq!(input.name, "Example Input");
+    // Streaming for 23 minutes when the scenario starts.
+    let started = input.started_at.expect("a started signal");
+    assert_eq!(
+        Timestamp::from_millis(started.as_millis() + 23 * 60_000),
+        Timestamp::from_millis(CLOCK)
+    );
+    assert_eq!(snapshot.state, PlaybackState::Playing);
+    assert_eq!(snapshot.content, None);
 }

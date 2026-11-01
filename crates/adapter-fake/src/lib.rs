@@ -10,18 +10,19 @@ use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, DeviceMonitor};
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, DeviceSnapshot, Origin, Palette, PlaybackState,
-    Position, QueueEntry, QueueView, Rgb, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
+    Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 9] = [
+pub const SCENARIOS: [&str; 10] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
     "no-artwork",
     "hi-res",
     "album-colours",
+    "optical-input",
     "paused",
     "stopped",
     "offline",
@@ -182,12 +183,24 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 accent: Rgb(209, 147, 108),
             });
         }
+        ("optical-input", _) => (snapshot.origin, snapshot.content) = (optical_input(clock), None),
         ("paused", _) => snapshot.state = PlaybackState::Paused,
         ("stopped", _) => snapshot.state = PlaybackState::Stopped,
         ("offline", _) => snapshot.online = false,
         _ => {}
     }
     snapshot
+}
+
+/// An optical input streaming for 23 minutes: no track, only the input.
+fn optical_input(clock: &dyn Clock) -> Origin {
+    Origin::Input(AudioInput {
+        kind: InputKind::Optical,
+        name: "Example Input".into(),
+        started_at: Some(Timestamp::from_millis(
+            clock.now().as_millis().saturating_sub(23 * 60_000),
+        )),
+    })
 }
 
 /// A generated square cover: a gradient with the initials of `title`.
