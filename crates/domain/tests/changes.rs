@@ -37,6 +37,7 @@ fn playing(title: &str, elapsed_s: u64, at: Timestamp) -> PlayerSnapshot {
             service: None,
             palette: None,
         }),
+        input: None,
     }
 }
 

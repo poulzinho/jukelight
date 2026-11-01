@@ -12,10 +12,10 @@ mod quality;
 mod time;
 
 pub use changes::{Changes, POSITION_TOLERANCE, PlayerEvent, detect_changes};
-pub use display::{DisplayPolicy, DisplayPower};
+pub use display::{DEFAULT_INPUT_LIMIT, DisplayPolicy, DisplayPower};
 pub use playback::{
-    ArtworkRef, Content, DeviceSnapshot, Origin, Palette, PlaybackState, PlayerSnapshot, Position,
-    QueueEntry, QueueView, Rgb, Session, Track,
+    ArtworkRef, AudioInput, Content, DeviceSnapshot, InputKind, Origin, Palette, PlaybackState,
+    PlayerSnapshot, Position, QueueEntry, QueueView, Rgb, Session, Track,
 };
 pub use quality::{AudioFormat, AudioQuality, QualityMeasure};
 pub use time::Timestamp;
