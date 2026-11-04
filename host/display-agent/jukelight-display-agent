@@ -11,6 +11,9 @@
 #                     (default 60)
 #   FAILSAFE_SECONDS  switch off after this long without the backend
 #                     (default 600)
+#   POWER_ON_COMMAND  run after switching the outputs on, for example to
+#                     switch a smart plug (default: none)
+#   POWER_OFF_COMMAND run after switching the outputs off (default: none)
 
 set -u
 
@@ -18,6 +21,8 @@ url="${JUKELIGHT_URL:-http://localhost:8080}"
 retry="${RETRY_SECONDS:-5}"
 silence="${SILENCE_SECONDS:-60}"
 failsafe="${FAILSAFE_SECONDS:-600}"
+power_on_command="${POWER_ON_COMMAND:-}"
+power_off_command="${POWER_OFF_COMMAND:-}"
 
 # Unix seconds of the backend's last data (decision or heartbeat), for the
 # fail-safe, and of the current connection's last data or start, for the
@@ -30,9 +35,10 @@ seen="$work/seen"
 stream="$work/stream"
 mkfifo "$stream"
 pids=""
+command_pid=""
 trap 'rm -rf "$work"' EXIT
 # shellcheck disable=SC2086 # $pids holds two process ids
-trap 'kill $pids 2> /dev/null; exit 0' INT TERM
+trap 'kill $pids $command_pid 2> /dev/null; exit 0' INT TERM
 
 # Writes the time $2 (default: now) to file $1. Through a rename, so a
 # concurrent reader never sees a truncated, empty file.
@@ -49,6 +55,62 @@ stamp "$contact"
 # restarted after the agent) must not keep it failing unnoticed.
 failures=0
 
+# Runs the power command $2 for the switch $1 until it succeeds, waiting the
+# retry interval between attempts. Logs the first failure and the recovery,
+# not every attempt. Stopped, it also stops its command or sleep: both run
+# in the background, so the stop takes effect at once.
+retry_power_command() {
+  child=""
+  trap '[ -z "$child" ] || kill "$child" 2> /dev/null; exit 0' TERM
+  failed=false
+  while true; do
+    # The command's own error message only once, with the first failure.
+    if [ "$failed" = false ]; then
+      sh -c "$2" > /dev/null &
+    else
+      sh -c "$2" > /dev/null 2>&1 &
+    fi
+    child=$!
+    if wait "$child"; then
+      child=""
+      break
+    fi
+    child=""
+    if [ "$failed" = false ]; then
+      echo "power command for $1 failed; retrying every ${retry}s" >&2
+      failed=true
+    fi
+    sleep "$retry" &
+    child=$!
+    wait "$child"
+    child=""
+  done
+  if [ "$failed" = true ]; then
+    echo "power command for $1 succeeded after retrying" >&2
+  fi
+}
+
+# Runs the configured power command for the switch $1 (on or off), if any,
+# in the background, so a slow or unreachable plug never holds up the
+# decisions. A newer switch first stops the older command, so an old "on"
+# never lands after a newer "off". Its failures don't count as failed
+# switches: restarting the agent doesn't help an unreachable plug.
+power_command() {
+  if [ -n "$command_pid" ]; then
+    kill "$command_pid" 2> /dev/null
+    wait "$command_pid" 2> /dev/null
+    command_pid=""
+  fi
+  case $1 in
+    on) command=$power_on_command ;;
+    *) command=$power_off_command ;;
+  esac
+  [ -n "$command" ] || return 0
+  retry_power_command "$1" "$command" &
+  command_pid=$!
+}
+
+# Switches the outputs, then runs the power command.
 power() {
   if swaymsg "output * power $1" > /dev/null; then
     echo "display $1"
@@ -61,6 +123,7 @@ power() {
       exit 1
     fi
   fi
+  power_command "$1"
 }
 
 # Applies the first decision of a connection, then only changes. Blank
@@ -132,7 +195,8 @@ while true; do
   pids="$curl_pid $watchdog_pid"
   follow < "$stream"
   kill "$curl_pid" "$watchdog_pid" 2> /dev/null
-  wait 2> /dev/null
+  # Only these two: a power command may still be retrying.
+  wait "$curl_pid" "$watchdog_pid" 2> /dev/null
 
   since=$(( $(date +%s) - $(cat "$contact") ))
   if [ "$since" -ge "$failsafe" ]; then
