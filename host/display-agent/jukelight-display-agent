@@ -100,7 +100,7 @@ watchdog() {
   # Stopped with the connection, it also stops its sleep, so no long sleep
   # is left behind after each connection.
   nap=""
-  trap 'kill "$nap" 2> /dev/null; exit 0' TERM
+  trap '[ -z "$nap" ] || kill "$nap" 2> /dev/null; exit 0' TERM
   while true; do
     last=$(cat "$seen" 2> /dev/null)
     left=1
@@ -114,6 +114,8 @@ watchdog() {
     sleep "$left" &
     nap=$!
     wait "$nap"
+    # Ended: its process id may be reused, so the trap must not kill it.
+    nap=""
   done
 }
 

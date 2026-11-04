@@ -477,10 +477,10 @@ mod stay_idle_while_waiting {
         agent.wait_for(&[ON], SOON).await;
         tokio::time::sleep(Duration::from_secs(5)).await;
         // Each check of the silence limit ends in a sleep.
+        let checks = agent.sleeps();
         assert!(
-            agent.sleeps() <= 2,
-            "checked the silence limit {} times in 5 s",
-            agent.sleeps()
+            checks <= 2,
+            "checked the silence limit {checks} times in 5 s"
         );
         assert_eq!(backend.connections(), 1, "the connection stays open");
     }

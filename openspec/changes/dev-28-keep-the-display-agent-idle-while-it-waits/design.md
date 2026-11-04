@@ -34,7 +34,9 @@ The sleep runs in the background and the watchdog waits for it, with a
 trap that stops it when the watchdog is stopped. Otherwise each ended
 connection would leave a sleep of up to the silence limit behind; while
 the backend is unreachable that is a new one at every retry (found during
-apply: 8 left over after 8 s with a retry of 1 s).
+apply: 8 left over after 8 s with a retry of 1 s). Once a sleep has ended,
+the watchdog forgets its process id, so the trap never kills a process
+that has since been given the same id (from the review).
 
 - Alternative: keep the loop, but check every `silence / 4` seconds.
   Rejected: still periodic, and up to a quarter of the limit late.
