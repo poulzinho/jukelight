@@ -233,8 +233,9 @@ default_border none
 # system locale.
 exec sh -c 'until curl -sf "$JUKELIGHT_URL/api/v1/player" > /dev/null; do sleep 2; done; exec env LANGUAGE=de LC_ALL=de_DE.UTF-8 google-chrome --kiosk --noerrdialogs --no-first-run --disable-background-timer-throttling --disable-renderer-backgrounding --ozone-platform=wayland "$JUKELIGHT_URL"'
 
-# The display agent's user service needs sway's socket.
-exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user start jukelight-display-agent"
+# The display agent's user service needs sway's socket: restart it, so every
+# new sway session gets an agent with its socket.
+exec "systemctl --user import-environment SWAYSOCK WAYLAND_DISPLAY; systemctl --user restart jukelight-display-agent"
 EOF
 ```
 
@@ -441,6 +442,16 @@ Digitus DS-55323: still there after 10 minutes), so the monitor never sleeps.
 Switching the output off then only blanks the picture. Switching the monitor's
 power instead (a smart plug) needs a monitor that switches on by itself when
 its power returns; the LG does.
+
+**The agent's log shows `swaymsg failed to switch the display`.** The agent
+cannot reach sway, usually because sway was restarted and the agent still
+has the old session's socket. The sway configuration (step 3) restarts the
+agent with every new session, and the agent stops by itself after 3 failed
+switches in a row, so systemd starts it again with the current socket. If
+the messages continue, check that the sway configuration has `restart`
+(not `start`) in its last line, and restart the agent by hand:
+`k systemctl --user restart jukelight-display-agent` (see
+[Working over SSH](#working-over-ssh)).
 
 **The monitor does not wake, or the output disappears in sway.** Some monitors
 drop the DisplayPort connection in deep sleep. The output then vanishes and
