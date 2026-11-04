@@ -161,6 +161,8 @@ enum Swaymsg {
 struct Agent {
     child: Child,
     calls: PathBuf,
+    /// The `sleep` calls, when they are counted.
+    sleeps: PathBuf,
     dir: PathBuf,
 }
 
@@ -170,6 +172,23 @@ impl Agent {
     }
 
     fn start_with(url: &str, failsafe_seconds: u32, fake: Swaymsg) -> Self {
+        Self::spawn(url, failsafe_seconds, 2, fake, false)
+    }
+
+    /// An agent with the given silence limit whose `sleep` calls are
+    /// counted. Only where needed: on macOS every new executable's first
+    /// run is slow, which would delay the other tests.
+    fn start_counting_sleeps(url: &str, silence_seconds: u32) -> Self {
+        Self::spawn(url, 600, silence_seconds, Swaymsg::Records, true)
+    }
+
+    fn spawn(
+        url: &str,
+        failsafe_seconds: u32,
+        silence_seconds: u32,
+        fake: Swaymsg,
+        count_sleeps: bool,
+    ) -> Self {
         static NEXT: AtomicUsize = AtomicUsize::new(0);
         let dir = std::env::temp_dir().join(format!(
             "jukelight-agent-test-{}-{}",
@@ -199,17 +218,33 @@ impl Agent {
 
         let script = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../host/display-agent/jukelight-display-agent");
-        let path = format!(
-            "{}:{}",
-            dir.display(),
-            std::env::var("PATH").unwrap_or_default()
-        );
+        let system_path = std::env::var("PATH").unwrap_or_default();
+        let sleeps = dir.join("sleeps");
+        if count_sleeps {
+            // Records the call, then runs the real `sleep`.
+            std::fs::write(&sleeps, "").unwrap();
+            let sleep = dir.join("sleep");
+            std::fs::write(
+                &sleep,
+                format!(
+                    "#!/bin/sh\necho \"$*\" >> '{}'\nPATH='{system_path}' exec sleep \"$@\"\n",
+                    sleeps.display()
+                ),
+            )
+            .unwrap();
+            Command::new("chmod")
+                .arg("+x")
+                .arg(&sleep)
+                .status()
+                .unwrap();
+        }
+        let path = format!("{}:{system_path}", dir.display());
         let child = Command::new("sh")
             .arg(script)
             .env("PATH", path)
             .env("JUKELIGHT_URL", url)
             .env("RETRY_SECONDS", "1")
-            .env("SILENCE_SECONDS", "2")
+            .env("SILENCE_SECONDS", silence_seconds.to_string())
             .env("FAILSAFE_SECONDS", failsafe_seconds.to_string())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -217,7 +252,12 @@ impl Agent {
             .process_group(0)
             .spawn()
             .unwrap();
-        Self { child, calls, dir }
+        Self {
+            child,
+            calls,
+            sleeps,
+            dir,
+        }
     }
 
     /// The agent's exit status, if it ends within `limit`.
@@ -238,6 +278,14 @@ impl Agent {
             .lines()
             .map(str::to_owned)
             .collect()
+    }
+
+    /// How many times the agent has started `sleep`.
+    fn sleeps(&self) -> usize {
+        std::fs::read_to_string(&self.sleeps)
+            .unwrap()
+            .lines()
+            .count()
     }
 
     /// Waits until the recorded calls match, for at most `limit`.
@@ -416,4 +464,26 @@ mod stop_after_repeated_failed_switches {
             "keeps running"
         );
     }
+}
+
+// Spec: display-agent, "Stay idle while waiting".
+mod stay_idle_while_waiting {
+    use super::*;
+
+    #[tokio::test]
+    async fn quiet_connection() {
+        let backend = TestBackend::start("on", Mode::Silent).await;
+        let agent = Agent::start_counting_sleeps(&backend.url(), 60);
+        agent.wait_for(&[ON], SOON).await;
+        tokio::time::sleep(Duration::from_secs(5)).await;
+        // Each check of the silence limit ends in a sleep.
+        let checks = agent.sleeps();
+        assert!(
+            checks <= 2,
+            "checked the silence limit {checks} times in 5 s"
+        );
+        assert_eq!(backend.connections(), 1, "the connection stays open");
+    }
+
+    // "Silence limit still applies": reconnect_to_the_backend::silent_connection.
 }
