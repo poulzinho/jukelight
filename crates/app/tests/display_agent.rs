@@ -582,6 +582,22 @@ mod retry_a_failing_power_command {
     }
 
     #[tokio::test]
+    async fn plug_keeps_refusing() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let always_fails = r#"echo "plug on" >> "$CALLS"; exit 1"#;
+        let agent =
+            Agent::start_with_settings(&backend.url(), 600, &[("POWER_ON_COMMAND", always_fails)]);
+        agent.wait_for(&[ON, PLUG_ON], SOON).await;
+        // Waits of 1 s, then 2 s, then 4 s: attempts at about 0, 1 and 3 s.
+        tokio::time::sleep(Duration::from_secs(6)).await;
+        assert_eq!(
+            agent.calls(),
+            [ON, PLUG_ON, PLUG_ON, PLUG_ON],
+            "retries back off"
+        );
+    }
+
+    #[tokio::test]
     async fn decision_changes_while_retrying() {
         let backend = TestBackend::start("on", Mode::Normal).await;
         let always_fails = r#"echo "plug on" >> "$CALLS"; exit 1"#;

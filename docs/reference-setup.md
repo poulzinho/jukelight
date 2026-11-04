@@ -346,7 +346,8 @@ off, and after switching it on, so the picture is ready when the monitor
 wakes (about 2 seconds on the reference setup, with the extender's logo
 briefly). The monitor must switch on by itself when its power returns; the
 LG does. When the plug doesn't answer, the agent logs it once and tries
-again every `RETRY_SECONDS` until it works or the decision changes.
+again until it works or the decision changes: first after `RETRY_SECONDS`,
+then after twice the previous wait, up to 5 minutes.
 
 The reference setup uses a Shelly Plug M Gen3, switched over the local
 network. Any plug or relay that a command can switch works the same way.
@@ -530,11 +531,12 @@ LG does.
 plug didn't answer or refused the command. The line before it is curl's own
 message: a timeout means a wrong address or the plug is offline; HTTP 401
 means a wrong password in `plug.netrc`, or a `machine` there that doesn't
-match the address in the commands. The agent retries every
-`RETRY_SECONDS` and logs `succeeded after retrying` once it works.
+match the address in the commands. The agent retries with growing waits (up
+to 5 minutes) and logs `succeeded after retrying` once it works.
 
 **curl reports HTTP 429.** The plug refuses everything for a while after
-several refused passwords, and the agent's retries keep it locked. Stop the
+several refused passwords. The agent's retries slow down to one every 5
+minutes, so the lock can expire, but to fix the password quickly, stop the
 agent (`k systemctl --user stop jukelight-display-agent`), then pull the
 plug out of the wall for 10 seconds (the monitor comes back on by itself)
 or wait 10 minutes. Fix the password in `plug.netrc` (letters and digits

@@ -47,8 +47,13 @@ monitor wakes. Unset, nothing extra runs.
 
 ### 2. A failing command is retried in the background
 
-The agent runs the command in a background job that retries at the retry
-interval until it succeeds. A new decision stops the running job (and its
+The agent runs the command in a background job that retries until it
+succeeds: first after the retry interval, then after twice the previous
+wait, up to 5 minutes. A fixed interval kept the reference host's plug
+locked (found during the acceptance: after a few refused passwords it
+answers HTTP 429 and accepts nothing for minutes, and a retry every 5 s
+renewed the lock); growing waits let the lock expire while still reacting
+quickly to a short network glitch. A new decision stops the running job (and its
 sleep, as the watchdog does) before starting its own, so an old "on" never
 lands after a newer "off". The first failure and the recovery are logged,
 not every attempt, so an unplugged plug doesn't flood the journal. The job

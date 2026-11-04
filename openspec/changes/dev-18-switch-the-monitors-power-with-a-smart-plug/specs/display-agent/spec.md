@@ -20,13 +20,19 @@ outputs.
 - **THEN** the agent runs only `swaymsg "output * power on"`
 
 ### Requirement: Retry a failing power command
-When a power command fails, the agent SHALL log it and run it again at the
-retry interval until it succeeds or the decision changes. A failing power
+When a power command fails, the agent SHALL log it and run it again until
+it succeeds or the decision changes. The first wait SHALL be the retry
+interval; each further wait SHALL be twice the one before, up to 5 minutes,
+so a plug that refuses the password is not kept locked. A failing power
 command SHALL NOT count towards the failed switches that stop the agent.
 
 #### Scenario: Plug unreachable for a while
 - **WHEN** the retry interval is 1 second and the power-on command fails twice and then succeeds
 - **THEN** the agent has run the power-on command 3 times and keeps running
+
+#### Scenario: Plug keeps refusing
+- **WHEN** the retry interval is 1 second and the power-on command keeps failing for 6 seconds
+- **THEN** the agent has run it 3 times (after waits of 1 and 2 seconds), not 6 times
 
 #### Scenario: Decision changes while retrying
 - **WHEN** the power-on command keeps failing and the decision changes to off

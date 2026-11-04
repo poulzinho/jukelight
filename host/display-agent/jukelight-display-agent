@@ -55,14 +55,17 @@ stamp "$contact"
 # restarted after the agent) must not keep it failing unnoticed.
 failures=0
 
-# Runs the power command $2 for the switch $1 until it succeeds, waiting the
-# retry interval between attempts. Logs the first failure and the recovery,
+# Runs the power command $2 for the switch $1 until it succeeds. The first
+# wait is the retry interval, each further one twice the one before, up to
+# 5 minutes: a plug locks itself after refused passwords, and frequent
+# attempts would keep it locked. Logs the first failure and the recovery,
 # not every attempt. Stopped, it also stops its command or sleep: both run
 # in the background, so the stop takes effect at once.
 retry_power_command() {
   child=""
   trap '[ -z "$child" ] || kill "$child" 2> /dev/null; exit 0' TERM
   failed=false
+  pause=$retry
   while true; do
     # The command's own error message only once, with the first failure.
     if [ "$failed" = false ]; then
@@ -77,13 +80,17 @@ retry_power_command() {
     fi
     child=""
     if [ "$failed" = false ]; then
-      echo "power command for $1 failed; retrying every ${retry}s" >&2
+      echo "power command for $1 failed; retrying, with waits from ${retry}s up to 5 min" >&2
       failed=true
     fi
-    sleep "$retry" &
+    sleep "$pause" &
     child=$!
     wait "$child"
     child=""
+    pause=$((pause * 2))
+    if [ "$pause" -gt 300 ]; then
+      pause=300
+    fi
   done
   if [ "$failed" = true ]; then
     echo "power command for $1 succeeded after retrying" >&2
