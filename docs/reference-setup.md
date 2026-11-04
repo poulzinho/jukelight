@@ -357,7 +357,10 @@ plug's Wi-Fi (`ShellyPlugMG3-…`) and open `http://192.168.33.1`.
 1. Join your Wi-Fi, and give the plug a fixed address (a DHCP reservation
    in your router).
 2. Update the firmware.
-3. Turn authentication on and set a password (the user is `admin`).
+3. Turn authentication on and set a password (the user is `admin`). Use
+   letters and digits only, and make it long instead: in the credentials
+   file below, quotes and backslashes need escaping, and a password with a
+   `'` was refused there although it worked at curl's prompt.
 4. Turn off the cloud, Matter, Bluetooth and the plug's own access point.
    Matter off, because any paired controller could otherwise switch the
    monitor behind Jukelight's back.
@@ -528,9 +531,19 @@ plug didn't answer or refused the command. The line before it is curl's own
 message: a timeout means a wrong address or the plug is offline; HTTP 401
 means a wrong password in `plug.netrc`, or a `machine` there that doesn't
 match the address in the commands. The agent retries every
-`RETRY_SECONDS` and logs `succeeded after retrying` once it works. Test the
-command by hand with the address and `-u admin` (curl asks for the
-password).
+`RETRY_SECONDS` and logs `succeeded after retrying` once it works.
+
+**curl reports HTTP 429.** The plug refuses everything for a while after
+several refused passwords, and the agent's retries keep it locked. Stop the
+agent (`k systemctl --user stop jukelight-display-agent`), then pull the
+plug out of the wall for 10 seconds (the monitor comes back on by itself)
+or wait 10 minutes. Fix the password in `plug.netrc` (letters and digits
+only), test once, exactly as the agent does, and start the agent again when
+it prints `200`:
+
+```sh
+sudo -u kiosk curl -s -o /dev/null -w '%{http_code}\n' --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://$PLUG/rpc/Switch.GetStatus?id=0"
+```
 
 **The agent's log shows `swaymsg failed to switch the display`.** The agent
 cannot reach sway, usually because sway was restarted and the agent still

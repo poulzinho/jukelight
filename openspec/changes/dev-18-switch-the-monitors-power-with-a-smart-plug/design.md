@@ -77,6 +77,13 @@ POWER_OFF_COMMAND=curl -fsS --max-time 5 --digest --netrc-file /home/kiosk/.conf
 `-f` makes a wrong password (HTTP 401) a failure, so it is retried and
 logged.
 
+The plug's password should be letters and digits only (found during the
+acceptance): in `plug.netrc` quotes and backslashes need escaping, and a
+password with a `'` was refused there although it worked at curl's prompt.
+After a few refused attempts the plug answers HTTP 429 and accepts nothing
+for several minutes, so a wrong password must be fixed with the agent
+stopped.
+
 - Alternative: `/etc/jukelight/host.env`. Rejected: readable by every user,
   and also read by the kiosk session.
 - Alternative: the password in the command (`-u admin:…`). Rejected: it
