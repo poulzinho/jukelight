@@ -35,7 +35,9 @@ agent; CEC or DDC/CI.
 Two settings, `POWER_ON_COMMAND` and `POWER_OFF_COMMAND`, run with `sh -c`
 after `swaymsg`. Switching off: outputs off, then the plug off. Switching
 on: outputs on, then the plug on, so the picture is already there when the
-monitor wakes. Unset, nothing extra runs.
+monitor wakes. Unset, nothing extra runs. The command also runs when `swaymsg` failed:
+with a stale sway session the plug still makes the monitor follow the
+music (from the review).
 
 - Alternative: the plug instead of `swaymsg`. Rejected: with the output
   left on, the extender would show the picture right away, but on setups

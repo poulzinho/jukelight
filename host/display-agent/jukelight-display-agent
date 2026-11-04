@@ -66,6 +66,9 @@ retry_power_command() {
   trap '[ -z "$child" ] || kill "$child" 2> /dev/null; exit 0' TERM
   failed=false
   pause=$retry
+  if [ "$pause" -gt 300 ]; then
+    pause=300
+  fi
   while true; do
     # The command's own error message only once, with the first failure.
     if [ "$failed" = false ]; then
@@ -117,7 +120,8 @@ power_command() {
   command_pid=$!
 }
 
-# Switches the outputs, then runs the power command.
+# Switches the outputs, then runs the power command, also when switching
+# the outputs failed: the monitor's power doesn't depend on sway.
 power() {
   if swaymsg "output * power $1" > /dev/null; then
     echo "display $1"

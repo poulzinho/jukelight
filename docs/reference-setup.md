@@ -515,7 +515,7 @@ readable form.
 | Page stays current | Play music with the output off, then turn it on | The screen shows the current track at once, without reloading |
 | Restart | `sudo reboot` | The monitor shows Jukelight again without any input |
 | Smart plug (step 7) | Play music, stop it and wait out the grace period; `sudo -u kiosk curl -s --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://$PLUG/rpc/Switch.GetStatus?id=0"` (no password to type) | While playing `"output":true`; off `"apower":0.0`; `"source":"HTTP_in"`, never `matter` |
-| Agent has the commands | `sudo cat /proc/$(pgrep -u kiosk -f -o jukelight-display-agent)/environ \| tr '\0' '\n' \| grep POWER` | Both commands, each with its full URL (no password: it is in `plug.netrc`) |
+| Agent has the commands | `sudo grep -ao 'POWER_[A-Z_]*=[^[:cntrl:]]*' /proc/$(pgrep -u kiosk -f -o jukelight-display-agent)/environ` | Both commands, each with its full URL (no password: it is in `plug.netrc`) |
 
 ## Troubleshooting
 
