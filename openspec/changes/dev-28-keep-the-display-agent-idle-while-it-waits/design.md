@@ -30,6 +30,12 @@ the deadline, which the next round sees. The limit is enforced as
 precisely as now, with one wake-up per heartbeat-free stretch instead of
 one per second: with the defaults about one per 45 to 60 s.
 
+The sleep runs in the background and the watchdog waits for it, with a
+trap that stops it when the watchdog is stopped. Otherwise each ended
+connection would leave a sleep of up to the silence limit behind; while
+the backend is unreachable that is a new one at every retry (found during
+apply: 8 left over after 8 s with a retry of 1 s).
+
 - Alternative: keep the loop, but check every `silence / 4` seconds.
   Rejected: still periodic, and up to a quarter of the limit late.
 - Alternative: let `curl` end a silent transfer (`--speed-limit 1
@@ -57,6 +63,12 @@ processes per heartbeat and drops those for blank lines.
   "Silence limit still applies" catch it.
 - [An empty read of the time file during a rename] → as now, the watchdog
   retries after 1 s.
+
+- [The agent tests time out on macOS when run in parallel] → macOS scans
+  each new executable on its first run (12 new scripts: 1.1 s, then
+  0.02 s). The counting `sleep` wrapper is installed only in the test that
+  needs it. "Silent connection" already failed about 1 run in 4 in
+  parallel on macOS before this change; CI (Linux) is the reference.
 
 ## Tests
 

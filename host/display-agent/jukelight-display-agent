@@ -34,11 +34,13 @@ trap 'rm -rf "$work"' EXIT
 # shellcheck disable=SC2086 # $pids holds two process ids
 trap 'kill $pids 2> /dev/null; exit 0' INT TERM
 
-# Writes the current time to file $1. Through a rename, so a concurrent
-# reader never sees a truncated, empty file.
+# Writes the time $2 (default: now) to file $1. Through a rename, so a
+# concurrent reader never sees a truncated, empty file.
 stamp() {
-  date +%s > "$1.new" && mv "$1.new" "$1"
+  echo "${2:-$(date +%s)}" > "$1.new" && mv "$1.new" "$1"
 }
+
+cr=$(printf '\r')
 
 stamp "$contact"
 
@@ -61,13 +63,18 @@ power() {
   fi
 }
 
-# Applies the first decision of a connection, then only changes.
+# Applies the first decision of a connection, then only changes. Blank
+# lines only end an event; every other line (a decision or a heartbeat)
+# counts as contact. $contact is read only by this shell, so it needs no
+# rename.
 follow() {
   applied=""
   while IFS= read -r line; do
-    stamp "$contact"
-    stamp "$seen"
-    line=${line%"$(printf '\r')"}
+    line=${line%"$cr"}
+    [ -n "$line" ] || continue
+    now=$(date +%s)
+    echo "$now" > "$contact"
+    stamp "$seen" "$now"
     case $line in
       data:*)
         decision=${line#data:}
@@ -86,14 +93,27 @@ follow() {
 }
 
 # Ends the connection (process $1) after the silence limit without data.
+# Sleeps until the limit could next be reached, not on a short interval,
+# so the agent stays idle between messages; data that arrives meanwhile
+# moves the limit, which the next round sees.
 watchdog() {
-  while sleep 1; do
+  # Stopped with the connection, it also stops its sleep, so no long sleep
+  # is left behind after each connection.
+  nap=""
+  trap 'kill "$nap" 2> /dev/null; exit 0' TERM
+  while true; do
     last=$(cat "$seen" 2> /dev/null)
-    [ -n "$last" ] || continue
-    if [ $(( $(date +%s) - last )) -ge "$silence" ]; then
-      kill "$1" 2> /dev/null
-      return
+    left=1
+    if [ -n "$last" ]; then
+      left=$(( last + silence - $(date +%s) ))
+      if [ "$left" -le 0 ]; then
+        kill "$1" 2> /dev/null
+        return
+      fi
     fi
+    sleep "$left" &
+    nap=$!
+    wait "$nap"
   done
 }
 
