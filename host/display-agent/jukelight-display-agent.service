@@ -10,6 +10,9 @@ ExecStart=%h/.local/bin/jukelight-display-agent
 # without it the agent uses http://localhost:8080. Other settings:
 # systemctl --user edit jukelight-display-agent.
 EnvironmentFile=-/etc/jukelight/host.env
+# Private settings, such as power commands for a smart plug: only the kiosk
+# user may read this file (mode 600).
+EnvironmentFile=-%h/.config/jukelight/display-agent.env
 Restart=always
 RestartSec=5
 

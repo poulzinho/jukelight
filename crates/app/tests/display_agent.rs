@@ -172,14 +172,20 @@ impl Agent {
     }
 
     fn start_with(url: &str, failsafe_seconds: u32, fake: Swaymsg) -> Self {
-        Self::spawn(url, failsafe_seconds, 2, fake, false)
+        Self::spawn(url, failsafe_seconds, 2, fake, false, &[])
+    }
+
+    /// An agent with extra settings, such as power commands. The commands
+    /// can append to the call log through `$CALLS`.
+    fn start_with_settings(url: &str, failsafe_seconds: u32, settings: &[(&str, &str)]) -> Self {
+        Self::spawn(url, failsafe_seconds, 2, Swaymsg::Records, false, settings)
     }
 
     /// An agent with the given silence limit whose `sleep` calls are
     /// counted. Only where needed: on macOS every new executable's first
     /// run is slow, which would delay the other tests.
     fn start_counting_sleeps(url: &str, silence_seconds: u32) -> Self {
-        Self::spawn(url, 600, silence_seconds, Swaymsg::Records, true)
+        Self::spawn(url, 600, silence_seconds, Swaymsg::Records, true, &[])
     }
 
     fn spawn(
@@ -188,6 +194,7 @@ impl Agent {
         silence_seconds: u32,
         fake: Swaymsg,
         count_sleeps: bool,
+        settings: &[(&str, &str)],
     ) -> Self {
         static NEXT: AtomicUsize = AtomicUsize::new(0);
         let dir = std::env::temp_dir().join(format!(
@@ -241,6 +248,8 @@ impl Agent {
         let path = format!("{}:{system_path}", dir.display());
         let child = Command::new("sh")
             .arg(script)
+            .envs(settings.iter().copied())
+            .env("CALLS", &calls)
             .env("PATH", path)
             .env("JUKELIGHT_URL", url)
             .env("RETRY_SECONDS", "1")
@@ -486,4 +495,137 @@ mod stay_idle_while_waiting {
     }
 
     // "Silence limit still applies": reconnect_to_the_backend::silent_connection.
+}
+
+const PLUG_ON: &str = "plug on";
+const PLUG_OFF: &str = "plug off";
+/// Power commands that record their call, like the fake `swaymsg`.
+const RECORD_ON: &str = r#"echo "plug on" >> "$CALLS""#;
+const RECORD_OFF: &str = r#"echo "plug off" >> "$CALLS""#;
+
+// Spec: display-agent, "Run the power commands".
+mod run_the_power_commands {
+    use super::*;
+
+    fn plug() -> [(&'static str, &'static str); 2] {
+        [
+            ("POWER_ON_COMMAND", RECORD_ON),
+            ("POWER_OFF_COMMAND", RECORD_OFF),
+        ]
+    }
+
+    #[tokio::test]
+    async fn switch_on_with_a_power_on_command() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let agent = Agent::start_with_settings(&backend.url(), 600, &plug());
+        agent.wait_for(&[ON, PLUG_ON], SOON).await;
+    }
+
+    #[tokio::test]
+    async fn switch_off_with_a_power_off_command() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let agent = Agent::start_with_settings(&backend.url(), 600, &plug());
+        agent.wait_for(&[ON, PLUG_ON], SOON).await;
+        backend.set("off");
+        agent.wait_for(&[ON, PLUG_ON, OFF, PLUG_OFF], SOON).await;
+    }
+
+    // "No power commands": follow_the_display_decisions, which records only swaymsg.
+}
+
+// Spec: display-agent, "Fail-safe without the backend", with a power-off command.
+mod fail_safe_with_a_power_off_command {
+    use super::*;
+
+    #[tokio::test]
+    async fn backend_unreachable_with_a_power_off_command() {
+        let backend = TestBackend::unreachable().await;
+        let agent =
+            Agent::start_with_settings(&backend.url(), 2, &[("POWER_OFF_COMMAND", RECORD_OFF)]);
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        agent
+            .wait_for(&[OFF, PLUG_OFF], Duration::from_secs(1))
+            .await;
+        // Once, not on every retry.
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        assert_eq!(agent.calls(), [OFF, PLUG_OFF]);
+    }
+}
+
+// Spec: display-agent, "Retry a failing power command".
+mod retry_a_failing_power_command {
+    use super::*;
+
+    #[tokio::test]
+    async fn plug_unreachable_for_a_while() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        // Fails until it has been called 3 times.
+        let fails_twice =
+            r#"echo "plug on" >> "$CALLS"; [ "$(grep -c 'plug on' "$CALLS")" -ge 3 ]"#;
+        let mut agent =
+            Agent::start_with_settings(&backend.url(), 600, &[("POWER_ON_COMMAND", fails_twice)]);
+        // Retry interval 1 s: the third call after about 2 s.
+        agent
+            .wait_for(&[ON, PLUG_ON, PLUG_ON, PLUG_ON], Duration::from_secs(4))
+            .await;
+        tokio::time::sleep(Duration::from_millis(1500)).await;
+        assert_eq!(
+            agent.calls(),
+            [ON, PLUG_ON, PLUG_ON, PLUG_ON],
+            "no more after success"
+        );
+        assert_eq!(
+            agent.exit_status(Duration::from_millis(100)).await,
+            None,
+            "keeps running"
+        );
+    }
+
+    #[tokio::test]
+    async fn plug_keeps_refusing() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let always_fails = r#"echo "plug on" >> "$CALLS"; exit 1"#;
+        let agent =
+            Agent::start_with_settings(&backend.url(), 600, &[("POWER_ON_COMMAND", always_fails)]);
+        agent.wait_for(&[ON, PLUG_ON], SOON).await;
+        // Waits of 1 s, then 2 s, then 4 s: attempts at about 0, 1 and 3 s.
+        tokio::time::sleep(Duration::from_secs(6)).await;
+        assert_eq!(
+            agent.calls(),
+            [ON, PLUG_ON, PLUG_ON, PLUG_ON],
+            "retries back off"
+        );
+    }
+
+    #[tokio::test]
+    async fn decision_changes_while_retrying() {
+        let backend = TestBackend::start("on", Mode::Normal).await;
+        let always_fails = r#"echo "plug on" >> "$CALLS"; exit 1"#;
+        let agent = Agent::start_with_settings(
+            &backend.url(),
+            600,
+            &[
+                ("POWER_ON_COMMAND", always_fails),
+                ("POWER_OFF_COMMAND", RECORD_OFF),
+            ],
+        );
+        agent.wait_for(&[ON, PLUG_ON, PLUG_ON], SOON).await;
+        backend.set("off");
+        let deadline = Instant::now() + SOON;
+        while !agent
+            .calls()
+            .ends_with(&[OFF.to_owned(), PLUG_OFF.to_owned()])
+        {
+            assert!(Instant::now() < deadline, "recorded {:?}", agent.calls());
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        let switched_off = agent.calls().len();
+        tokio::time::sleep(Duration::from_millis(2500)).await;
+        assert_eq!(
+            agent.calls().len(),
+            switched_off,
+            "no power-on retries after the decision off: {:?}",
+            agent.calls()
+        );
+    }
 }

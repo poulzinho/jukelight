@@ -52,6 +52,7 @@ Without the display agent, the monitor simply stays on.
 | Graphics | Intel UHD Graphics 630 (integrated) | A GPU with open-source Mesa drivers and 4K output |
 | Video output | HDMI, 4K at 30 Hz, through a wireless HDMI extender (Digitus DS-55323) | DisplayPort or HDMI capable of 4K |
 | Monitor | LG 27UD68-W (27", 4K), mounted in portrait | Sleeps on signal loss and wakes on signal, or switches on by itself when its power returns |
+| Smart plug | Shelly Plug M Gen3 (Schuko) for the monitor | Only where the monitor doesn't sleep on signal loss: a plug or relay that a command can switch |
 | Music player | Bluesound Node (BluOS) | A BluOS player |
 | Network | Same LAN as the player | Same LAN as the player |
 
@@ -61,8 +62,8 @@ limits 4K to 30 Hz. That is acceptable for this mostly static screen.
 **The wireless extender.** Its receiver identifies itself to the host
 (`swaymsg` lists the output as `VIP UHD4000`), not as the monitor. When the
 host stops sending a picture, the receiver shows its own logo, so the monitor
-never sleeps from signal loss: see
-[Troubleshooting](#troubleshooting). The receiver needs USB power; take it
+never sleeps from signal loss. A smart plug switches it instead: see
+[7. Smart plug](#7-smart-plug-optional). The receiver needs USB power; take it
 from its own USB power adapter or the monitor, not from the music player.
 
 ## Operating system
@@ -329,6 +330,86 @@ user (see [Working over SSH](#working-over-ssh)):
 | `RETRY_SECONDS` | `5` | Wait between connection attempts |
 | `SILENCE_SECONDS` | `60` | Reconnect after this long without data or heartbeat |
 | `FAILSAFE_SECONDS` | `600` | Switch the monitor off after this long without Jukelight |
+| `POWER_ON_COMMAND` | none | Run after switching the output on, for example to switch a smart plug on |
+| `POWER_OFF_COMMAND` | none | Run after switching the output off, also by the fail-safe |
+
+The service also reads `/home/kiosk/.config/jukelight/display-agent.env`
+if it exists: private settings, such as the power commands, go there
+(step 7).
+
+### 7. Smart plug (optional)
+
+Needed when switching the output doesn't put the monitor to sleep, as with
+the reference setup's wireless extender. The display agent then also
+switches the monitor's power with a smart plug: after switching the output
+off, and after switching it on, so the picture is ready when the monitor
+wakes (about 2 seconds on the reference setup, with the extender's logo
+briefly). The monitor must switch on by itself when its power returns; the
+LG does. When the plug doesn't answer, the agent logs it once and tries
+again until it works or the decision changes: first after `RETRY_SECONDS`,
+then after twice the previous wait, up to 5 minutes.
+
+The reference setup uses a Shelly Plug M Gen3, switched over the local
+network. Any plug or relay that a command can switch works the same way.
+
+**Set up the plug** in its own web page, not in the Shelly app: join the
+plug's Wi-Fi (`ShellyPlugMG3-…`) and open `http://192.168.33.1`.
+
+1. Join your Wi-Fi, and give the plug a fixed address (a DHCP reservation
+   in your router).
+2. Update the firmware.
+3. Turn authentication on and set a password (the user is `admin`). Use
+   letters and digits only, and make it long instead: in the credentials
+   file below, quotes and backslashes need escaping, and a password with a
+   `'` was refused there although it worked at curl's prompt.
+4. Turn off the cloud, Matter, Bluetooth and the plug's own access point.
+   Matter off, because any paired controller could otherwise switch the
+   monitor behind Jukelight's back.
+5. Make the plug switch on after a power cut, so the monitor comes back.
+   The web page doesn't offer this setting; set it from the host (curl asks
+   for the password, so it stays out of your shell history):
+
+   ```sh
+   PLUG=192.0.2.10   # the plug's address
+   curl -s -g --digest -u admin "http://$PLUG/rpc/Switch.SetConfig?id=0&config={\"initial_state\":\"on\"}"; echo
+   curl -s --digest -u admin "http://$PLUG/rpc/Switch.GetConfig?id=0"; echo   # "initial_state":"on"
+   ```
+
+**Give the agent the plug.** Two files that only the kiosk user can read:
+the plug's password in a curl credentials file, and the commands in the
+agent's private settings file. The password then appears neither in the
+commands nor in the process list. As your own user:
+
+```sh
+sudo -u kiosk mkdir -p /home/kiosk/.config/jukelight
+sudo -u kiosk install -m 0600 /dev/null /home/kiosk/.config/jukelight/plug.netrc
+sudo -u kiosk install -m 0600 /dev/null /home/kiosk/.config/jukelight/display-agent.env
+sudoedit -u kiosk /home/kiosk/.config/jukelight/plug.netrc
+sudoedit -u kiosk /home/kiosk/.config/jukelight/display-agent.env
+```
+
+`plug.netrc`, with the plug's address and password:
+
+```
+machine 192.0.2.10 login admin password the-plug-password
+```
+
+`display-agent.env`, with the plug's address. Keep the single quotes around
+each command: systemd removes them, and the URL's `&` must stay inside the
+double quotes.
+
+```sh
+POWER_ON_COMMAND='curl -fsS --max-time 5 --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://192.0.2.10/rpc/Switch.Set?id=0&on=true"'
+POWER_OFF_COMMAND='curl -fsS --max-time 5 --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://192.0.2.10/rpc/Switch.Set?id=0&on=false"'
+```
+
+`-f` makes a wrong password a failure, so the agent logs it and retries.
+Then reload the agent (see [Working over SSH](#working-over-ssh) for `k`):
+
+```sh
+k systemctl --user daemon-reload
+k systemctl --user restart jukelight-display-agent
+```
 
 ## Who logs in where
 
@@ -433,15 +514,38 @@ readable form.
 | Monitor wakes | `sw 'output * power on'` | Picture back in under 5 seconds |
 | Page stays current | Play music with the output off, then turn it on | The screen shows the current track at once, without reloading |
 | Restart | `sudo reboot` | The monitor shows Jukelight again without any input |
+| Smart plug (step 7) | Play music, stop it and wait out the grace period; `sudo -u kiosk curl -s --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://$PLUG/rpc/Switch.GetStatus?id=0"` (no password to type) | While playing `"output":true`; off `"apower":0.0`; `"source":"HTTP_in"`, never `matter` |
+| Agent has the commands | `sudo grep -ao 'POWER_[A-Z_]*=[^[:cntrl:]]*' /proc/$(pgrep -u kiosk -f -o jukelight-display-agent)/environ` | Both commands, each with its full URL (no password: it is in `plug.netrc`) |
 
 ## Troubleshooting
 
 **The monitor stays on with an extender's logo.** A wireless HDMI extender's
 receiver shows its own logo when the host stops sending (measured with the
 Digitus DS-55323: still there after 10 minutes), so the monitor never sleeps.
-Switching the output off then only blanks the picture. Switching the monitor's
-power instead (a smart plug) needs a monitor that switches on by itself when
-its power returns; the LG does.
+Switching the output off then only blanks the picture. Switch the monitor's
+power with a smart plug instead ([step 7](#7-smart-plug-optional)); this
+needs a monitor that switches on by itself when its power returns, as the
+LG does.
+
+**The agent's log shows `power command for on failed` (or `off`).** The
+plug didn't answer or refused the command. The line before it is curl's own
+message: a timeout means a wrong address or the plug is offline; HTTP 401
+means a wrong password in `plug.netrc`, or a `machine` there that doesn't
+match the address in the commands. The agent retries with growing waits (up
+to 5 minutes) and logs `succeeded after retrying` once it works.
+
+**curl reports HTTP 429.** The plug refuses everything for a while after
+several refused passwords. The agent's retries slow down to one every 5
+minutes, so the lock can expire, but to fix the password quickly, stop the
+agent (`k systemctl --user stop jukelight-display-agent`), then pull the
+plug out of the wall for 10 seconds (the monitor comes back on by itself)
+or wait 10 minutes. Fix the password in `plug.netrc` (letters and digits
+only), test once, exactly as the agent does, and start the agent again when
+it prints `200`:
+
+```sh
+sudo -u kiosk curl -s -o /dev/null -w '%{http_code}\n' --digest --netrc-file /home/kiosk/.config/jukelight/plug.netrc "http://$PLUG/rpc/Switch.GetStatus?id=0"
+```
 
 **The agent's log shows `swaymsg failed to switch the display`.** The agent
 cannot reach sway, usually because sway was restarted and the agent still
