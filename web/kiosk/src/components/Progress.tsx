@@ -35,3 +35,16 @@ export function Progress({ position, state, clockOffsetMs }: Props) {
     </div>
   )
 }
+
+/**
+ * The room the progress takes, for a track without a position: in portrait
+ * it keeps the badges and "Up next" in place; in landscape it takes none.
+ */
+export function ProgressSlot() {
+  return (
+    <div aria-hidden="true" className="hidden portrait:mt-[3vmin] portrait:block">
+      <div className="h-[0.9vmin]" />
+      <div className="mt-[1.2vmin] text-time">&nbsp;</div>
+    </div>
+  )
+}

@@ -10,9 +10,9 @@
 
 ## 2. Backdrop, steady updates and portrait layout (stack layer 2, DEV-31: kiosk and acceptance)
 
-- [ ] 2.1 Write failing component tests "Track with a backdrop" and "No backdrop", then add the backdrop layer with the veil and the cross-fade (opacity only, no CSS blur)
-- [ ] 2.2 Write failing component tests "Next track on the same album", "Track with a new cover" and "Quality changes", then key the cover by album and artists, decode a new cover before cross-fading it, key only the track text by the title, and key "Up next" entries by title and artists
-- [ ] 2.3 Write failing screenshot checks for "No queue", "Long title" and "Missing album" in portrait (positions compared between scenarios), then replace the portrait centring with fixed slots; landscape unchanged
-- [ ] 2.4 Review the screenshots in landscape and portrait
+- [x] 2.1 Write failing component tests "Track with a backdrop" and "No backdrop", then add the backdrop layer with the veil and the cross-fade (opacity only, no CSS blur)
+- [x] 2.2 Write failing component tests "Next track on the same album", "Track with a new cover" and "Quality changes", then key the cover by album and artists, decode a new cover before cross-fading it, key only the track text by the title, and key "Up next" entries by title and artists
+- [x] 2.3 Write failing screenshot checks for "No queue", "Long title" and "Missing album" in portrait (positions compared between scenarios), then replace the portrait centring with fixed slots; landscape unchanged
+- [x] 2.4 Review the screenshots in landscape and portrait
 - [ ] 2.5 Acceptance on the reference host: a Qobuz album played through (sharp cover, no blink between tracks of the same album), a Spotify cast (large cover), a track change to another album (no blank cover), portrait without jumps; GPU load unchanged (`chrome://gpu` still hardware accelerated, animations smooth); record the results on DEV-5
 - [ ] 2.6 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive on this top layer before merging

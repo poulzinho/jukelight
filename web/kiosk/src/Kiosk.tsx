@@ -1,11 +1,12 @@
 import type { Player } from './api'
 import { Artwork } from './components/Artwork'
+import { Backdrop } from './components/Backdrop'
 import { Badges } from './components/Badges'
 import { ConnectionIndicator } from './components/ConnectionIndicator'
 import { IdleScreen } from './components/IdleScreen'
 import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
-import { Progress } from './components/Progress'
+import { Progress, ProgressSlot } from './components/Progress'
 import { TrackInfo } from './components/TrackInfo'
 import { UpNext } from './components/UpNext'
 import { useAlbumColours } from './useAlbumColours'
@@ -45,23 +46,43 @@ interface PlayingProps {
   clockOffsetMs: number
 }
 
+/**
+ * Names the cover's picture: the same album and artists keep the cover, even
+ * though a player may give each song its own image URL. Without an album,
+ * the URL decides.
+ */
+function pictureOf(player: Player, track: NonNullable<Player['track']>): string {
+  return track.album ? `${track.album}|${track.artists.join(', ')}` : (player.artUrl ?? '')
+}
+
 function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
   const paused = player.state === 'paused'
+  const picture = pictureOf(player, track)
   return (
     <>
+      <Backdrop url={player.backdropUrl} picture={picture} />
       <main
-        // A new track remounts the content, which fades it in.
-        key={`${track.title}|${track.album ?? ''}`}
-        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:content-center portrait:justify-items-center portrait:gap-y-stack portrait:py-[6vh]"
+        // In portrait every part has a fixed slot from the top, with "Up
+        // next" at the bottom, so changing content never moves the others.
+        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:py-[5vh]"
       >
         <div className="relative">
-          <Artwork url={player.artUrl} label={track.album ?? track.artists.join(', ')} />
+          <Artwork
+            url={player.artUrl}
+            picture={picture}
+            label={track.album ?? track.artists.join(', ')}
+          />
           {paused && <PauseSymbol />}
         </div>
-        <section className="flex min-w-0 flex-col portrait:w-[min(86vw,48vh)]">
-          <TrackInfo track={track} />
-          {player.position && (
+        <section className="flex min-w-0 flex-col portrait:h-full portrait:w-[min(86vw,42vh)]">
+          {/* Only the track text is rebuilt for a new track, which fades it in. */}
+          <div key={`${track.title}|${track.artists.join(', ')}|${track.album ?? ''}`} className="motion-safe:animate-fade-in">
+            <TrackInfo track={track} />
+          </div>
+          {player.position ? (
             <Progress position={player.position} state={player.state} clockOffsetMs={clockOffsetMs} />
+          ) : (
+            <ProgressSlot />
           )}
           <Badges player={player} />
           {player.queue && <UpNext queue={player.queue} />}

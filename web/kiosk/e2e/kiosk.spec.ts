@@ -204,3 +204,59 @@ test.describe('without reduced motion', () => {
     expect(await motion(page)).toEqual({ animation: 'fade-in', transition: '0.3s' })
   })
 })
+
+// Spec: kiosk-display, "Steady portrait layout": the same parts in the same
+// places, whatever the content.
+test.describe('steady portrait layout', () => {
+  test.skip(() => !portrait(), 'portrait only')
+
+  /** Within a pixel: an empty line and a line of text round differently. */
+  function same(actual: number | undefined, expected: number | undefined) {
+    expect(actual).toBeDefined()
+    expect(Math.abs((actual ?? 0) - (expected ?? 0))).toBeLessThan(1)
+  }
+
+  /** The vertical position of each part, in one scenario. */
+  async function places(page: Page, scenario: Scenario, title: string, cover: string) {
+    await open(page, scenario)
+    const y = async (selector: Parameters<Page['getByRole']>) => (await box(page, selector)).y
+    const upNext = page.getByRole('heading', { name: 'Up next' })
+    return {
+      cover: await y(['img', { name: cover }]),
+      title: await y(['heading', { name: title }]),
+      artists: (await page.getByText('Example Artist', { exact: true }).first().boundingBox())?.y,
+      progress: await y(['progressbar']),
+      upNext: (await upNext.count()) > 0 ? (await upNext.boundingBox())?.y : undefined,
+    }
+  }
+
+  test('no queue', async ({ page }) => {
+    const queue = await places(page, 'playing-with-queue', 'Example Song', 'Example Album')
+    const none = await places(page, 'cast-without-queue', 'Cast Song', 'Example Album')
+    same(none.cover, queue.cover)
+    same(none.title, queue.title)
+    same(none.progress, queue.progress)
+  })
+
+  test('long title', async ({ page }) => {
+    const short = await places(page, 'playing-with-queue', 'Example Song', 'Example Album')
+    const long = await places(
+      page,
+      'long-title',
+      'A Remarkably Long Song Title That Keeps Going Well Past Two Lines On Any Reasonable Screen (Extended Live Version)',
+      'An Album Title That Is Also Far Too Long To Fit On One Line',
+    )
+    same(long.cover, short.cover)
+    same(long.progress, short.progress)
+    same(long.upNext, short.upNext)
+  })
+
+  test('missing album', async ({ page }) => {
+    const album = await places(page, 'playing-with-queue', 'Example Song', 'Example Album')
+    const none = await places(page, 'no-album', 'Single Song', 'Example Artist')
+    same(none.cover, album.cover)
+    same(none.progress, album.progress)
+    same(none.upNext, album.upNext)
+    await screenshot(page, 'no-album')
+  })
+})
