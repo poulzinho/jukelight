@@ -5,4 +5,4 @@
 - [x] 1.3 `docs/reference-setup.md`: drop the manual kiosk restart after an update; keep it in Troubleshooting as a fallback
 - [x] 1.4 Acceptance on the reference host: update Jukelight with a kiosk change and see the page reload by itself and show the new version, without `systemctl restart jukelight-kiosk`; an update without a kiosk change doesn't reload; record the results on DEV-26
 - [x] 1.5 Review: explain in the code why the build identifier's empty fallback can't occur and is harmless; the fake `EventSource` passes a real `MessageEvent` to named-event listeners
-- [ ] 1.6 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive before merging
+- [x] 1.6 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive before merging
