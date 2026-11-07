@@ -5,7 +5,8 @@
 mod dto;
 
 use std::convert::Infallible;
-use std::sync::Arc;
+use std::fmt::Write as _;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use axum::Router;
@@ -17,7 +18,7 @@ use axum::response::{IntoResponse, Json, Response};
 use axum::routing::get;
 use futures::{Stream, StreamExt, stream};
 use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, DisplayHandle, PlayerHandle};
-use jukelight_domain::DisplayPower;
+use jukelight_domain::{DisplayPower, PlayerSnapshot};
 use rust_embed::RustEmbed;
 use tokio::sync::watch;
 use tokio_stream::wrappers::WatchStream;
@@ -51,6 +52,25 @@ struct AppState {
 #[derive(RustEmbed)]
 #[folder = "$OUT_DIR/kiosk"]
 struct Kiosk;
+
+/// Identifies the embedded kiosk build: the first 12 hex characters of the
+/// SHA-256 of its page. The page names every built asset by its content
+/// hash, so any kiosk change changes it; a backend-only change doesn't.
+fn kiosk_build() -> &'static str {
+    static BUILD: OnceLock<String> = OnceLock::new();
+    BUILD.get_or_init(|| {
+        Kiosk::get("index.html")
+            .map(|page| {
+                page.metadata.sha256_hash()[..6]
+                    .iter()
+                    .fold(String::new(), |mut hex, byte| {
+                        let _ = write!(hex, "{byte:02x}");
+                        hex
+                    })
+            })
+            .unwrap_or_default()
+    })
+}
 
 /// The router without a shutdown signal: live streams run until clients leave.
 pub fn router(
@@ -96,19 +116,28 @@ async fn player_snapshot(State(state): State<AppState>) -> Json<PlayerDto> {
     ))
 }
 
-/// The current snapshot first, then every snapshot that changed beyond
-/// normal progress.
+/// The current snapshot first, then a `build` event with the kiosk build
+/// (so an open kiosk notices an update), then every snapshot that changed
+/// beyond normal progress.
 async fn player_events(
     State(state): State<AppState>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let artwork = Arc::clone(&state.artwork);
-    let current = stream::once(futures::future::ready(state.player.current()));
-    let changes = WatchStream::from_changes(state.player.subscribe_published());
-    let events = current.chain(changes).filter_map(move |snapshot| {
+    let snapshot_event = move |snapshot: PlayerSnapshot| {
         let event = Event::default().json_data(dto::player_dto(&snapshot, artwork.as_ref()));
         futures::future::ready(event.ok().map(Ok))
-    });
-    let events = events.take_until(shutdown_requested(state.shutdown));
+    };
+    let current = stream::once(futures::future::ready(state.player.current()))
+        .filter_map(snapshot_event.clone());
+    let build = stream::once(futures::future::ready(Ok(Event::default()
+        .event("build")
+        .data(kiosk_build()))));
+    let changes =
+        WatchStream::from_changes(state.player.subscribe_published()).filter_map(snapshot_event);
+    let events = current
+        .chain(build)
+        .chain(changes)
+        .take_until(shutdown_requested(state.shutdown));
     Sse::new(events).keep_alive(KeepAlive::new().interval(state.keep_alive))
 }
 
@@ -172,12 +201,27 @@ async fn kiosk(uri: Uri) -> Response {
     } else {
         "no-cache"
     };
+    let body = if path == "index.html" {
+        Body::from(with_build(&String::from_utf8_lossy(&file.data)))
+    } else {
+        Body::from(file.data.into_owned())
+    };
     (
         [
             (header::CONTENT_TYPE, file.metadata.mimetype().to_owned()),
             (header::CACHE_CONTROL, cache.to_owned()),
         ],
-        Body::from(file.data.into_owned()),
+        body,
     )
         .into_response()
+}
+
+/// The page with its build as `<meta name="jukelight-build">`, so the kiosk
+/// knows which build it runs and can compare it with the stream's.
+fn with_build(page: &str) -> String {
+    let meta = format!(
+        r#"<meta name="jukelight-build" content="{}" />"#,
+        kiosk_build()
+    );
+    page.replacen("</head>", &format!("{meta}\n  </head>"), 1)
 }
