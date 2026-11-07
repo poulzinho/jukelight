@@ -75,7 +75,7 @@ test('progress stops at the end of the track', () => {
 })
 
 test('missing artwork shows initials', () => {
-  show({ artUrl: null })
+  show({ artUrl: null, backdropUrl: null })
   expect(screen.getByRole('img', { name: 'Example Album' })).toHaveTextContent('EA')
 })
 

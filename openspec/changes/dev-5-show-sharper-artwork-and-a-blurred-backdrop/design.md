@@ -41,8 +41,10 @@ requirements hold.
 
 ### 2. Larger versions by URL rules, with a fallback
 
-For `Large`, the proxy follows redirects to the final URL, then applies the
-first matching rule: Qobuz `_<n>.jpg` → `_max.jpg`; Spotify
+For `Large`, the proxy first tries the rule on the source URL itself (for
+example a Spotify URL), so no original is fetched in vain; otherwise it
+follows redirects to the final URL (for example from a BluOS `/Artwork`
+URL), then applies the first matching rule: Qobuz `_<n>.jpg` → `_max.jpg`; Spotify
 `ab67616d0000b273` → `ab67616d000082c1`. If the rewritten URL doesn't
 answer with an image, it serves the original. The conventions are
 undocumented, hence the fallback, and tests that pin them.

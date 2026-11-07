@@ -152,7 +152,7 @@ impl ArtworkSource for ArtworkProxy {
         async move {
             let source = lock(&inner.issued).get(&id).ok_or(ArtworkError::Unknown)?;
             // Each size of an image is cached on its own.
-            let key = format!("{id}:{size:?}");
+            let key = format!("{id}:{}", size_key(size));
             if let Some(image) = lock(&inner.cache).get(&key) {
                 return Ok(image);
             }
@@ -171,6 +171,13 @@ impl Inner {
             ArtworkSize::Original => Ok(self.load(source).await?.0),
             ArtworkSize::Backdrop => backdrop(&self.load(source).await?.0),
             ArtworkSize::Large => {
+                // A CDN URL can be upgraded before fetching anything.
+                if let Some(larger) = self.cdn.large_version(source)
+                    && let Ok((image, _)) = self.load(&larger).await
+                    && image.content_type.starts_with("image/")
+                {
+                    return Ok(image);
+                }
                 let (original, location) = self.load(source).await?;
                 // The rules apply to where the source led, for example from a
                 // player's /Artwork URL to a CDN.
@@ -245,6 +252,14 @@ fn decode_data_url(data: &str) -> Result<Image, ArtworkError> {
         content_type: content_type.to_owned(),
         bytes,
     })
+}
+
+fn size_key(size: ArtworkSize) -> &'static str {
+    match size {
+        ArtworkSize::Original => "original",
+        ArtworkSize::Large => "large",
+        ArtworkSize::Backdrop => "backdrop",
+    }
 }
 
 fn source_error(error: impl std::fmt::Display) -> ArtworkError {

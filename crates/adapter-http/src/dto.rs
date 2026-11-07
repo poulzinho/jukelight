@@ -15,9 +15,10 @@ pub struct PlayerDto {
     pub state: &'static str,
     pub session: SessionDto,
     pub track: Option<TrackDto>,
-    /// The large version of the track's cover.
+    /// The large version of the track's cover; `None` (`null`) without one.
     pub art_url: Option<String>,
-    /// A tiny version of the same cover, to stretch over the screen.
+    /// A tiny version of the same cover, to stretch over the screen; `None`
+    /// (`null`) without a cover.
     pub backdrop_url: Option<String>,
     pub position: Option<PositionDto>,
     pub quality: Option<QualityDto>,

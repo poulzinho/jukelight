@@ -5,7 +5,8 @@
 - [x] 1.3 Write failing fixture tests "Backdrop of a cover" and "Not an image", then add the backdrop version (the `image` crate with JPEG, PNG and WebP only; `cargo deny` passes)
 - [x] 1.4 Write failing HTTP tests "Track with a cover" and "Track without a cover", then give the track's cover `?size=large` and add `backdropUrl`; queue entries keep the original
 - [x] 1.5 Make the fake scenarios' covers PNG, so the backdrop works in screenshots
-- [ ] 1.6 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.6 Review of layer 1: a fake cover that can't be encoded means no cover, not an empty image; the large cover is tried directly when the source already is a CDN URL; explicit cache keys per size; `null` documented for the cover URLs; the "missing artwork" test without a backdrop either
+- [ ] 1.7 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. Backdrop, steady updates and portrait layout (stack layer 2, DEV-31: kiosk and acceptance)
 

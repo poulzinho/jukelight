@@ -107,7 +107,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 artists: vec!["Example Artist".into()],
                 album: Some("Example Album".into()),
             },
-            artwork: Some(cover(210)),
+            artwork: cover(210),
             position: Some(Position {
                 elapsed: Duration::from_secs(42),
                 duration: Some(Duration::from_secs(214)),
@@ -133,7 +133,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 .map(|title| QueueEntry {
                     title: (*title).into(),
                     artists: vec!["Example Artist".into()],
-                    artwork: Some(cover(210)),
+                    artwork: cover(210),
                 })
                 .collect(),
             ),
@@ -151,7 +151,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 cast: true,
             };
             content.track.title = "Cast Song".into();
-            content.artwork = Some(cover(140));
+            content.artwork = cover(140);
             content.quality = Some(AudioQuality::bitrate(160_000));
             content.queue = QueueView::NotApplicable;
         }
@@ -174,10 +174,10 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 bit_depth: 24,
                 sample_rate_hz: 96_000,
             }));
-            content.artwork = Some(cover(30));
+            content.artwork = cover(30);
         }
         ("album-colours", Some(content)) => {
-            content.artwork = Some(cover(20));
+            content.artwork = cover(20);
             content.palette = Some(Palette {
                 background: Rgb(73, 51, 38),
                 accent: Rgb(209, 147, 108),
@@ -204,8 +204,9 @@ fn optical_input(clock: &dyn Clock) -> Origin {
 }
 
 /// A generated square cover: a diagonal gradient around `hue`, as a PNG data
-/// URL. A raster image, so the backdrop can be made from it too.
-fn cover(hue: u16) -> ArtworkRef {
+/// URL. A raster image, so the backdrop can be made from it too. `None` if
+/// it can't be encoded: no cover rather than an empty image.
+fn cover(hue: u16) -> Option<ArtworkRef> {
     const SIZE: u32 = 256;
     let from = hsl(hue, 0.65, 0.55);
     let to = hsl((hue + 40) % 360, 0.60, 0.25);
@@ -220,9 +221,13 @@ fn cover(hue: u16) -> ArtworkRef {
         }))
     });
     let mut png = Vec::new();
-    // Encoding a generated image in memory can't fail.
-    let _ = image.write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png);
-    ArtworkRef::new(format!("data:image/png;base64,{}", BASE64.encode(png)))
+    image
+        .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
+        .ok()?;
+    Some(ArtworkRef::new(format!(
+        "data:image/png;base64,{}",
+        BASE64.encode(png)
+    )))
 }
 
 /// An HSL colour (hue in degrees, saturation and lightness from 0 to 1) as RGB.
