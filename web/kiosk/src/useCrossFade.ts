@@ -20,9 +20,6 @@ interface State {
   failed: string | null
 }
 
-/** How long a new image takes to fade in (the fade-in animation). */
-const FADE_MS = 600
-
 /**
  * The images to stack for a cover that cross-fades when the picture
  * changes. Use it in a component that exists only while there is an image:
@@ -39,6 +36,8 @@ export function useCrossFade(
   picture: string,
   url: string,
   label: string,
+  /** How long a new image takes to fade in: the length of its animation. */
+  fadeMs: number,
 ): { layers: Layer[]; drop: () => void } {
   const [state, setState] = useState<State>(() => ({
     picture,
@@ -64,7 +63,7 @@ export function useCrossFade(
           failed: null,
         }))
         // The old image goes once the new one has faded in.
-        cleanup = setTimeout(() => setState((s) => ({ ...s, layers: s.layers.slice(-1) })), FADE_MS)
+        cleanup = setTimeout(() => setState((s) => ({ ...s, layers: s.layers.slice(-1) })), fadeMs)
       },
       () => {
         if (!cancelled) setState((s) => ({ ...s, picture, layers: [], failed: url }))
@@ -74,7 +73,7 @@ export function useCrossFade(
       cancelled = true
       clearTimeout(cleanup)
     }
-  }, [samePicture, retry, picture, url, label])
+  }, [samePicture, retry, picture, url, label, fadeMs])
 
   const drop = () =>
     setState((s) => ({ ...s, layers: [], failed: s.layers.at(-1)?.url ?? s.failed }))

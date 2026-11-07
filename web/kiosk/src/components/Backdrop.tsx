@@ -22,7 +22,7 @@ export function Backdrop({ url, picture }: Props) {
 
 /** Exists only while there is a backdrop, so it starts with the first one. */
 function Layers({ url, picture }: { url: string; picture: string }) {
-  const { layers, drop } = useCrossFade(picture, url, '')
+  const { layers, drop } = useCrossFade(picture, url, '', 1500)
   if (layers.length === 0) return null
   return (
     <>
@@ -32,7 +32,7 @@ function Layers({ url, picture }: { url: string; picture: string }) {
           src={layer.url}
           alt=""
           onError={drop}
-          className={`absolute inset-0 size-full object-cover ${layer.fades ? 'motion-safe:animate-fade-in' : ''}`}
+          className={`absolute inset-0 size-full object-cover ${layer.fades ? 'motion-safe:animate-backdrop-in' : ''}`}
         />
       ))}
       <div data-testid="veil" className="absolute inset-0 bg-black/45" />

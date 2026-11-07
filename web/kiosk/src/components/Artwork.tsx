@@ -19,7 +19,7 @@ export function Artwork({ url, picture, label }: Props) {
 
 /** Exists only while there is a cover, so it starts with the first one. */
 function Cover({ url, picture, label }: { url: string; picture: string; label: string }) {
-  const { layers, drop } = useCrossFade(picture, url, label)
+  const { layers, drop } = useCrossFade(picture, url, label, 1000)
   // A cover that failed shows the initials, as a missing one does.
   if (layers.length === 0) return <Initials label={label} />
   return (
@@ -31,7 +31,7 @@ function Cover({ url, picture, label }: { url: string; picture: string; label: s
           // Only the image on top names the cover.
           alt={index === layers.length - 1 ? layer.label : ''}
           onError={drop}
-          className={`absolute inset-0 size-full rounded-[1.2vmin] object-cover ${layer.fades ? 'motion-safe:animate-fade-in' : ''}`}
+          className={`absolute inset-0 size-full rounded-[1.2vmin] object-cover ${layer.fades ? 'motion-safe:animate-cover-in' : ''}`}
         />
       ))}
     </div>

@@ -73,8 +73,14 @@ keeps the cover element and the backdrop. A new cover is decoded off-screen
 (`HTMLImageElement.decode()`), then shown over the old one and faded in;
 the old one goes once the fade has finished. A cover that fails to load
 shows the initials, as a missing one does; a failed backdrop leaves the
-plain colour and is tried again when a new URL arrives. Only `TrackInfo` is keyed by
-the title, so only the text fades. "Up next" entries are keyed by title and
+plain colour and is tried again when a new URL arrives. Only `TrackInfo` changes
+with the title, so only the text fades.
+
+Timings (from the acceptance: 600 ms everywhere felt abrupt): the old text
+fades out in 300 ms, then the new text fades in over 700 ms while rising
+slightly (opacity and `transform`); the cover cross-fades over 1 s and the
+backdrop over 1.5 s, both ease-in-out. With reduced motion, the text is
+swapped at once. "Up next" entries are keyed by title and
 artists, not position.
 
 - Alternative: name images by a hash of their bytes, so the same picture

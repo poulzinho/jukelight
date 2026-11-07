@@ -7,6 +7,7 @@ import { IdleScreen } from './components/IdleScreen'
 import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
 import { Progress, ProgressSlot } from './components/Progress'
+import { TextSwap } from './components/TextSwap'
 import { TrackInfo } from './components/TrackInfo'
 import { UpNext } from './components/UpNext'
 import { useAlbumColours } from './useAlbumColours'
@@ -75,10 +76,10 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
           {paused && <PauseSymbol />}
         </div>
         <section className="flex min-w-0 flex-col portrait:h-full portrait:w-[min(86vw,42vh)]">
-          {/* Only the track text is rebuilt for a new track, which fades it in. */}
-          <div key={`${track.title}|${track.artists.join(', ')}|${track.album ?? ''}`} className="motion-safe:animate-fade-in">
+          {/* Only the track text changes for a new track: the old fades out, the new fades in. */}
+          <TextSwap name={`${track.title}|${track.artists.join(', ')}|${track.album ?? ''}`}>
             <TrackInfo track={track} />
-          </div>
+          </TextSwap>
           {player.position ? (
             <Progress position={player.position} state={player.state} clockOffsetMs={clockOffsetMs} />
           ) : (

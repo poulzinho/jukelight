@@ -29,7 +29,7 @@ function screenFor(first: Player) {
 
 const cover = (name: string) => screen.getByRole('img', { name })
 
-test('next track on the same album: the cover stays, the title fades in', () => {
+test('next track on the same album: the cover stays, the title fades in', async () => {
   const update = screenFor(player())
   const before = cover('Example Album')
   const title = screen.getByRole('heading', { name: 'Example Song' })
@@ -44,9 +44,21 @@ test('next track on the same album: the cover stays, the title fades in', () => 
   )
   expect(cover('Example Album')).toBe(before)
   expect(loadImage).not.toHaveBeenCalled()
-  const newTitle = screen.getByRole('heading', { name: 'Second Song' })
+  const newTitle = await screen.findByRole('heading', { name: 'Second Song' })
   expect(newTitle).not.toBe(title)
-  expect(newTitle.closest('.motion-safe\\:animate-fade-in')).not.toBeNull()
+  expect(newTitle.closest('.motion-safe\\:animate-rise-in')).not.toBeNull()
+  expect(cover('Example Album')).toBe(before)
+})
+
+test('old text fades out first, then the new text replaces it', async () => {
+  const update = screenFor(player())
+  update(player({ track: { title: 'Second Song', artists: ['Example Artist'], album: 'Example Album' } }))
+  const old = screen.getByRole('heading', { name: 'Example Song' })
+  expect(old.closest('.motion-safe\\:animate-fade-out')).not.toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Second Song' })).toBeNull()
+
+  expect(await screen.findByRole('heading', { name: 'Second Song' })).toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Example Song' })).toBeNull()
 })
 
 test('track with a new cover: the old one stays until the new one has loaded', async () => {
