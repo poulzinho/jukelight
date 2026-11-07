@@ -1,5 +1,5 @@
 // Spec: kiosk-display, "Update only what changed".
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { Kiosk } from '../Kiosk'
 import type { Player } from '../api'
@@ -8,13 +8,16 @@ import { player } from '../test/fixtures'
 
 vi.mock('../loadImage', () => ({ loadImage: vi.fn() }))
 
-/** Covers load when the test says so. */
+/** Covers load, or fail, when the test says so. */
 let loaded: () => void = () => {}
+let failed: () => void = () => {}
 beforeEach(() => {
+  vi.mocked(loadImage).mockReset()
   vi.mocked(loadImage).mockImplementation(
     () =>
-      new Promise<void>((resolve) => {
+      new Promise<void>((resolve, reject) => {
         loaded = resolve
+        failed = () => reject(new Error('not an image'))
       }),
   )
 })
@@ -71,4 +74,39 @@ test('quality changes: only the badges change, nothing is rebuilt', () => {
   expect(screen.getByText('FLAC 24/96 · Hi-Res')).toBeInTheDocument()
   expect(cover('Example Album')).toBe(before)
   expect(screen.getByRole('heading', { name: 'Example Song' })).toBe(title)
+})
+
+const otherAlbum = player({
+  track: { title: 'Other Song', artists: ['Other Artist'], album: 'Other Album' },
+  artUrl: '/api/v1/art/1111111111111111?size=large',
+  backdropUrl: '/api/v1/art/1111111111111111?size=backdrop',
+})
+
+test('a cover that fails to load shows the initials, not a broken image', async () => {
+  const update = screenFor(player())
+  update(otherAlbum)
+  await act(async () => failed())
+  expect(cover('Other Album')).toHaveTextContent('OA')
+  expect(cover('Other Album').tagName).not.toBe('IMG')
+})
+
+test('a failed backdrop tries again when a new URL arrives for the same album', async () => {
+  const update = screenFor(player())
+  const image = screen.getByTestId('backdrop').querySelector('img')
+  if (!image) throw new Error('no backdrop image')
+  fireEvent.error(image)
+  expect(screen.getByTestId('backdrop').querySelector('img')).toBeNull()
+
+  update(
+    player({
+      track: { title: 'Second Song', artists: ['Example Artist'], album: 'Example Album' },
+      backdropUrl: '/api/v1/art/fedcba9876543210?size=backdrop',
+    }),
+  )
+  expect(loadImage).toHaveBeenCalledWith('/api/v1/art/fedcba9876543210?size=backdrop')
+  await act(async () => loaded())
+  expect(screen.getByTestId('backdrop').querySelector('img')).toHaveAttribute(
+    'src',
+    '/api/v1/art/fedcba9876543210?size=backdrop',
+  )
 })

@@ -7,15 +7,17 @@ export interface Layer {
   url: string
   /** What the image shows, for its text alternative. */
   label: string
-  /** Fades in on mount; the first image of a screen appears at once. */
+  /** Fades in on mount; the first image appears at once. */
   fades: boolean
 }
 
 interface State {
-  /** The picture on screen; `null` before the first one. */
-  picture: string | null
+  /** The picture the layers show. */
+  picture: string
   layers: Layer[]
   next: number
+  /** The URL that last failed, so it isn't tried again and again. */
+  failed: string | null
 }
 
 /** How long a new image takes to fade in (the fade-in animation). */
@@ -23,58 +25,58 @@ const FADE_MS = 600
 
 /**
  * The images to stack for a cover that cross-fades when the picture
- * changes. `picture` names the picture (for example album and artists): as
- * long as it stays the same, so does the image, even if its URL changes. A
- * new picture is loaded first and then fades in over the old one, which goes
- * once the fade has finished, so there's never a blank frame. `drop` removes
- * the current image, for one that failed to load.
+ * changes. Use it in a component that exists only while there is an image:
+ * the first image appears at once.
+ *
+ * `picture` names the picture (for example album and artists): as long as it
+ * stays the same, so does the image, even if its URL changes. A new picture
+ * is loaded first and then fades in over the old one, which goes once the
+ * fade has finished, so there's never a blank frame. An image that fails to
+ * load leaves no layer (call `drop` for one that fails on screen); a new URL
+ * is tried again.
  */
 export function useCrossFade(
-  picture: string | null,
-  url: string | null,
+  picture: string,
+  url: string,
   label: string,
-  onFailure: 'show' | 'drop',
 ): { layers: Layer[]; drop: () => void } {
-  const [state, setState] = useState<State>(() =>
-    url
-      ? { picture, layers: [{ id: 0, url, label, fades: false }], next: 1 }
-      : { picture: null, layers: [], next: 0 },
-  )
+  const [state, setState] = useState<State>(() => ({
+    picture,
+    layers: [{ id: 0, url, label, fades: false }],
+    next: 1,
+    failed: null,
+  }))
 
-  // Without an image nothing shows; the first image appears at once.
-  let current = state
-  if (!url && (state.layers.length > 0 || state.picture !== null)) {
-    current = { ...state, picture: null, layers: [] }
-    setState(current)
-  } else if (url && state.picture === null && state.layers.length === 0) {
-    current = { picture, layers: [{ id: state.next, url, label, fades: false }], next: state.next + 1 }
-    setState(current)
-  }
-
-  const shown = current.picture
+  const samePicture = picture === state.picture
+  const retry = state.layers.length === 0 && url !== state.failed
   useEffect(() => {
-    if (!url || shown === null || picture === shown) return
+    if (samePicture && !retry) return
     let cancelled = false
     let cleanup: ReturnType<typeof setTimeout> | undefined
-    const show = () => {
-      if (cancelled) return
-      setState((s) => ({
-        picture,
-        layers: [...s.layers.slice(-1), { id: s.next, url, label, fades: true }],
-        next: s.next + 1,
-      }))
-      // The old image goes once the new one has faded in.
-      cleanup = setTimeout(() => setState((s) => ({ ...s, layers: s.layers.slice(-1) })), FADE_MS)
-    }
-    loadImage(url).then(show, () => {
-      if (onFailure === 'show') show()
-      else if (!cancelled) setState((s) => ({ ...s, picture, layers: [] }))
-    })
+    loadImage(url).then(
+      () => {
+        if (cancelled) return
+        setState((s) => ({
+          picture,
+          // Fades in only over an image that is already there.
+          layers: [...s.layers.slice(-1), { id: s.next, url, label, fades: s.layers.length > 0 }],
+          next: s.next + 1,
+          failed: null,
+        }))
+        // The old image goes once the new one has faded in.
+        cleanup = setTimeout(() => setState((s) => ({ ...s, layers: s.layers.slice(-1) })), FADE_MS)
+      },
+      () => {
+        if (!cancelled) setState((s) => ({ ...s, picture, layers: [], failed: url }))
+      },
+    )
     return () => {
       cancelled = true
       clearTimeout(cleanup)
     }
-  }, [picture, url, label, shown, onFailure])
+  }, [samePicture, retry, picture, url, label])
 
-  return { layers: current.layers, drop: () => setState((s) => ({ ...s, layers: [] })) }
+  const drop = () =>
+    setState((s) => ({ ...s, layers: [], failed: s.layers.at(-1)?.url ?? s.failed }))
+  return { layers: state.layers, drop }
 }

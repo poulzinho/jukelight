@@ -71,7 +71,9 @@ The kiosk keys the cover layer by album and artists (by the URL only when
 there is no album), not by the title, so the next track on the same album
 keeps the cover element and the backdrop. A new cover is decoded off-screen
 (`HTMLImageElement.decode()`), then shown over the old one and faded in;
-the old one goes once the fade has finished. Only `TrackInfo` is keyed by
+the old one goes once the fade has finished. A cover that fails to load
+shows the initials, as a missing one does; a failed backdrop leaves the
+plain colour and is tried again when a new URL arrives. Only `TrackInfo` is keyed by
 the title, so only the text fades. "Up next" entries are keyed by title and
 artists, not position.
 

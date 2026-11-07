@@ -14,18 +14,14 @@ const frame =
 
 /** The track's cover, cross-faded when the picture changes. */
 export function Artwork({ url, picture, label }: Props) {
-  const { layers } = useCrossFade(picture, url, label, 'show')
-  if (!url || layers.length === 0) {
-    return (
-      <div
-        role="img"
-        aria-label={label}
-        className={`${frame} grid place-items-center bg-white/5 text-[16vmin] font-bold text-kiosk-text/35`}
-      >
-        {initials(label)}
-      </div>
-    )
-  }
+  return url ? <Cover url={url} picture={picture} label={label} /> : <Initials label={label} />
+}
+
+/** Exists only while there is a cover, so it starts with the first one. */
+function Cover({ url, picture, label }: { url: string; picture: string; label: string }) {
+  const { layers, drop } = useCrossFade(picture, url, label)
+  // A cover that failed shows the initials, as a missing one does.
+  if (layers.length === 0) return <Initials label={label} />
   return (
     <div className={`${frame} relative`}>
       {layers.map((layer, index) => (
@@ -34,9 +30,22 @@ export function Artwork({ url, picture, label }: Props) {
           src={layer.url}
           // Only the image on top names the cover.
           alt={index === layers.length - 1 ? layer.label : ''}
+          onError={drop}
           className={`absolute inset-0 size-full rounded-[1.2vmin] object-cover ${layer.fades ? 'motion-safe:animate-fade-in' : ''}`}
         />
       ))}
+    </div>
+  )
+}
+
+function Initials({ label }: { label: string }) {
+  return (
+    <div
+      role="img"
+      aria-label={label}
+      className={`${frame} grid place-items-center bg-white/5 text-[16vmin] font-bold text-kiosk-text/35`}
+    >
+      {initials(label)}
     </div>
   )
 }
