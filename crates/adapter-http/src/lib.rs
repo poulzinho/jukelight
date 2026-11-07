@@ -56,6 +56,9 @@ struct Kiosk;
 /// Identifies the embedded kiosk build: the first 12 hex characters of the
 /// SHA-256 of its page. The page names every built asset by its content
 /// hash, so any kiosk change changes it; a backend-only change doesn't.
+/// build.rs always embeds a page (the kiosk or a placeholder), so the empty
+/// fallback can't occur; if it did, the kiosk would treat it as "no build"
+/// and not reload, which beats a backend that won't start.
 fn kiosk_build() -> &'static str {
     static BUILD: OnceLock<String> = OnceLock::new();
     BUILD.get_or_init(|| {
