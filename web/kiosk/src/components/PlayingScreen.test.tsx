@@ -27,7 +27,7 @@ test('track with all data', () => {
   expect(screen.getByText('Example Album')).toBeInTheDocument()
   expect(screen.getByRole('img', { name: 'Example Album' })).toHaveAttribute(
     'src',
-    '/api/v1/art/0123456789abcdef',
+    '/api/v1/art/0123456789abcdef?size=large',
   )
   expect(screen.getByRole('progressbar')).toBeInTheDocument()
   expect(screen.getByText('1:00')).toBeInTheDocument()

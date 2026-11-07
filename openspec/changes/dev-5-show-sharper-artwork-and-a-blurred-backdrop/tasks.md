@@ -1,10 +1,10 @@
 ## 1. Larger covers and the backdrop image (stack layer 1, DEV-30: backend)
 
-- [ ] 1.1 Add `ArtworkSize` (`Original`, `Large`, `Backdrop`) to the `ArtworkSource` port and the HTTP route (`?size=`), with the cache keyed by id and size; existing artwork tests keep passing
-- [ ] 1.2 Write failing fixture tests "Qobuz cover", "Spotify cover", "Larger version missing" and "Unknown source", then add the URL rules on the final URL with the fallback
-- [ ] 1.3 Write failing fixture tests "Backdrop of a cover" and "Not an image", then add the backdrop version (the `image` crate with JPEG, PNG and WebP only; `cargo deny` passes)
-- [ ] 1.4 Write failing HTTP tests "Track with a cover" and "Track without a cover", then give the track's cover `?size=large` and add `backdropUrl`; queue entries keep the original
-- [ ] 1.5 Make the fake scenarios' covers PNG, so the backdrop works in screenshots
+- [x] 1.1 Add `ArtworkSize` (`Original`, `Large`, `Backdrop`) to the `ArtworkSource` port and the HTTP route (`?size=`), with the cache keyed by id and size; existing artwork tests keep passing
+- [x] 1.2 Write failing fixture tests "Qobuz cover", "Spotify cover", "Larger version missing" and "Unknown source", then add the URL rules on the final URL with the fallback
+- [x] 1.3 Write failing fixture tests "Backdrop of a cover" and "Not an image", then add the backdrop version (the `image` crate with JPEG, PNG and WebP only; `cargo deny` passes)
+- [x] 1.4 Write failing HTTP tests "Track with a cover" and "Track without a cover", then give the track's cover `?size=large` and add `backdropUrl`; queue entries keep the original
+- [x] 1.5 Make the fake scenarios' covers PNG, so the backdrop works in screenshots
 - [ ] 1.6 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. Backdrop, steady updates and portrait layout (stack layer 2, DEV-31: kiosk and acceptance)

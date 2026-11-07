@@ -13,7 +13,8 @@ use futures::future::BoxFuture;
 use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
 use jukelight_application::{
-    ArtworkError, ArtworkId, ArtworkSource, DisplayController, DisplayHandle, Image, PlayerMonitor,
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayController, DisplayHandle, Image,
+    PlayerMonitor,
 };
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
@@ -35,11 +36,20 @@ impl ArtworkSource for TestArtwork {
         })
     }
 
-    fn fetch(&self, id: &ArtworkId) -> BoxFuture<'static, Result<Image, ArtworkError>> {
+    fn fetch(
+        &self,
+        id: &ArtworkId,
+        size: ArtworkSize,
+    ) -> BoxFuture<'static, Result<Image, ArtworkError>> {
         let result = match id.as_str() {
+            // Each size is told apart by its bytes.
             "known" => Ok(Image {
                 content_type: "image/jpeg".into(),
-                bytes: vec![0xFF, 0xD8],
+                bytes: match size {
+                    ArtworkSize::Original => vec![0xFF, 0xD8],
+                    ArtworkSize::Large => vec![0xFF, 0xD8, 0x01],
+                    ArtworkSize::Backdrop => vec![0xFF, 0xD8, 0x02],
+                },
             }),
             "broken" => Err(ArtworkError::Source("unreachable".into())),
             _ => Err(ArtworkError::Unknown),
@@ -161,8 +171,25 @@ async fn nothing_playing() {
     assert_eq!(json["state"], "stopped");
     assert!(json["track"].is_null());
     assert!(json["artUrl"].is_null());
+    assert!(json["backdropUrl"].is_null());
     assert!(json["position"].is_null());
     assert!(json["queue"].is_null());
+}
+
+// Spec: published-api, "Cover and backdrop URLs".
+
+#[tokio::test]
+async fn track_without_a_cover() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut device = device("Example Song", 42, 1_000_000);
+    if let Some(content) = device.content.as_mut() {
+        content.artwork = None;
+    }
+    monitor.apply(&device);
+
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(json.get("artUrl"), Some(&Value::Null));
+    assert_eq!(json.get("backdropUrl"), Some(&Value::Null));
 }
 
 #[tokio::test]
@@ -177,7 +204,8 @@ async fn field_names_and_shapes() {
     assert_eq!(json["session"]["available"], true);
     assert_eq!(json["track"]["artists"][0], "Example Artist");
     assert_eq!(json["track"]["album"], "Example Album");
-    assert_eq!(json["artUrl"], "/api/v1/art/known");
+    assert_eq!(json["artUrl"], "/api/v1/art/known?size=large");
+    assert_eq!(json["backdropUrl"], "/api/v1/art/known?size=backdrop");
     assert_eq!(json["position"]["elapsed"], 42.0);
     assert_eq!(json["position"]["duration"], 214.0);
     assert_eq!(json["position"]["observedAt"], 1_000_000);
@@ -431,6 +459,23 @@ async fn artwork_for_an_issued_id() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(content_type.as_deref(), Some("image/jpeg"));
     assert_eq!(body, vec![0xFF, 0xD8]);
+}
+
+#[tokio::test]
+async fn artwork_sizes_reach_the_source() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let app = app(&monitor);
+    for (query, bytes) in [
+        ("", vec![0xFF, 0xD8]),
+        ("?size=large", vec![0xFF, 0xD8, 0x01]),
+        ("?size=backdrop", vec![0xFF, 0xD8, 0x02]),
+    ] {
+        let (status, body, _) = get(&app, &format!("/api/v1/art/known{query}")).await;
+        assert_eq!(status, StatusCode::OK, "{query}");
+        assert_eq!(body, bytes, "{query}");
+    }
+    let (status, _, _) = get(&app, "/api/v1/art/known?size=huge").await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]

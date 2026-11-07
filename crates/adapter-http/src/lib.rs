@@ -11,13 +11,15 @@ use std::time::Duration;
 
 use axum::Router;
 use axum::body::Body;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{StatusCode, Uri, header};
 use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::response::{IntoResponse, Json, Response};
 use axum::routing::get;
 use futures::{Stream, StreamExt, stream};
-use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource, DisplayHandle, PlayerHandle};
+use jukelight_application::{
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayHandle, PlayerHandle,
+};
 use jukelight_domain::{DisplayPower, PlayerSnapshot};
 use rust_embed::RustEmbed;
 use tokio::sync::watch;
@@ -168,8 +170,24 @@ async fn shutdown_requested(mut shutdown: watch::Receiver<bool>) {
     }
 }
 
-async fn artwork_image(State(state): State<AppState>, Path(id): Path<String>) -> Response {
-    match state.artwork.fetch(&ArtworkId::new(id)).await {
+#[derive(serde::Deserialize)]
+struct ArtworkQuery {
+    size: Option<String>,
+}
+
+/// `?size=large` or `?size=backdrop`; without it, the original image.
+async fn artwork_image(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<ArtworkQuery>,
+) -> Response {
+    let size = match query.size.as_deref() {
+        None => ArtworkSize::Original,
+        Some("large") => ArtworkSize::Large,
+        Some("backdrop") => ArtworkSize::Backdrop,
+        Some(_) => return StatusCode::BAD_REQUEST.into_response(),
+    };
+    match state.artwork.fetch(&ArtworkId::new(id), size).await {
         // Ids are derived from the source, so an id's image never changes.
         Ok(image) => (
             [

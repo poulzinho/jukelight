@@ -15,7 +15,10 @@ pub struct PlayerDto {
     pub state: &'static str,
     pub session: SessionDto,
     pub track: Option<TrackDto>,
+    /// The large version of the track's cover.
     pub art_url: Option<String>,
+    /// A tiny version of the same cover, to stretch over the screen.
+    pub backdrop_url: Option<String>,
     pub position: Option<PositionDto>,
     pub quality: Option<QualityDto>,
     /// `None` when the session has no queue.
@@ -85,9 +88,10 @@ pub struct InputDto {
 
 pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> PlayerDto {
     let content = snapshot.content.as_ref();
-    let art_url = |art: Option<&ArtworkRef>| {
-        art.map(|a| format!("/api/v1/art/{}", artwork.issue(a).as_str()))
+    let art_url = |art: Option<&ArtworkRef>, size: &str| {
+        art.map(|a| format!("/api/v1/art/{}{size}", artwork.issue(a).as_str()))
     };
+    let cover = content.and_then(|c| c.artwork.as_ref());
 
     PlayerDto {
         online: snapshot.online,
@@ -102,7 +106,8 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             artists: c.track.artists.clone(),
             album: c.track.album.clone(),
         }),
-        art_url: content.and_then(|c| art_url(c.artwork.as_ref())),
+        art_url: art_url(cover, "?size=large"),
+        backdrop_url: art_url(cover, "?size=backdrop"),
         position: content.and_then(|c| c.position).map(|p| PositionDto {
             elapsed: p.elapsed.as_secs_f64(),
             duration: p.duration.map(|d| d.as_secs_f64()),
@@ -122,7 +127,7 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
                     .map(|e| QueueEntryDto {
                         title: e.title.clone(),
                         artists: e.artists.clone(),
-                        art_url: art_url(e.artwork.as_ref()),
+                        art_url: art_url(e.artwork.as_ref(), ""),
                     })
                     .collect(),
             ),

@@ -11,6 +11,7 @@ publish = false
 [dependencies]
 base64 = "0.23.1"
 futures = "0.3.34"
+image = { version = "0.25.10", default-features = false, features = ["png"] }
 jukelight-application = { version = "0.1.0", path = "../application" }
 jukelight-domain = { version = "0.1.0", path = "../domain" }
 thiserror = "2.0.21"
