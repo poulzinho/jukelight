@@ -6,7 +6,7 @@
 - [x] 1.4 Write failing HTTP tests "Track with a cover" and "Track without a cover", then give the track's cover `?size=large` and add `backdropUrl`; queue entries keep the original
 - [x] 1.5 Make the fake scenarios' covers PNG, so the backdrop works in screenshots
 - [x] 1.6 Review of layer 1: a fake cover that can't be encoded means no cover, not an empty image; the large cover is tried directly when the source already is a CDN URL; explicit cache keys per size; `null` documented for the cover URLs; the "missing artwork" test without a backdrop either
-- [ ] 1.7 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.7 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. Backdrop, steady updates and portrait layout (stack layer 2, DEV-31: kiosk and acceptance)
 
@@ -17,4 +17,4 @@
 - [x] 2.5 Review of layer 2: the cross-fade sets no state during render (the image components exist only while there is an image); a backdrop that failed tries again when a new URL arrives for the same picture; a cover that fails to load shows the initials instead of a broken image
 - [x] 2.6 Smoother transitions (from the acceptance): write a failing component test "Old text fades out first", then fade the old track text out before the new one fades in and rises; cross-fade the cover over 1 s and the backdrop over 1.5 s (ease-in-out); swap at once with reduced motion
 - [x] 2.7 Acceptance on the reference host: a Qobuz album played through (sharp cover, no blink between tracks of the same album), a Spotify cast (large cover), a track change to another album (no blank cover), portrait without jumps; GPU load unchanged (`chrome://gpu` still hardware accelerated, animations smooth); record the results on DEV-5
-- [ ] 2.8 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive on this top layer before merging
+- [x] 2.8 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive on this top layer before merging
