@@ -285,19 +285,25 @@ async fn no_input() {
 
 // 7.2 Live updates
 
-/// Reads SSE frames from a response body until `deadline`, returning the
-/// `data:` payloads and the number of comment lines.
-async fn read_events(body: &mut Body, deadline: Duration) -> (Vec<Value>, usize) {
-    let mut data = Vec::new();
+/// One SSE event: its name (`None` for unnamed events) and its data.
+type SseEvent = (Option<String>, String);
+
+/// Reads SSE events from a response body until `deadline`, returning them
+/// and the number of comment lines.
+async fn read_sse(body: &mut Body, deadline: Duration) -> (Vec<SseEvent>, usize) {
+    let mut events = Vec::new();
     let mut comments = 0;
+    let mut name = None;
     let _ = tokio::time::timeout(deadline, async {
         while let Some(Ok(frame)) = body.frame().await {
             let Some(chunk) = frame.data_ref() else {
                 continue;
             };
             for line in String::from_utf8_lossy(chunk).lines() {
-                if let Some(payload) = line.strip_prefix("data:") {
-                    data.push(serde_json::from_str(payload.trim()).unwrap());
+                if let Some(event) = line.strip_prefix("event:") {
+                    name = Some(event.trim().to_owned());
+                } else if let Some(payload) = line.strip_prefix("data:") {
+                    events.push((name.take(), payload.trim().to_owned()));
                 } else if line.starts_with(':') {
                     comments += 1;
                 }
@@ -305,7 +311,19 @@ async fn read_events(body: &mut Body, deadline: Duration) -> (Vec<Value>, usize)
         }
     })
     .await;
-    (data, comments)
+    (events, comments)
+}
+
+/// The snapshots (unnamed events) until `deadline`, and the number of
+/// comment lines.
+async fn read_events(body: &mut Body, deadline: Duration) -> (Vec<Value>, usize) {
+    let (events, comments) = read_sse(body, deadline).await;
+    let snapshots = events
+        .into_iter()
+        .filter(|(name, _)| name.is_none())
+        .map(|(_, data)| serde_json::from_str(&data).unwrap())
+        .collect();
+    (snapshots, comments)
 }
 
 async fn open_events(app: &Router) -> Body {
@@ -438,6 +456,44 @@ async fn kiosk_at_the_root() {
     assert_eq!(status, StatusCode::OK);
     assert!(content_type.unwrap().starts_with("text/html"));
     assert!(String::from_utf8(body).unwrap().contains("<html"));
+}
+
+// Spec: published-api, "Kiosk build".
+
+/// The build in the page's `<meta name="jukelight-build">`.
+fn page_build(page: &str) -> String {
+    let start = page
+        .find(r#"<meta name="jukelight-build" content=""#)
+        .expect("the page carries its build")
+        + r#"<meta name="jukelight-build" content=""#.len();
+    page[start..start + page[start..].find('"').unwrap()].to_owned()
+}
+
+#[tokio::test]
+async fn page_carries_the_build() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let (_, body, _) = get(&app(&monitor), "/").await;
+    let build = page_build(&String::from_utf8(body).unwrap());
+    assert_eq!(build.len(), 12, "a short identifier: {build}");
+    assert!(build.chars().all(|c| c.is_ascii_hexdigit()));
+}
+
+#[tokio::test]
+async fn stream_announces_the_build() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let app = app(&monitor);
+    let (_, page, _) = get(&app, "/").await;
+    let mut body = open_events(&app).await;
+    let (events, _) = read_sse(&mut body, Duration::from_millis(50)).await;
+    assert_eq!(events.len(), 2, "{events:?}");
+    assert_eq!(events[0].0, None, "the snapshot first");
+    assert_eq!(
+        events[1],
+        (
+            Some("build".to_owned()),
+            page_build(&String::from_utf8(page).unwrap())
+        )
+    );
 }
 
 #[tokio::test]

@@ -26,6 +26,7 @@ export class FakeEventSource {
   onerror: (() => void) | null = null
   closed = false
   url: string
+  listeners = new Map<string, ((event: MessageEvent<string>) => void)[]>()
 
   constructor(url: string) {
     this.url = url
@@ -34,6 +35,17 @@ export class FakeEventSource {
 
   close() {
     this.closed = true
+  }
+
+  addEventListener(name: string, listener: (event: MessageEvent<string>) => void) {
+    this.listeners.set(name, [...(this.listeners.get(name) ?? []), listener])
+  }
+
+  /** Sends a named event, such as `build`. */
+  announce(name: string, data: string) {
+    for (const listener of this.listeners.get(name) ?? []) {
+      listener(new MessageEvent(name, { data }))
+    }
   }
 
   open() {

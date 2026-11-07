@@ -164,16 +164,11 @@ curl -s localhost:8080/api/v1/player
 The container restarts by itself after a reboot (`restart: unless-stopped`),
 unless it was stopped with `docker compose stop` or `down`.
 
-**After an update** (`git pull` and `docker compose up --build -d`), restart
-the kiosk once the kiosk session is set up, so the browser loads the new
-page:
-
-```sh
-sudo systemctl restart jukelight-kiosk
-```
-
-The open page reconnects to the new backend by itself, but keeps running the
-old page's code until it is reloaded, so new screens would not appear.
+**After an update** (`git pull` and `docker compose up --build -d`), the
+kiosk reloads by itself: when the open page reconnects to the new backend,
+it notices the new kiosk build and reloads once. An update without kiosk
+changes doesn't reload it. If the kiosk ever keeps showing the old version,
+see [Troubleshooting](#troubleshooting).
 
 If you use a port other than 8080, set `HTTP_PORT` in `.env`; the address in
 `/etc/jukelight/host.env` (next section) must match it.
@@ -571,6 +566,12 @@ may not come back. Try, in this order:
 text.** The kiosk's sway configuration is missing or unreadable: check
 `/home/kiosk/.config/sway/config` (with `sudo`) and restart
 `jukelight-kiosk`.
+
+**The kiosk keeps showing the old version after an update.** The page
+reloads by itself when it reconnects to a backend with a new kiosk build,
+once per build. If it doesn't (for example, an update from before this
+feature, or a page that never reconnected), restart the kiosk:
+`sudo systemctl restart jukelight-kiosk`.
 
 **The browser shows a black or blank page, or Chrome does not start.** Check
 that the container runs (`docker compose ps`), that `JUKELIGHT_URL` in

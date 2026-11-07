@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { EVENTS_URL, PLAYER_URL, type Player } from './api'
+import { reloadForBuild } from './build'
 
 export type Connection = 'connecting' | 'live' | 'lost'
 
@@ -16,7 +17,8 @@ export interface PlayerState {
  * EventSource reconnects by itself; after each reconnect the server sends
  * the current snapshot first, so no separate refetch is needed. The first
  * plain request measures the server clock, so progress stays right on a
- * device whose clock is off.
+ * device whose clock is off. After each snapshot that starts a connection,
+ * the server announces its kiosk build, so the page reloads after an update.
  */
 export function usePlayer(): PlayerState {
   const [player, setPlayer] = useState<Player | null>(null)
@@ -49,6 +51,7 @@ export function usePlayer(): PlayerState {
       setConnection('live')
     }
     source.onerror = () => setConnection('lost')
+    source.addEventListener('build', (event: MessageEvent<string>) => reloadForBuild(event.data))
 
     return () => {
       cancelled = true

@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { reloadForBuild } from './build'
 import { FakeEventSource, player } from './test/fixtures'
 import { usePlayer } from './usePlayer'
+
+vi.mock('./build', () => ({ reloadForBuild: vi.fn() }))
 
 beforeEach(() => {
   FakeEventSource.instances = []
@@ -80,4 +83,11 @@ test('closes the stream when unmounted', () => {
   const { unmount } = renderHook(() => usePlayer())
   unmount()
   expect(FakeEventSource.latest().closed).toBe(true)
+})
+
+test('passes the announced build on, to reload after an update', () => {
+  stubFetch(null)
+  renderHook(() => usePlayer())
+  act(() => FakeEventSource.latest().announce('build', 'd4e5f6'))
+  expect(reloadForBuild).toHaveBeenCalledWith('d4e5f6')
 })
