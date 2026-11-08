@@ -5,8 +5,8 @@ The playing screen SHALL show how the music reaches the player in one row:
 the source node (the source's logo, or its icon and name), a wave, then,
 when the source has a route, the route's node (its logo, or its name) and
 a second wave, and finally the sound box. Above each wave, a quiet label
-SHALL give that leg's quality and codec ("24/96 FLAC", "320 kbps Ogg
-Vorbis"); above the second wave, the first change ("normalised",
+SHALL give that leg's quality and codec ("24/96 FLAC", or "320 kbps" for a
+lossy stream, whose codec isn't published); above the second wave, the first change ("normalised",
 "resampled") replaces the codec. The player SHALL NOT be a node.
 
 #### Scenario: Through Music Assistant
@@ -42,7 +42,8 @@ the same colour. The album's colours SHALL NOT change them.
 ### Requirement: Sound box
 The sound box SHALL show the quality the player receives (`delivered`, or
 else `source`): the bit depth and sample rate ("24 bit / 96 kHz") or the
-bitrate ("320 kbps") with tabular figures, the codec on the next line, and
+bitrate ("320 kbps") with tabular figures, the codec on the next line
+("lossy" for a bitrate without a codec), and
 a third, quieter line with the changes ("normalised (−6 dB)", "resampled
 from 16 / 44.1", "24 bit from 16", "DSP", joined with " · "), or
 "untouched" without changes. It SHALL show the Hi-Res logo before the
@@ -63,8 +64,8 @@ SHALL show "quality not reported" when the class is unknown.
 - **THEN** the box shows a "HI-RES" tag before the lines
 
 #### Scenario: Lossy
-- **WHEN** `source` is 320 kbps Ogg Vorbis
-- **THEN** the box shows "320 kbps", "OGG VORBIS" and "untouched"
+- **WHEN** `source` is 320 kbps, without a codec
+- **THEN** the box shows "320 kbps", "lossy" and "untouched"
 
 #### Scenario: Unknown
 - **WHEN** `signal.class` is "unknown"
@@ -89,15 +90,20 @@ unavailable route, the waves SHALL stand still, with no pulses.
 - **THEN** no pulse moves
 
 ### Requirement: Signal path fits
-The signal path SHALL stay on one row, with no part wrapping. The nodes and
-the sound box's first two lines SHALL never shrink. When space runs out,
-the waves SHALL get shorter down to a minimum length, then a wave's label
-SHALL be left out when it is wider than its wave, then the sound box's
-third line SHALL be shortened with "…".
+The signal path SHALL stay on one row, with no part wrapping. The source
+node and the sound box's first two lines SHALL never shrink. When space
+runs out, the waves SHALL get shorter down to a minimum length, then a
+wave's label SHALL be left out when it is wider than its wave, then the
+sound box's third line SHALL be shortened with "…", and last the route's
+name SHALL be left out, leaving its icon.
 
 #### Scenario: Landscape
 - **WHEN** the screen is in landscape and the source is Qobuz through Music Assistant with "normalised (−6 dB)"
 - **THEN** every part of the row shows in full
+
+#### Scenario: Route without a logo in landscape
+- **WHEN** the screen is in landscape, neither the source nor the route has a logo, and the changes are "resampled", "normalised (−7.4 dB)" and "DSP"
+- **THEN** the row doesn't overflow, and the route keeps at least its icon
 
 #### Scenario: Narrow portrait
 - **WHEN** the screen is in portrait and the row would be wider than the column
