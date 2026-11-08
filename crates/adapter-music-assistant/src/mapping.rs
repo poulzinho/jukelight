@@ -3,8 +3,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Brand, Content, Palette, Position, QueueEntry,
-    QueueView, Rgb, Service, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioQuality, Brand, Change, Content, Decibels, Delivery, Palette,
+    Position, QueueEntry, QueueView, Rgb, Service, Timestamp, Track,
 };
 
 use crate::api;
@@ -56,6 +56,7 @@ pub fn to_content(
         artwork: artwork(item, media, base_url),
         position: position(&responses.queue, item, media, now),
         quality: details.and_then(|details| quality(details, player_key)),
+        delivery: details.map(|details| delivery(details, player_key)),
         queue: QueueView::Available(
             responses
                 .upcoming
@@ -190,17 +191,7 @@ fn timestamp(unix_seconds: f64) -> Option<Timestamp> {
 
 fn quality(details: &api::StreamDetails, player_key: &str) -> Option<AudioQuality> {
     let source = details.audio_format.as_ref()?;
-    let format = AudioFormat {
-        codec: source.content_type.clone(),
-        bit_depth: source.bit_depth,
-        sample_rate_hz: source.sample_rate,
-    };
-    let lossless = AudioQuality::format(format.clone()).is_lossless();
-    let quality = if !lossless && source.bit_rate > 0 {
-        AudioQuality::bitrate(source.bit_rate * 1000)
-    } else {
-        AudioQuality::format(format)
-    };
+    let quality = measured(source);
 
     let mut detail = Vec::new();
     if quality.is_lossless() && !quality.is_hi_res() {
@@ -217,11 +208,7 @@ fn quality(details: &api::StreamDetails, player_key: &str) -> Option<AudioQualit
         });
         detail.push(format!("→ {} to player", converted.label().trim()));
     }
-    if details
-        .volume_normalization_mode
-        .as_deref()
-        .is_some_and(|mode| ALTERS_VOLUME.contains(&mode))
-    {
+    if normalises(details) {
         detail.push("Normalised".to_owned());
     }
 
@@ -232,19 +219,84 @@ fn quality(details: &api::StreamDetails, player_key: &str) -> Option<AudioQualit
     })
 }
 
-/// The format Music Assistant sends to this player (the only output when
-/// none names it).
-fn output_format<'a>(
-    details: &'a api::StreamDetails,
-    player_key: &str,
-) -> Option<&'a api::AudioFormat> {
+/// A format as a quality: the bitrate for a lossy codec that reports one,
+/// otherwise the format.
+fn measured(source: &api::AudioFormat) -> AudioQuality {
+    let format = AudioFormat {
+        codec: source.content_type.clone(),
+        bit_depth: source.bit_depth,
+        sample_rate_hz: source.sample_rate,
+    };
+    let lossless = AudioQuality::format(format.clone()).is_lossless();
+    if !lossless && source.bit_rate > 0 {
+        AudioQuality::bitrate(source.bit_rate * 1000)
+    } else {
+        AudioQuality::format(format)
+    }
+}
+
+/// What Music Assistant sends to this player, and what it changed on the
+/// way.
+fn delivery(details: &api::StreamDetails, player_key: &str) -> Delivery {
+    let source = details.audio_format.as_ref();
+    let output = output(details, player_key);
+    let format = output.and_then(|output| output.output_format.as_ref());
+
+    let mut changes = Vec::new();
+    if let (Some(source), Some(format)) = (source, format) {
+        if format.sample_rate != source.sample_rate {
+            changes.push(Change::Resampled);
+        } else if format.bit_depth != source.bit_depth {
+            changes.push(Change::BitDepth);
+        }
+    }
+    if normalises(details) {
+        let gain = details
+            .audio_processing
+            .as_ref()
+            .and_then(|processing| processing.queue_processing.as_ref())
+            .and_then(|queue| queue.normalization.as_ref())
+            .and_then(|normalization| normalization.applied_gain_db)
+            .or(details.volume_normalization_gain_correct)
+            .filter(|db| db.is_finite())
+            .map(Decibels::from_db);
+        changes.push(Change::Normalised { gain });
+    }
+    if output
+        .and_then(|output| output.dsp.as_ref())
+        .is_some_and(|dsp| dsp.state == "enabled")
+    {
+        changes.push(Change::Dsp);
+    }
+
+    Delivery {
+        quality: format.map(measured),
+        changes,
+    }
+}
+
+fn normalises(details: &api::StreamDetails) -> bool {
+    details
+        .volume_normalization_mode
+        .as_deref()
+        .is_some_and(|mode| ALTERS_VOLUME.contains(&mode))
+}
+
+/// The output that serves this player (the only one when none names it).
+fn output<'a>(details: &'a api::StreamDetails, player_key: &str) -> Option<&'a api::Output> {
     let outputs = &details.audio_processing.as_ref()?.outputs;
     outputs
         .iter()
         .find(|output| output.player_ids.iter().any(|id| id == player_key))
-        .or_else(|| (outputs.len() == 1).then(|| &outputs[0]))?
-        .output_format
-        .as_ref()
+        .or_else(|| (outputs.len() == 1).then(|| &outputs[0]))
+}
+
+/// The format Music Assistant sends to this player.
+fn output_format<'a>(
+    details: &'a api::StreamDetails,
+    player_key: &str,
+) -> Option<&'a api::AudioFormat> {
+    output(details, player_key)?.output_format.as_ref()
 }
 
 fn queue_entry(entry: &api::QueueItem, base_url: &str) -> QueueEntry {

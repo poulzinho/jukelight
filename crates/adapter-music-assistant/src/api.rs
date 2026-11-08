@@ -102,6 +102,8 @@ pub struct StreamDetails {
     pub audio_format: Option<AudioFormat>,
     pub audio_processing: Option<AudioProcessing>,
     pub volume_normalization_mode: Option<String>,
+    /// The normalisation gain in dB (older releases; see `Normalization`).
+    pub volume_normalization_gain_correct: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
@@ -117,7 +119,30 @@ pub struct AudioFormat {
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
 #[serde(default)]
 pub struct AudioProcessing {
+    pub queue_processing: Option<QueueProcessing>,
     pub outputs: Vec<Output>,
+}
+
+/// What Music Assistant does to the queue's audio before it splits it per
+/// player.
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
+#[serde(default)]
+pub struct QueueProcessing {
+    pub normalization: Option<Normalization>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
+#[serde(default)]
+pub struct Normalization {
+    pub applied_gain_db: Option<f64>,
+}
+
+/// A player's DSP (equaliser, filters); `state` is `enabled` when it
+/// changes the audio.
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
+#[serde(default)]
+pub struct Dsp {
+    pub state: String,
 }
 
 /// What Music Assistant sends to one or more players.
@@ -126,6 +151,7 @@ pub struct AudioProcessing {
 pub struct Output {
     pub player_ids: Vec<String>,
     pub output_format: Option<AudioFormat>,
+    pub dsp: Option<Dsp>,
 }
 
 /// An entry of `providers`.
