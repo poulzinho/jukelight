@@ -204,7 +204,9 @@ to show where the music comes from, and follow its owner's guidelines.
 | `apple-music.svg` | Apple Music | Apple's marketing guidelines and badges | Apple restricts its logo to its official badges |
 | `deezer.svg` | Deezer | deezerbrand.com | |
 | `plex.svg`, `jellyfin.svg` | Plex, Jellyfin | Their press or branding pages | Through Music Assistant |
-| `navidrome.png`, `subsonic.svg`, `library.svg` | Navidrome, other Subsonic servers, local files | Navidrome's repository; any icon you like for the others | Navidrome shows when the Music Assistant provider is named "Navidrome" |
+| `navidrome.png` | Navidrome | Navidrome's repository | Shows when the Music Assistant provider is named "Navidrome" |
+| `subsonic.png` | Other Subsonic servers | subsonic.org (the yellow submarine) | For an OpenSubsonic provider not named "Navidrome" |
+| `library.svg` | Local files in Music Assistant | Any folder icon you like | |
 | `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | Shown as "via" inside the badge |
 | `bluesound.png` | Bluesound (the player's maker) | Bluesound's press or media kit | In the footer, with the player's name |
 | `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; replaces the "HI-RES" tag |
