@@ -25,3 +25,4 @@
 - [x] 3.10 Acceptance finding: with a route, both waves pulse at the same time, so the light doesn't travel from one end to the other. Write failing tests "From one end to the other" (component: the second wave's pulse and port start later; e2e: the running pulse animations have delays of 0 and the relay time), then relay the pulse from the first wave to the second
 - [x] 3.11 Acceptance finding: the light should travel slowly, with a longer rest. Update the tests to 2.2 s per wave, the second wave starting 2 s later, and one pulse every 8 seconds, then slow the pulse down
 - [x] 3.12 Review of layer 3: the unavailable route's caption carries its own leading space instead of a separate whitespace node in the column
+- [x] 3.13 Review of layer 3: `useGiveWay` cancels a pending re-measure before scheduling the next, so cleanup never misses one
