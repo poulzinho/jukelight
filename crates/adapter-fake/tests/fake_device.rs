@@ -48,6 +48,7 @@ fn all_scenarios_exist() {
             "playing-with-queue",
             "cast-without-queue",
             "long-title",
+            "no-album",
             "no-artwork",
             "hi-res",
             "album-colours",

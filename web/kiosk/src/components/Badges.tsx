@@ -5,7 +5,8 @@ const badge = 'rounded-full px-[1.6vmin] py-[0.7vmin] text-badge font-semibold t
 export function Badges({ player }: { player: Player }) {
   const { session, quality } = player
   return (
-    <div className="mt-[2vmin] flex flex-wrap items-center gap-[1.2vmin]">
+    // One row in portrait, so a long badge never pushes "Up next" down.
+    <div className="mt-[2vmin] flex flex-wrap items-center gap-[1.2vmin] portrait:flex-nowrap portrait:overflow-hidden">
       {session.label && (
         <span
           className={`${badge} ${session.available ? 'bg-kiosk-text/10 text-kiosk-text/85' : 'border-[0.2vmin] border-kiosk-text/25 text-kiosk-text/60'}`}

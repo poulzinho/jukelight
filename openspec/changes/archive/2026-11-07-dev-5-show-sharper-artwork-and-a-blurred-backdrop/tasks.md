@@ -1,0 +1,20 @@
+## 1. Larger covers and the backdrop image (stack layer 1, DEV-30: backend)
+
+- [x] 1.1 Add `ArtworkSize` (`Original`, `Large`, `Backdrop`) to the `ArtworkSource` port and the HTTP route (`?size=`), with the cache keyed by id and size; existing artwork tests keep passing
+- [x] 1.2 Write failing fixture tests "Qobuz cover", "Spotify cover", "Larger version missing" and "Unknown source", then add the URL rules on the final URL with the fallback
+- [x] 1.3 Write failing fixture tests "Backdrop of a cover" and "Not an image", then add the backdrop version (the `image` crate with JPEG, PNG and WebP only; `cargo deny` passes)
+- [x] 1.4 Write failing HTTP tests "Track with a cover" and "Track without a cover", then give the track's cover `?size=large` and add `backdropUrl`; queue entries keep the original
+- [x] 1.5 Make the fake scenarios' covers PNG, so the backdrop works in screenshots
+- [x] 1.6 Review of layer 1: a fake cover that can't be encoded means no cover, not an empty image; the large cover is tried directly when the source already is a CDN URL; explicit cache keys per size; `null` documented for the cover URLs; the "missing artwork" test without a backdrop either
+- [x] 1.7 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+
+## 2. Backdrop, steady updates and portrait layout (stack layer 2, DEV-31: kiosk and acceptance)
+
+- [x] 2.1 Write failing component tests "Track with a backdrop" and "No backdrop", then add the backdrop layer with the veil and the cross-fade (opacity only, no CSS blur)
+- [x] 2.2 Write failing component tests "Next track on the same album", "Track with a new cover" and "Quality changes", then key the cover by album and artists, decode a new cover before cross-fading it, key only the track text by the title, and key "Up next" entries by title and artists
+- [x] 2.3 Write failing screenshot checks for "No queue", "Long title" and "Missing album" in portrait (positions compared between scenarios), then replace the portrait centring with fixed slots; landscape unchanged
+- [x] 2.4 Review the screenshots in landscape and portrait
+- [x] 2.5 Review of layer 2: the cross-fade sets no state during render (the image components exist only while there is an image); a backdrop that failed tries again when a new URL arrives for the same picture; a cover that fails to load shows the initials instead of a broken image
+- [x] 2.6 Smoother transitions (from the acceptance): write a failing component test "Old text fades out first", then fade the old track text out before the new one fades in and rises; cross-fade the cover over 1 s and the backdrop over 1.5 s (ease-in-out); swap at once with reduced motion
+- [x] 2.7 Acceptance on the reference host: a Qobuz album played through (sharp cover, no blink between tracks of the same album), a Spotify cast (large cover), a track change to another album (no blank cover), portrait without jumps; GPU load unchanged (`chrome://gpu` still hardware accelerated, animations smooth); record the results on DEV-5
+- [x] 2.8 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive on this top layer before merging

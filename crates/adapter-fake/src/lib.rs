@@ -15,10 +15,11 @@ use jukelight_domain::{
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 10] = [
+pub const SCENARIOS: [&str; 11] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
+    "no-album",
     "no-artwork",
     "hi-res",
     "album-colours",
@@ -90,8 +91,9 @@ impl DeviceMonitor for FakeDevice {
     }
 }
 
-fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
-    let mut snapshot = DeviceSnapshot {
+/// A playing track with everything known, which the scenarios vary.
+fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
+    DeviceSnapshot {
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -140,7 +142,11 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
             service: None,
             palette: None,
         }),
-    };
+    }
+}
+
+fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
+    let mut snapshot = example_snapshot(clock);
     let content = snapshot.content.as_mut();
 
     match (scenario, content) {
@@ -164,6 +170,10 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
             ];
             content.track.album =
                 Some("An Album Title That Is Also Far Too Long To Fit On One Line".into());
+        }
+        ("no-album", Some(content)) => {
+            content.track.title = "Single Song".into();
+            content.track.album = None;
         }
         ("no-artwork", Some(content)) => {
             content.artwork = None;

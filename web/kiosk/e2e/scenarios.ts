@@ -3,6 +3,7 @@ export const SCENARIOS = [
   'playing-with-queue',
   'cast-without-queue',
   'long-title',
+  'no-album',
   'no-artwork',
   'hi-res',
   'album-colours',

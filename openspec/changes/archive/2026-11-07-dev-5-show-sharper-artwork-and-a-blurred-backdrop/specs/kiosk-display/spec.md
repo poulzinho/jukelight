@@ -16,8 +16,9 @@ background colour. The kiosk SHALL NOT blur with CSS filters.
 - **THEN** the playing screen shows the plain background colour
 
 ### Requirement: Update only what changed
-On a track change, the kiosk SHALL fade in only the track's title, artists
-and album. The cover and the backdrop SHALL stay when the new track has the
+On a track change, the kiosk SHALL change only the track's title, artists
+and album: the old text fades out, then the new text fades in. The cover
+and the backdrop SHALL stay when the new track has the
 same album and artists. A new cover SHALL replace the old one only once it
 has loaded, with a cross-fade, so the cover is never blank. Badges,
 progress and "Up next" SHALL update in place, without fading.
@@ -25,6 +26,10 @@ progress and "Up next" SHALL update in place, without fading.
 #### Scenario: Next track on the same album
 - **WHEN** the track changes to another track with the same album and artists
 - **THEN** the cover is still the same element and the title fades in
+
+#### Scenario: Old text fades out first
+- **WHEN** the track changes
+- **THEN** the old title is still shown, fading out, and the new title replaces it once the fade-out has finished
 
 #### Scenario: Track with a new cover
 - **WHEN** the track changes to a track with a different album and its cover hasn't loaded yet
