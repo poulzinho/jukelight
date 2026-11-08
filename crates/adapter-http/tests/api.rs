@@ -292,6 +292,41 @@ async fn logo_supplied() {
 }
 
 #[tokio::test]
+async fn only_the_current_version_may_be_cached() {
+    let logos = Arc::new(TestLogos::default());
+    logos.supply("qobuz", 8, "image/svg+xml", b"<svg id='new'/>");
+    let app = app_with_logos(&PlayerMonitor::new(Vec::new()), logos);
+    let cache = |response: &axum::response::Response| {
+        response.headers()[header::CACHE_CONTROL]
+            .to_str()
+            .unwrap()
+            .to_owned()
+    };
+
+    let current = app
+        .clone()
+        .oneshot(
+            Request::get("/api/v1/logos/qobuz?v=8")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert!(cache(&current).contains("immutable"));
+
+    // An old version's URL gets the current bytes, but not for good.
+    let old = app
+        .oneshot(
+            Request::get("/api/v1/logos/qobuz?v=7")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(cache(&old), "no-cache");
+}
+
+#[tokio::test]
 async fn no_logo() {
     let monitor = PlayerMonitor::new(Vec::new());
     monitor.apply(&qobuz_on_bluesound());

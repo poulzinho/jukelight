@@ -186,26 +186,42 @@ struct ArtworkQuery {
     size: Option<String>,
 }
 
-/// `?size=large` or `?size=backdrop`; without it, the original image.
-/// A logo the user supplied, by brand; 404 for any other name. The version
-/// in the URL (`?v=`) changes when the file does, so it may be cached long.
-async fn brand_logo(State(state): State<AppState>, Path(brand): Path<String>) -> Response {
-    let Some(image) = Brand::new(&brand).and_then(|brand| state.logos.logo(&brand)) else {
+#[derive(serde::Deserialize)]
+struct LogoQuery {
+    v: Option<u64>,
+}
+
+/// A logo the user supplied, by brand; 404 for any other name. With the
+/// current version in the URL (`?v=`, as published) it may be cached for
+/// good; any other request gets the current file, not to be cached.
+async fn brand_logo(
+    State(state): State<AppState>,
+    Path(brand): Path<String>,
+    Query(query): Query<LogoQuery>,
+) -> Response {
+    let Some(brand) = Brand::new(&brand) else {
         return StatusCode::NOT_FOUND.into_response();
+    };
+    let (Some(version), Some(image)) = (state.logos.version(&brand), state.logos.logo(&brand))
+    else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let cache = if query.v == Some(version) {
+        "public, max-age=31536000, immutable"
+    } else {
+        "no-cache"
     };
     (
         [
             (header::CONTENT_TYPE, image.content_type),
-            (
-                header::CACHE_CONTROL,
-                "public, max-age=31536000, immutable".into(),
-            ),
+            (header::CACHE_CONTROL, cache.into()),
         ],
         image.bytes,
     )
         .into_response()
 }
 
+/// `?size=large` or `?size=backdrop`; without it, the original image.
 async fn artwork_image(
     State(state): State<AppState>,
     Path(id): Path<String>,
