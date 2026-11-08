@@ -72,7 +72,7 @@ SHALL show "quality not reported" when the class is unknown.
 - **THEN** the box shows "quality not reported"
 
 ### Requirement: Wave motion
-A pulse of light SHALL run towards the end every 4 seconds, and each
+A pulse of light SHALL run slowly towards the end every 8 seconds, and each
 arrival port SHALL light up as the pulse arrives. With a route, the pulse
 SHALL run along the first wave and, as it arrives, go on along the second,
 so the light travels from the source to the sound box.

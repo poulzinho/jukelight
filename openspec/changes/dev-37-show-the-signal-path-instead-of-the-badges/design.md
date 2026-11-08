@@ -104,14 +104,15 @@ and the port core is static.
 badges' build already costs about 500 s of CPU per hour, mostly in
 Chrome's GPU and browser processes: drawing frames, which a never-ending
 animation keeps at about 60 a second (DEV-41 calms the progress bar). So
-a pulse is a one-off animation (1.6 s), started by a timer every 4 s: the
+a pulse is a one-off animation, started by a timer every 8 s: the
 band and the port's core remount with a new key. Between pulses no
 animation runs, and Chrome can stop drawing.
 
-A pulse takes 1.3 s per wave. On the second wave it starts 1.2 s later,
-as the first one arrives (an `animation-delay`), so one pulse travels the
-whole path in 2.5 s and rests for 1.5 s (acceptance finding: the waves
-must not light up at the same time).
+A pulse takes 2.2 s per wave. On the second wave it starts 2 s later, as
+the first one arrives (an `animation-delay`), so one pulse travels the
+whole path in 4.2 s and rests for 3.8 s (acceptance findings: the waves
+must not light up at the same time, and the light travels slowly, with a
+longer rest).
 
 - *Alternative:* an infinite animation whose keyframes hold still for the
   rest. Rejected: Chrome keeps drawing while any animation is active, even
