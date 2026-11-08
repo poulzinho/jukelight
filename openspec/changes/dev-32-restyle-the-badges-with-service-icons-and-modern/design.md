@@ -123,7 +123,9 @@ A footer component on every screen: the device's logo (about 2 vmin high,
 in portrait, in the bottom-right corner in landscape. In portrait its
 space is part of the fixed slots (the bottom padding grows by its height),
 so "Up next" keeps its place. The idle screen drops the player name from
-its line ("nothing playing").
+its line ("nothing playing"). The connection indicator moves from the
+bottom-right to the top-right corner, so it never covers the signature in
+landscape (the spec only asks for "a corner").
 
 ## Risks / Trade-offs
 
