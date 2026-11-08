@@ -3,6 +3,7 @@
 - [x] 1.1 Write failing domain unit tests for `AudioQuality::class()` (Hi-Res, lossless, lossy) and `signal_class` (upsampled CD quality stays lossless, downsampled Hi-Res becomes lossless, no quality is unknown), then add `QualityClass`, `Delivery`, `Change` and `Content.delivery`; verify with `cargo test -p jukelight-domain`
 - [x] 1.2 Write failing MA fixture tests "Padded CD-quality source", "Upsampled and normalised", "Untouched Hi-Res" and "No output for the player" (scrubbed edited copies of the recorded `streamdetails`), then map the delivery from `audio_processing` (output format, `applied_gain_db` with the `volume_normalization_gain_correct` fallback, `dsp.state`); verify with `cargo test -p jukelight-adapter-music-assistant`
 - [x] 1.3 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.4 Review of layer 1: `signal_class` takes the delivered class only when the route reports a quality, instead of a Hi-Res stand-in
 
 ## 2. The signal in the API (stack layer 2, DEV-39: API, fake adapter)
 
@@ -23,3 +24,4 @@
 - [x] 3.9 Acceptance finding: Chrome spends most of its CPU drawing frames, and continuous pulses keep it drawing. Write failing tests "Between pulses" (no animation runs in the signal path once a pulse has finished, in the e2e check) and one pulse every 4 seconds (component test with fake timers), then make each pulse a one-off animation started by a timer; measure an hour on the reference host again (515 s of Chrome CPU per hour, against 500 s with the badges: within the noise)
 - [x] 3.10 Acceptance finding: with a route, both waves pulse at the same time, so the light doesn't travel from one end to the other. Write failing tests "From one end to the other" (component: the second wave's pulse and port start later; e2e: the running pulse animations have delays of 0 and the relay time), then relay the pulse from the first wave to the second
 - [x] 3.11 Acceptance finding: the light should travel slowly, with a longer rest. Update the tests to 2.2 s per wave, the second wave starting 2 s later, and one pulse every 8 seconds, then slow the pulse down
+- [x] 3.12 Review of layer 3: the unavailable route's caption carries its own leading space instead of a separate whitespace node in the column
