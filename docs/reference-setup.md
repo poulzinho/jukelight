@@ -180,10 +180,9 @@ write access) instead of your own credentials.
 
 ### Brand logos (optional)
 
-The kiosk shows where the music comes from in a badge, and the player's
+The kiosk shows where the music comes from in its signal path, and the player's
 maker in a footer. Jukelight ships no logos: they are their owners'
-trademarks. Without them the kiosk shows plain badges (an icon and the
-name). To show logos, put your own copies into `brand-assets/` next to
+trademarks. Without them the kiosk shows an icon and the name. To show logos, put your own copies into `brand-assets/` next to
 `.env`. `docker-compose.yml` mounts the folder read-only, git ignores it,
 and Jukelight picks up added or replaced files within a few seconds.
 Create the folder yourself before the first `docker compose up` (as in
@@ -193,7 +192,7 @@ copying logos into it fails with "Permission denied" (see
 
 Name each file after its brand, as `<brand>.svg` (preferred) or
 `<brand>.png`, and use the brand's variant for **dark backgrounds** (white or
-coloured on transparent): the badges are dark. Use each logo unmodified, only
+coloured on transparent): the kiosk is dark. Use each logo unmodified, only
 to show where the music comes from, and follow its owner's guidelines.
 
 | File | Brand | Official source | Notes |
@@ -207,9 +206,9 @@ to show where the music comes from, and follow its owner's guidelines.
 | `navidrome.png` | Navidrome | Navidrome's repository | Shows when the Music Assistant provider is named "Navidrome" |
 | `subsonic.png` | Other Subsonic servers | subsonic.org (the yellow submarine) | For an OpenSubsonic provider not named "Navidrome" |
 | `library.svg` | Local files in Music Assistant | Any folder icon you like | |
-| `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | Shown as "via" inside the badge |
+| `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | The route in the middle of the signal path |
 | `bluesound.png` | Bluesound (the player's maker) | Bluesound's press or media kit | In the footer, with the player's name |
-| `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; replaces the "HI-RES" tag |
+| `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; in the sound box; replaces the "HI-RES" tag |
 
 Keep a note of where each file came from (for example in
 `brand-assets/SOURCES.md`, ignored with the folder). To bring the folder to
