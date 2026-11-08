@@ -175,6 +175,8 @@ test('the API sends a Date header for the clock offset', async ({ request }) => 
 // Spec: kiosk-display, "Reduced motion".
 async function motion(page: Page) {
   await open(page, 'playing-with-queue')
+  // The playing screen replaces the idle one once the first snapshot is in.
+  await expect(page.getByRole('heading', { name: 'Example Song' })).toBeVisible()
   const animation = await page
     .getByRole('main')
     .evaluate((element) => getComputedStyle(element).animationName)

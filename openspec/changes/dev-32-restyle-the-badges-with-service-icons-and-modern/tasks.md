@@ -22,7 +22,7 @@
 - [x] 3.2 Write failing component tests "Hi-Res track" and "Hi-Res track with the logo supplied", then the Hi-Res mark (tag or logo) and the quality as text from the new fields, with tabular figures
 - [x] 3.3 Write failing screenshot checks "Everything fits" and "Too long for portrait" (no part wraps; detail first, then "via"), with fake scenarios (long badges, Navidrome, MA unavailable) and a generated test logos folder in the e2e setup; then the one-line row and its priorities
 - [ ] 3.4 Review the screenshots in landscape and portrait; verify the layer (as 1.6); open the pull request and verify CI is green
-- [x] 3.5 Review of layer 3: an explicit key for the badge line instead of `JSON.stringify`; the detail and "via" come back when the line gets wider; the e2e setup removes its test-logo folder and creates the empty one
+- [x] 3.5 Review of layer 3: an explicit key for the badge line instead of `JSON.stringify`; the detail and "via" come back when the line gets wider; the e2e setup removes its test-logo folder and creates the empty one; the motion check waits for the playing screen before measuring (a race seen on CI)
 
 ## 4. Device signature and acceptance (stack layer 4, DEV-36: kiosk, reference host)
 
