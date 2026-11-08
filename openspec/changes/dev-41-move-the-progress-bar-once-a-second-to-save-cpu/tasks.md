@@ -4,3 +4,4 @@
 - [x] 1.2 Write failing tests "No transition" (no transition class on the fill; e2e: the motion check expects `0s` in both projects and no animation runs in the progress), then remove the fill's transition; verify with the kiosk tests and Playwright
 - [x] 1.3 Verify: kiosk lint, typecheck and tests, end-to-end tests, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`; open the pull request and verify CI is green
 - [x] 1.4 Acceptance on the reference host: an hour of playback, Chrome's CPU time against the 500 s per hour baseline; the bar's movement judged from across the room; record the results on DEV-41 (about 296 s per hour, against about 435 s with the old progress bar and 500 s with the badges; the steps look fine from across the room; the rest is DEV-42)
+- [x] 1.5 Review: the bar's fraction checks for a missing or zero duration explicitly, instead of a truthy check; a test covers a zero duration
