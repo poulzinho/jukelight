@@ -119,8 +119,21 @@ const MIN_DETAIL_EM = 2
  */
 export function Badges({ player }: { player: Player }) {
   const { source, quality } = player
-  // A new line starts fitting afresh.
-  const content = JSON.stringify([source, quality])
+  // A line with other content starts fitting afresh.
+  const via = source?.via
+  const content = [
+    source?.brand,
+    source?.name,
+    source?.logoUrl,
+    via?.name,
+    via?.available,
+    via?.logoUrl,
+    quality?.hiRes,
+    quality?.hiResLogoUrl,
+    quality && qualityText(quality).numbers,
+    quality?.codec,
+    quality?.detail,
+  ].join('|')
   return <BadgeLine key={content} source={source} quality={quality} />
 }
 
@@ -133,7 +146,16 @@ function BadgeLine({ source, quality }: Pick<Player, 'source' | 'quality'>) {
   useEffect(() => {
     const element = row.current
     if (!element || typeof ResizeObserver === 'undefined') return
+    let width = element.clientWidth
     const fit = () => {
+      // More room (for example a rotated screen): try everything again.
+      if (element.clientWidth > width + 1) {
+        width = element.clientWidth
+        setWithVia(true)
+        setWithDetail(true)
+        return
+      }
+      width = element.clientWidth
       const em = parseFloat(getComputedStyle(element).fontSize)
       if (detail.current && detail.current.clientWidth < MIN_DETAIL_EM * em) setWithDetail(false)
       else if (withVia && element.scrollWidth > element.clientWidth + 1) {

@@ -1,5 +1,5 @@
 import { type ChildProcess, spawn } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -29,7 +29,8 @@ async function waitForBackend(port: number): Promise<void> {
  */
 function testLogos(): string {
   const folder = mkdtempSync(join(tmpdir(), 'jukelight-test-logos-'))
-  mkdirSync(folder, { recursive: true })
+  // An empty folder for the scenarios without logos.
+  mkdirSync(join(folder, 'none'))
   const shape = (width: number, height: number, fill: string) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" rx="${height / 2}" fill="${fill}"/></svg>`
   writeFileSync(join(folder, 'qobuz.svg'), shape(100, 40, '#ffffff'))
@@ -59,6 +60,7 @@ export default async function globalSetup(): Promise<() => void> {
   )
   const stopAll = () => {
     for (const child of processes) child.kill()
+    rmSync(logos, { recursive: true, force: true })
   }
   try {
     await Promise.all(SCENARIOS.map((scenario) => waitForBackend(portFor(scenario))))
