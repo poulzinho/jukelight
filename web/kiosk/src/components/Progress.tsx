@@ -16,7 +16,8 @@ interface Props {
 export function Progress({ position, state, clockOffsetMs }: Props) {
   const now = useSecondTicks(position, state, clockOffsetMs) + clockOffsetMs
   const elapsed = predictElapsed(position, state, now)
-  const fraction = position.duration ? Math.floor(elapsed) / position.duration : 0
+  const { duration } = position
+  const fraction = duration !== null && duration > 0 ? Math.floor(elapsed) / duration : 0
 
   return (
     <div className="mt-[3vmin]">

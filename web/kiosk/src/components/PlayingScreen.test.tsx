@@ -110,6 +110,11 @@ test('paused: no tick is scheduled', () => {
   expect(vi.getTimerCount()).toBe(0)
 })
 
+test('a track without a length keeps the bar empty', () => {
+  show({ position: { elapsed: 60, duration: 0, observedAt: OBSERVED_AT } })
+  expect(fill().style.transform).toBe('scaleX(0)')
+})
+
 test('no transition on the fill', () => {
   show()
   expect(fill().className).not.toMatch(/transition/)
