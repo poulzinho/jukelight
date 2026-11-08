@@ -212,8 +212,15 @@ test.describe('without reduced motion', () => {
     expect(animation).toBe('disc-turn')
   })
 
-  test('states fade and progress moves smoothly', async ({ page }) => {
-    expect(await motion(page)).toEqual({ animation: 'fade-in', transition: '0.3s' })
+  // Spec: kiosk-display, "Progress between updates", "No transition".
+  test('states fade; the progress moves without a transition', async ({ page }) => {
+    expect(await motion(page)).toEqual({ animation: 'fade-in', transition: '0s' })
+    // Once the page has faded in, nothing in the progress animates.
+    await page.waitForTimeout(1_500)
+    const running = await page
+      .getByRole('progressbar')
+      .evaluate((element) => element.getAnimations({ subtree: true }).length)
+    expect(running).toBe(0)
   })
 })
 
