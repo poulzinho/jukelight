@@ -233,9 +233,11 @@ function useGiveWay(
         level = 0
         setFit({ text, level })
       } else if (level < 2 && element.scrollWidth > element.clientWidth + 1) {
-        // One step at a time; look again once it has taken effect.
+        // One step at a time; look again once it has taken effect (at most
+        // one look pending, so cleanup can cancel it).
         level += 1
         setFit({ text, level })
+        cancelAnimationFrame(frame)
         frame = requestAnimationFrame(measure)
       }
       width = element.clientWidth
