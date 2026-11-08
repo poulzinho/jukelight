@@ -95,6 +95,7 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
                 })
                 .with_detail("Hi-Res"),
             ),
+            delivery: None,
             queue: QueueView::Available(vec![QueueEntry {
                 title: "Next Song".into(),
                 artists: vec!["Example Artist".into()],

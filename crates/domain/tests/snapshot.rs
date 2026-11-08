@@ -23,6 +23,7 @@ fn content(track: Track, position: Option<Position>, queue: QueueView) -> Conten
         artwork: None,
         position,
         quality: None,
+        delivery: None,
         queue,
         service: None,
         palette: None,

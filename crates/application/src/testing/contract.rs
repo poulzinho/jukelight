@@ -166,6 +166,7 @@ fn placeholder() -> Content {
         artwork: None,
         position: None,
         quality: None,
+        delivery: None,
         queue: jukelight_domain::QueueView::NotApplicable,
         service: None,
         palette: None,

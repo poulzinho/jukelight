@@ -75,6 +75,16 @@ impl AudioQuality {
         }
     }
 
+    pub fn class(&self) -> QualityClass {
+        if self.is_hi_res() {
+            QualityClass::HiRes
+        } else if self.is_lossless() {
+            QualityClass::Lossless
+        } else {
+            QualityClass::Lossy
+        }
+    }
+
     pub fn is_hi_res(&self) -> bool {
         match &self.measure {
             QualityMeasure::Format(format) => {
@@ -85,6 +95,68 @@ impl AudioQuality {
             QualityMeasure::Bitrate { .. } => false,
         }
     }
+}
+
+/// How good a path's audio is, from worst to best: the order lets the
+/// class of a path be the lowest of its parts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum QualityClass {
+    /// No quality reported.
+    Unknown,
+    Lossy,
+    /// Lossless, but not Hi-Res (CD quality, for example).
+    Lossless,
+    HiRes,
+}
+
+/// What a route (Music Assistant, for example) sends on to the player.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Delivery {
+    /// The quality the player receives; `None` when the route doesn't say.
+    pub quality: Option<AudioQuality>,
+    /// What the route changed on the way, in this order: resampling, bit
+    /// depth, normalisation, DSP.
+    pub changes: Vec<Change>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Change {
+    /// The sample rate differs from the source's.
+    Resampled,
+    /// Only the bit depth differs from the source's.
+    BitDepth,
+    /// The loudness was normalised, by this gain when it is reported.
+    Normalised { gain: Option<Decibels> },
+    /// The route's DSP (equaliser, filters) is on.
+    Dsp,
+}
+
+/// A gain, kept in tenths of a decibel so it compares exactly.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Decibels(i32);
+
+impl Decibels {
+    #[allow(clippy::cast_possible_truncation)] // gains are a few dozen dB
+    pub fn from_db(db: f64) -> Self {
+        Self((db * 10.0).round() as i32)
+    }
+
+    pub fn as_db(self) -> f64 {
+        f64::from(self.0) / 10.0
+    }
+}
+
+/// The class of a path: the lowest of the source's and the delivered
+/// quality. Upsampling never raises it; without a source quality it is
+/// unknown.
+pub fn signal_class(source: Option<&AudioQuality>, delivery: Option<&Delivery>) -> QualityClass {
+    let Some(source) = source else {
+        return QualityClass::Unknown;
+    };
+    let delivered = delivery
+        .and_then(|delivery| delivery.quality.as_ref())
+        .map_or(QualityClass::HiRes, AudioQuality::class);
+    source.class().min(delivered)
 }
 
 /// 96000 -> "96", 44100 -> "44.1", 22050 -> "22.05".

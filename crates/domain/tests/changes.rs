@@ -35,6 +35,7 @@ fn playing(title: &str, elapsed_s: u64, at: Timestamp) -> PlayerSnapshot {
                 observed_at: at,
             }),
             quality: None,
+            delivery: None,
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{AudioQuality, Timestamp};
+use crate::{AudioQuality, Delivery, Timestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlaybackState {
@@ -183,7 +183,10 @@ pub struct Content {
     pub track: Track,
     pub artwork: Option<ArtworkRef>,
     pub position: Option<Position>,
+    /// The quality as the source delivers it.
     pub quality: Option<AudioQuality>,
+    /// What the route sends on to the player, when a provider knows it.
+    pub delivery: Option<Delivery>,
     pub queue: QueueView,
     /// The music service behind the session, e.g. Qobuz, when a provider
     /// knows it.
