@@ -45,8 +45,8 @@
      lights up as it arrives (92 % of the run). The signal path starts the
      next pulse, and relays it to the second wave; in between nothing
      animates. */
-  --animate-signal-pulse: signal-pulse 1.3s linear;
-  --animate-signal-arrive: signal-arrive 1.3s linear;
+  --animate-signal-pulse: signal-pulse 2.2s linear;
+  --animate-signal-arrive: signal-arrive 2.2s linear;
 
   @keyframes signal-pulse {
     from {

@@ -400,7 +400,7 @@ test.describe('signal path', () => {
     test('pulses run, animating only transform and opacity', async ({ page }) => {
       let properties: string[] = []
       await expect
-        .poll(async () => (properties = await animated(page)).length, { timeout: 5_000 })
+        .poll(async () => (properties = await animated(page)).length, { timeout: 10_000 })
         .toBeGreaterThan(0)
       expect([...new Set(properties)].sort()).toEqual(['opacity', 'transform'])
     })
@@ -415,11 +415,11 @@ test.describe('signal path', () => {
             pulse.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getTiming().delay),
           ),
         )
-      await expect.poll(delays, { timeout: 5_000, intervals: [50] }).toEqual([[0], [1200]])
+      await expect.poll(delays, { timeout: 10_000, intervals: [50] }).toEqual([[0], [2000]])
     })
 
     test('between pulses no animation runs', async ({ page }) => {
-      await expect.poll(async () => (await animated(page)).length, { timeout: 5_000 }).toBe(0)
+      await expect.poll(async () => (await animated(page)).length, { timeout: 10_000 }).toBe(0)
     })
   })
 })

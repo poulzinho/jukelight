@@ -199,12 +199,12 @@ test('paused: no pulse', () => {
   expect(within(path()).queryAllByTestId('pulse')).toHaveLength(0)
 })
 
-test('one pulse every 4 seconds, each a new one-off animation', () => {
+test('one pulse every 8 seconds, each a new one-off animation', () => {
   vi.useFakeTimers()
   try {
     show({ signal: signal() })
     const first = within(path()).getByTestId('pulse')
-    act(() => vi.advanceTimersByTime(3_900))
+    act(() => vi.advanceTimersByTime(7_900))
     expect(within(path()).getByTestId('pulse')).toBe(first)
     act(() => vi.advanceTimersByTime(200))
     expect(within(path()).getByTestId('pulse')).not.toBe(first)
@@ -219,5 +219,5 @@ test('from one end to the other: the second wave starts as the first pulse arriv
   const delays = (wave: HTMLElement | undefined) =>
     Array.from(wave?.querySelectorAll<HTMLElement>('[data-pulse]') ?? []).map((part) => part.style.animationDelay)
   expect(delays(first)).toEqual(['0ms', '0ms'])
-  expect(delays(second)).toEqual(['1200ms', '1200ms'])
+  expect(delays(second)).toEqual(['2000ms', '2000ms'])
 })

@@ -97,12 +97,12 @@ function Node({
 }
 
 /**
- * A new pulse every 4 seconds. It takes 1.3 s along each wave and goes on
+ * A new pulse every 8 seconds. It takes 2.2 s along each wave and goes on
  * along the second wave as it arrives at the route, so it travels the whole
  * path; then nothing animates until the next one.
  */
-const PULSE_EVERY_MS = 4_000
-const RELAY_MS = 1_200
+const PULSE_EVERY_MS = 8_000
+const RELAY_MS = 2_000
 
 /**
  * Counts pulses while the waves may move. Each count remounts the pulses,
