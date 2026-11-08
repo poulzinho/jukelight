@@ -20,6 +20,18 @@ function show(overrides: Parameters<typeof player>[0] = {}) {
   return render(<Kiosk player={player(overrides)} connection="live" clockOffsetMs={0} />)
 }
 
+/**
+ * Lets `seconds` pass, one second at a time (each tick schedules the next,
+ * a few milliseconds past the second).
+ */
+function play(seconds: number) {
+  for (let second = 0; second < seconds; second++) {
+    act(() => {
+      vi.advanceTimersByTime(1_010)
+    })
+  }
+}
+
 test('track with all data', () => {
   show()
   expect(screen.getByRole('heading', { name: 'Example Song' })).toBeInTheDocument()
@@ -46,9 +58,7 @@ test('no position hides the progress', () => {
 
 test('progress advances while playing', () => {
   show()
-  act(() => {
-    vi.advanceTimersByTime(10_000)
-  })
+  play(10)
   expect(screen.getByText('1:10')).toBeInTheDocument()
 })
 
@@ -68,10 +78,46 @@ test('progress uses the server clock', () => {
 
 test('progress stops at the end of the track', () => {
   show({ position: { elapsed: 198, duration: 200, observedAt: OBSERVED_AT } })
-  act(() => {
-    vi.advanceTimersByTime(10_000)
-  })
+  play(10)
   expect(screen.getAllByText('3:20')).toHaveLength(2)
+})
+
+// Spec: kiosk-display, "Progress between updates", "Once a second" and "No transition".
+
+function fill() {
+  const bar = screen.getByRole('progressbar').firstElementChild
+  if (!(bar instanceof HTMLElement)) throw new Error('no fill')
+  return bar
+}
+
+test('once a second: the bar and the time move together at the next whole second', () => {
+  show({ position: { elapsed: 60.4, duration: 200, observedAt: OBSERVED_AT } })
+  const before = fill().style.transform
+  act(() => {
+    vi.advanceTimersByTime(590)
+  })
+  expect(screen.getByText('1:00')).toBeInTheDocument()
+  expect(fill().style.transform).toBe(before)
+  act(() => {
+    vi.advanceTimersByTime(20)
+  })
+  expect(screen.getByText('1:01')).toBeInTheDocument()
+  expect(fill().style.transform).toBe(`scaleX(${61 / 200})`)
+})
+
+test('paused: no tick is scheduled', () => {
+  show({ state: 'paused' })
+  expect(vi.getTimerCount()).toBe(0)
+})
+
+test('a track without a length keeps the bar empty', () => {
+  show({ position: { elapsed: 60, duration: 0, observedAt: OBSERVED_AT } })
+  expect(fill().style.transform).toBe('scaleX(0)')
+})
+
+test('no transition on the fill', () => {
+  show()
+  expect(fill().className).not.toMatch(/transition/)
 })
 
 test('missing artwork shows initials', () => {

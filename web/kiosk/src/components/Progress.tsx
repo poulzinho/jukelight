@@ -1,6 +1,6 @@
 import type { Player } from '../api'
 import { formatTime, predictElapsed } from '../time'
-import { useNow } from '../useNow'
+import { useSecondTicks } from '../useSecondTicks'
 
 interface Props {
   position: NonNullable<Player['position']>
@@ -8,11 +8,16 @@ interface Props {
   clockOffsetMs: number
 }
 
-/** Advances by itself between updates; moves with `transform` only. */
+/**
+ * Advances by itself between updates, once a second together with the
+ * elapsed time, without a transition: between seconds nothing animates, so
+ * the browser can stop drawing. Moves with `transform` only.
+ */
 export function Progress({ position, state, clockOffsetMs }: Props) {
-  const now = useNow(250) + clockOffsetMs
+  const now = useSecondTicks(position, state, clockOffsetMs) + clockOffsetMs
   const elapsed = predictElapsed(position, state, now)
-  const fraction = position.duration ? elapsed / position.duration : 0
+  const { duration } = position
+  const fraction = duration !== null && duration > 0 ? Math.floor(elapsed) / duration : 0
 
   return (
     <div className="mt-[3vmin]">
@@ -24,7 +29,7 @@ export function Progress({ position, state, clockOffsetMs }: Props) {
         className="h-[0.9vmin] overflow-hidden rounded-full bg-kiosk-text/20"
       >
         <div
-          className="h-full origin-left rounded-full bg-kiosk-accent motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-linear"
+          className="h-full origin-left rounded-full bg-kiosk-accent"
           style={{ transform: `scaleX(${fraction})` }}
         />
       </div>
