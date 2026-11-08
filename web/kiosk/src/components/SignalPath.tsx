@@ -37,7 +37,7 @@ export function SignalPath({ player }: { player: Player }) {
       className="mt-[1.6vmin] flex items-center gap-[0.4em] overflow-hidden whitespace-nowrap text-signal"
     >
       {source && <Node service={source} unavailable={Boolean(routeIsSource)} route={Boolean(routeIsSource)} />}
-      <Wave shade="main" moving={moving} beat={beat} label={known ? sourceLabel(signal.source) : null} />
+      <Wave shade="main" moving={moving} beat={beat} delayMs={0} label={known ? sourceLabel(signal.source) : null} />
       {route && (
         <>
           <Node service={route} unavailable={!route.available} route iconOnly={level >= 2} />
@@ -45,6 +45,7 @@ export function SignalPath({ player }: { player: Player }) {
             shade="soft"
             moving={moving}
             beat={beat}
+            delayMs={RELAY_MS}
             label={known && route.available ? deliveredLabel(signal) : null}
           />
         </>
@@ -95,8 +96,13 @@ function Node({
   )
 }
 
-/** A new pulse every 4 seconds; each runs once (1.6 s), then nothing animates. */
+/**
+ * A new pulse every 4 seconds. It takes 1.3 s along each wave and goes on
+ * along the second wave as it arrives at the route, so it travels the whole
+ * path; then nothing animates until the next one.
+ */
 const PULSE_EVERY_MS = 4_000
+const RELAY_MS = 1_200
 
 /**
  * Counts pulses while the waves may move. Each count remounts the pulses,
@@ -123,11 +129,14 @@ function Wave({
   shade,
   moving,
   beat,
+  delayMs,
   label,
 }: {
   shade: 'main' | 'soft'
   moving: boolean
   beat: number
+  /** When this wave's pulse starts, after the pulse's start on the first wave. */
+  delayMs: number
   label: WaveLabel | null
 }) {
   const wave = useRef<HTMLDivElement>(null)
@@ -185,6 +194,8 @@ function Wave({
             <span
               key={beat}
               data-testid="pulse"
+              data-pulse
+              style={{ animationDelay: `${delayMs}ms` }}
               className="absolute inset-y-0 left-0 w-1/5 -translate-x-full bg-linear-to-r from-transparent via-white to-transparent motion-safe:animate-signal-pulse"
             />
           )}
@@ -192,6 +203,8 @@ function Wave({
         <span className="absolute top-1/2 right-0 size-[1.6vmin] -translate-y-1/2 rounded-full border-[0.2vmin] border-(--wave) bg-black/60 shadow-[0_0_0.9vmin_var(--wave)]">
           <span
             key={beat}
+            data-pulse={moving || undefined}
+            style={moving ? { animationDelay: `${delayMs}ms` } : undefined}
             className={`absolute inset-[0.2vmin] rounded-full bg-(--wave) opacity-50 ${moving ? 'motion-safe:animate-signal-arrive' : ''}`}
           />
         </span>

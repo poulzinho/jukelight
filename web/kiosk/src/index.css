@@ -43,9 +43,10 @@
   --animate-disc: disc-turn 24s linear infinite;
   /* A pulse of light runs once along a wave to the end; the arrival port
      lights up as it arrives (92 % of the run). The signal path starts the
-     next pulse; in between nothing animates. */
-  --animate-signal-pulse: signal-pulse 1.6s linear;
-  --animate-signal-arrive: signal-arrive 1.6s linear;
+     next pulse, and relays it to the second wave; in between nothing
+     animates. */
+  --animate-signal-pulse: signal-pulse 1.3s linear;
+  --animate-signal-arrive: signal-arrive 1.3s linear;
 
   @keyframes signal-pulse {
     from {

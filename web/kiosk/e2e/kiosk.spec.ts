@@ -405,6 +405,19 @@ test.describe('signal path', () => {
       expect([...new Set(properties)].sort()).toEqual(['opacity', 'transform'])
     })
 
+    test('the pulse travels from one end to the other', async ({ page }) => {
+      await open(page, 'music-assistant')
+      await expect(page.getByTestId('pulse')).toHaveCount(2)
+      // Both run together only while the first wave's pulse is under way.
+      const delays = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('[data-testid="pulse"]')].map((pulse) =>
+            pulse.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getTiming().delay),
+          ),
+        )
+      await expect.poll(delays, { timeout: 5_000, intervals: [50] }).toEqual([[0], [1200]])
+    })
+
     test('between pulses no animation runs', async ({ page }) => {
       await expect.poll(async () => (await animated(page)).length, { timeout: 5_000 }).toBe(0)
     })

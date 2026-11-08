@@ -212,3 +212,12 @@ test('one pulse every 4 seconds, each a new one-off animation', () => {
     vi.useRealTimers()
   }
 })
+
+test('from one end to the other: the second wave starts as the first pulse arrives', () => {
+  show({ source: qobuzViaMusicAssistant(false), signal: signal() })
+  const [first, second] = within(path()).getAllByTestId('wave')
+  const delays = (wave: HTMLElement | undefined) =>
+    Array.from(wave?.querySelectorAll<HTMLElement>('[data-pulse]') ?? []).map((part) => part.style.animationDelay)
+  expect(delays(first)).toEqual(['0ms', '0ms'])
+  expect(delays(second)).toEqual(['1200ms', '1200ms'])
+})
