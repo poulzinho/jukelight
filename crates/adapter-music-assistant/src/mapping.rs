@@ -3,8 +3,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioQuality, Content, Palette, Position, QueueEntry, QueueView, Rgb,
-    Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioQuality, Brand, Content, Palette, Position, QueueEntry,
+    QueueView, Rgb, Service, Timestamp, Track,
 };
 
 use crate::api;
@@ -66,7 +66,7 @@ pub fn to_content(
         ),
         service: details
             .and_then(|details| details.provider.as_deref())
-            .and_then(|instance| service_name(instance, &responses.providers)),
+            .and_then(|instance| service(instance, &responses.providers)),
         palette: media
             .and_then(|media| media.palette.as_ref())
             .and_then(palette),
@@ -260,19 +260,43 @@ fn queue_entry(entry: &api::QueueItem, base_url: &str) -> QueueEntry {
     }
 }
 
-fn service_name(instance: &str, providers: &[api::ProviderInfo]) -> Option<String> {
+/// The music service of the provider `instance`: named as Music Assistant
+/// names it, branded by the provider's domain, which renaming doesn't change.
+fn service(instance: &str, providers: &[api::ProviderInfo]) -> Option<Service> {
     if BUILT_IN.contains(&instance) {
         return None;
     }
-    let name = &providers
+    let provider = providers
         .iter()
-        .find(|provider| provider.instance_id == instance)?
-        .name;
+        .find(|provider| provider.instance_id == instance)?;
+    let name = &provider.name;
     let short = SHORT_NAMES
         .iter()
         .find(|(long, _)| long == name)
         .map_or(name.as_str(), |(_, short)| short);
-    (!short.is_empty()).then(|| short.to_owned())
+    (!short.is_empty()).then(|| Service::new(brand(provider), short))
+}
+
+/// The brand of a provider, from its domain. Music Assistant doesn't say
+/// which Subsonic server is behind `opensubsonic`: Navidrome when the user
+/// named the provider so, Subsonic otherwise.
+fn brand(provider: &api::ProviderInfo) -> Option<Brand> {
+    let id = match provider.domain.as_str() {
+        "opensubsonic" if provider.name.to_ascii_lowercase().contains("navidrome") => "navidrome",
+        "opensubsonic" => "subsonic",
+        domain if domain.starts_with("filesystem_") => "library",
+        "qobuz" => "qobuz",
+        "spotify" => "spotify",
+        "tidal" => "tidal",
+        "deezer" => "deezer",
+        "apple_music" => "apple-music",
+        "plex" => "plex",
+        "jellyfin" => "jellyfin",
+        "soundcloud" => "soundcloud",
+        "ytmusic" => "youtube-music",
+        _ => return None,
+    };
+    Brand::new(id)
 }
 
 fn palette(palette: &api::Palette) -> Option<Palette> {

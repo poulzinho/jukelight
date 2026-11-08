@@ -17,11 +17,13 @@ const MINUTE: Duration = Duration::from_secs(60);
 
 fn device(title: &str, online: bool, state: PlaybackState) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online,
         state,
         origin: Origin::Service {
+            brand: None,
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,

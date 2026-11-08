@@ -94,11 +94,13 @@ impl DeviceMonitor for FakeDevice {
 /// A playing track with everything known, which the scenarios vary.
 fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
         state: PlaybackState::Playing,
         origin: Origin::Service {
+            brand: None,
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,
@@ -152,6 +154,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
     match (scenario, content) {
         ("cast-without-queue", Some(content)) => {
             snapshot.origin = Origin::Service {
+                brand: None,
                 id: "Spotify".into(),
                 name: "Spotify".into(),
                 cast: true,

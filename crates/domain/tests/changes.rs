@@ -13,6 +13,8 @@ const T: Timestamp = Timestamp::from_millis(1_000_000);
 
 fn playing(title: &str, elapsed_s: u64, at: Timestamp) -> PlayerSnapshot {
     PlayerSnapshot {
+        maker: None,
+        source: None,
         player_name: "Example Player".into(),
         online: true,
         state: PlaybackState::Playing,

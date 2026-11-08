@@ -134,4 +134,7 @@ pub struct Output {
 pub struct ProviderInfo {
     pub instance_id: String,
     pub name: String,
+    /// The provider's type, e.g. `qobuz` or `opensubsonic`, from which the
+    /// brand is derived (not always the brand's identifier itself).
+    pub domain: String,
 }

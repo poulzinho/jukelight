@@ -4,8 +4,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
-    PlaybackState, Position, QueueEntry, QueueView, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
+    Origin, PlaybackState, Position, QueueEntry, QueueView, Timestamp, Track,
 };
 
 use crate::parse::{Identity, PlaylistEntry, Status};
@@ -23,6 +23,7 @@ pub fn to_device_snapshot(
 ) -> DeviceSnapshot {
     let origin = origin(status, now);
     DeviceSnapshot {
+        maker: identity.maker.clone(),
         name: identity.name.clone(),
         player_key: identity.player_key.clone(),
         online: true,
@@ -30,6 +31,20 @@ pub fn to_device_snapshot(
         content: content(status, &origin, playlist, base_url, now),
         origin,
     }
+}
+
+/// The brand of a BluOS service id; other services have none.
+fn service_brand(id: &str) -> Option<Brand> {
+    let brand = match id {
+        "Qobuz" | "QobuzConnect" => "qobuz",
+        "Spotify" => "spotify",
+        "Tidal" | "TidalConnect" => "tidal",
+        "Deezer" => "deezer",
+        "AirPlay" => "airplay",
+        "Bluetooth" => "bluetooth",
+        _ => return None,
+    };
+    Brand::new(brand)
 }
 
 /// Whether `/Playlist` holds this session's queue.
@@ -58,6 +73,7 @@ fn origin(status: &Status, now: Timestamp) -> Origin {
     }
     match status.get("service") {
         Some(id) => Origin::Service {
+            brand: service_brand(id),
             id: id.to_owned(),
             name: status.get("serviceName").unwrap_or(id).to_owned(),
             cast: status.get("serviceType") == Some("Endpoint"),

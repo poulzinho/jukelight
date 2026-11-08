@@ -6,7 +6,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, SessionProvider};
-use jukelight_domain::{Content, DeviceSnapshot};
+use jukelight_domain::{Brand, Content, DeviceSnapshot};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio::sync::watch;
@@ -269,6 +269,10 @@ impl Inner {
 impl SessionProvider for MusicAssistantProvider {
     fn label(&self) -> &str {
         LABEL
+    }
+
+    fn brand(&self) -> Option<Brand> {
+        Brand::new("music-assistant")
     }
 
     fn claims(&self, device: &DeviceSnapshot) -> bool {

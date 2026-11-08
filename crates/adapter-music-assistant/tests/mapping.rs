@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use jukelight_adapter_music_assistant::{Responses, to_content};
-use jukelight_domain::{ArtworkRef, Content, Palette, QueueView, Rgb, Timestamp};
+use jukelight_domain::{ArtworkRef, Brand, Content, Palette, QueueView, Rgb, Timestamp};
 use serde_json::{Value, json};
 
 const MA_URL: &str = "http://192.168.1.50:8095";
@@ -258,13 +258,13 @@ mod music_provider_name {
     #[test]
     fn qobuz_through_music_assistant() {
         let content = Recording::load("qobuz").content();
-        assert_eq!(content.service.as_deref(), Some("Qobuz"));
+        assert_eq!(name(&content), Some("Qobuz"));
     }
 
     #[test]
     fn opensubsonic() {
         let content = Recording::load("opensubsonic").content();
-        assert_eq!(content.service.as_deref(), Some("Subsonic"));
+        assert_eq!(name(&content), Some("Subsonic"));
     }
 
     #[test]
@@ -279,6 +279,80 @@ mod music_provider_name {
         let mut recording = Recording::load("qobuz");
         recording.queue["current_item"]["streamdetails"]["provider"] = json!("tidal--instance1");
         assert_eq!(recording.content().service, None);
+    }
+}
+
+fn name(content: &Content) -> Option<&str> {
+    content
+        .service
+        .as_ref()
+        .map(|service| service.name.as_str())
+}
+
+fn brand(content: &Content) -> Option<&str> {
+    content
+        .service
+        .as_ref()
+        .and_then(|service| service.brand.as_ref())
+        .map(Brand::as_str)
+}
+
+/// The recording's provider entry for `instance`, to rename or re-domain.
+fn provider_entry<'a>(recording: &'a mut Recording, instance: &str) -> &'a mut Value {
+    recording
+        .providers
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|provider| provider["instance_id"] == instance)
+        .unwrap()
+}
+
+// Spec: session-music-assistant, "Music provider brand".
+mod music_provider_brand {
+    use super::*;
+
+    #[test]
+    fn renamed_qobuz_provider() {
+        let mut recording = Recording::load("qobuz");
+        provider_entry(&mut recording, "qobuz--instance1")["name"] = json!("My Qobuz");
+        let content = recording.content();
+        assert_eq!(brand(&content), Some("qobuz"));
+        assert_eq!(name(&content), Some("My Qobuz"));
+    }
+
+    #[test]
+    fn navidrome() {
+        let mut recording = Recording::load("opensubsonic");
+        provider_entry(&mut recording, "opensubsonic--instance1")["name"] = json!("Navidrome");
+        assert_eq!(brand(&recording.content()), Some("navidrome"));
+    }
+
+    #[test]
+    fn another_subsonic_server() {
+        let content = Recording::load("opensubsonic").content();
+        assert_eq!(brand(&content), Some("subsonic"));
+        assert_eq!(name(&content), Some("Subsonic"));
+    }
+
+    #[test]
+    fn local_files() {
+        let mut recording = Recording::load("opensubsonic");
+        let entry = provider_entry(&mut recording, "opensubsonic--instance1");
+        entry["domain"] = json!("filesystem_local");
+        entry["name"] = json!("Example Folder");
+        assert_eq!(brand(&recording.content()), Some("library"));
+    }
+
+    #[test]
+    fn unknown_domain() {
+        let mut recording = Recording::load("qobuz");
+        let entry = provider_entry(&mut recording, "qobuz--instance1");
+        entry["domain"] = json!("example_service");
+        entry["name"] = json!("Example Service");
+        let content = recording.content();
+        assert_eq!(brand(&content), None);
+        assert_eq!(name(&content), Some("Example Service"));
     }
 }
 

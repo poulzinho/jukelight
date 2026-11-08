@@ -5,8 +5,8 @@
 use std::time::Duration;
 
 use jukelight_domain::{
-    Content, Palette, PlaybackState, PlayerSnapshot, Position, QueueEntry, QueueView, Rgb, Session,
-    Timestamp, Track,
+    Content, Palette, PlaybackState, PlayerSnapshot, Position, QueueEntry, QueueView, Rgb, Service,
+    Session, Timestamp, Track,
 };
 
 fn track(title: &str) -> Track {
@@ -32,6 +32,8 @@ fn content(track: Track, position: Option<Position>, queue: QueueView) -> Conten
 #[test]
 fn snapshot_of_a_playing_track() {
     let snapshot = PlayerSnapshot {
+        maker: None,
+        source: None,
         player_name: "Example Player".into(),
         online: true,
         state: PlaybackState::Playing,
@@ -131,6 +133,9 @@ fn source_without_album_colours() {
 #[test]
 fn source_names_its_music_service() {
     let mut shown = content(track("Example Song"), None, QueueView::NotApplicable);
-    shown.service = Some("Example Service".into());
-    assert_eq!(shown.service.as_deref(), Some("Example Service"));
+    shown.service = Some(Service::new(None, "Example Service"));
+    assert_eq!(
+        shown.service.map(|service| service.name).as_deref(),
+        Some("Example Service")
+    );
 }

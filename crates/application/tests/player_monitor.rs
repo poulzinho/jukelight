@@ -15,11 +15,13 @@ use jukelight_domain::{
 
 fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
         state: PlaybackState::Playing,
         origin: Origin::Service {
+            brand: None,
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,
@@ -174,6 +176,7 @@ mod provider_updates {
 
     fn streaming_device(name: &str) -> DeviceSnapshot {
         DeviceSnapshot {
+            maker: None,
             name: name.into(),
             player_key: "aabbccddeeff".into(),
             online: true,

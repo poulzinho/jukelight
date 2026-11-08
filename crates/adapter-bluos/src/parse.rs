@@ -10,6 +10,8 @@ use std::collections::HashMap;
 use quick_xml::events::{BytesRef, BytesStart, Event};
 use quick_xml::{Reader, XmlVersion};
 
+use jukelight_domain::Brand;
+
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
     #[error("invalid XML: {0}")]
@@ -41,6 +43,8 @@ pub struct Identity {
     pub name: String,
     /// The MAC address in lowercase without separators.
     pub player_key: String,
+    /// The player's maker, from `brand`, when it is a known brand.
+    pub maker: Option<Brand>,
 }
 
 /// One `<song>` of `/Playlist`.
@@ -73,7 +77,15 @@ pub fn parse_sync_status(xml: &str) -> Result<Identity, ParseError> {
         .filter(char::is_ascii_hexdigit)
         .collect::<String>()
         .to_lowercase();
-    Ok(Identity { name, player_key })
+    let maker = match root.get("brand").map(String::as_str) {
+        Some("Bluesound") => Brand::new("bluesound"),
+        _ => None,
+    };
+    Ok(Identity {
+        name,
+        player_key,
+        maker,
+    })
 }
 
 pub fn parse_playlist(xml: &str) -> Result<Vec<PlaylistEntry>, ParseError> {

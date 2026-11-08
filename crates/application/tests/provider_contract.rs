@@ -27,6 +27,7 @@ fn content(title: String) -> Content {
 
 fn device(origin: Origin) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -56,6 +57,7 @@ impl ProviderHarness for Harness {
     }
     fn unclaimed_device(&self) -> DeviceSnapshot {
         device(Origin::Service {
+            brand: None,
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,

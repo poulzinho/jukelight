@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use jukelight_domain::{
-    Content, DeviceSnapshot, InputKind, Origin, PlayerSnapshot, QueueView, Session, Track,
+    Content, DeviceSnapshot, InputKind, Origin, PlayerSnapshot, QueueView, Route, Service, Session,
+    Source, Track,
 };
 
 use crate::SessionProvider;
@@ -15,39 +16,68 @@ use crate::SessionProvider;
 /// - Otherwise the device's own content is shown, labelled by its origin; an
 ///   audio input is labelled by its kind and carried on the snapshot.
 ///
-/// Playback state and connectivity always come from the device.
+/// The source names the music service and the route it takes: a claiming
+/// provider's service via the provider (the provider alone when it names no
+/// service; marked unavailable when it can't be reached), or the device's own
+/// service or input without a route.
+///
+/// Playback state, connectivity and the player's maker always come from the
+/// device.
 pub fn arbitrate(
     device: &DeviceSnapshot,
     providers: &[Arc<dyn SessionProvider>],
 ) -> PlayerSnapshot {
     let claimant = providers.iter().find(|provider| provider.claims(device));
 
-    let (session, content) = match claimant {
-        Some(provider) => match provider.content() {
-            Some(content) => (
-                Session {
-                    label: match &content.service {
-                        Some(service) => format!("{} · {service}", provider.label()),
-                        None => provider.label().into(),
+    let (session, content, source) = match claimant {
+        Some(provider) => {
+            let itself = Service::new(provider.brand(), provider.label());
+            match provider.content() {
+                Some(content) => {
+                    let source = Source {
+                        via: content.service.as_ref().map(|_| Route {
+                            service: itself.clone(),
+                            available: true,
+                        }),
+                        service: content.service.clone().unwrap_or(itself),
+                    };
+                    (
+                        Session {
+                            label: match &content.service {
+                                Some(service) => {
+                                    format!("{} · {}", provider.label(), service.name)
+                                }
+                                None => provider.label().into(),
+                            },
+                            available: true,
+                        },
+                        Some(content),
+                        Some(source),
+                    )
+                }
+                None => (
+                    Session {
+                        label: provider.label().into(),
+                        available: false,
                     },
-                    available: true,
-                },
-                Some(content),
-            ),
-            None => (
-                Session {
-                    label: provider.label().into(),
-                    available: false,
-                },
-                Some(unreachable(provider.label())),
-            ),
-        },
+                    Some(unreachable(provider.label())),
+                    Some(Source {
+                        service: itself.clone(),
+                        via: Some(Route {
+                            service: itself,
+                            available: false,
+                        }),
+                    }),
+                ),
+            }
+        }
         None => (
             Session {
                 label: origin_label(&device.origin),
                 available: true,
             },
             device.content.clone(),
+            origin_source(&device.origin),
         ),
     };
 
@@ -61,7 +91,19 @@ pub fn arbitrate(
             Origin::Input(input) => Some(input.clone()),
             _ => None,
         },
+        source,
+        maker: device.maker.clone(),
     }
+}
+
+/// The device's own source, without a route.
+fn origin_source(origin: &Origin) -> Option<Source> {
+    let service = match origin {
+        Origin::Service { name, brand, .. } => Service::new(brand.clone(), name.clone()),
+        Origin::Stream { .. } | Origin::Input(_) => Service::new(None, origin_label(origin)),
+        Origin::None => return None,
+    };
+    Some(Source { service, via: None })
 }
 
 fn origin_label(origin: &Origin) -> String {

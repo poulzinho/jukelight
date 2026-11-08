@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
 import { Kiosk } from '../Kiosk'
-import { player } from '../test/fixtures'
+import { player, quality } from '../test/fixtures'
 
 function show(overrides: Partial<Player> = {}) {
   return render(<Kiosk player={player(overrides)} connection="live" clockOffsetMs={0} />)
@@ -29,12 +29,12 @@ test('unavailable session', () => {
 })
 
 test('quality without detail', () => {
-  show({ quality: { label: '160 kbps', detail: null, hiRes: false } })
+  show({ quality: quality('160 kbps', null, false) })
   expect(screen.getByText('160 kbps')).toBeInTheDocument()
 })
 
 test('Hi-Res track shows the HI-RES badge', () => {
-  show({ quality: { label: 'FLAC 24/96', detail: null, hiRes: true } })
+  show({ quality: quality('FLAC 24/96', null, true) })
   expect(screen.getByText('HI-RES')).toBeInTheDocument()
 })
 

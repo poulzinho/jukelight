@@ -70,6 +70,61 @@ pub enum QueueView {
     NotApplicable,
 }
 
+/// A brand, such as a music service or a player's maker: a short lowercase
+/// identifier (`qobuz`, `apple-music`, `bluesound`). It also names the
+/// brand's logo file, so it can't contain anything that leaves a folder.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Brand(String);
+
+impl Brand {
+    /// The brand `id`, if it is lowercase letters, digits and inner hyphens.
+    pub fn new(id: &str) -> Option<Self> {
+        let valid = !id.is_empty()
+            && !id.starts_with('-')
+            && !id.ends_with('-')
+            && id
+                .bytes()
+                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
+        valid.then(|| Self(id.to_owned()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+/// A music service or another source, with its brand when it is known.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Service {
+    pub brand: Option<Brand>,
+    /// The name to show, as the source names it.
+    pub name: String,
+}
+
+impl Service {
+    pub fn new(brand: Option<Brand>, name: impl Into<String>) -> Self {
+        Self {
+            brand,
+            name: name.into(),
+        }
+    }
+}
+
+/// What carries the music to the player, such as Music Assistant.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Route {
+    pub service: Service,
+    /// Whether it can be reached.
+    pub available: bool,
+}
+
+/// Where the music comes from: a service, and the route it takes.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Source {
+    pub service: Service,
+    pub via: Option<Route>,
+}
+
 /// Where the device's audio comes from, as the device reports it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Origin {
@@ -82,6 +137,8 @@ pub enum Origin {
         id: String,
         name: String,
         cast: bool,
+        /// The service's brand, when it is known.
+        brand: Option<Brand>,
     },
     /// The device plays one of its audio inputs.
     Input(AudioInput),
@@ -128,9 +185,9 @@ pub struct Content {
     pub position: Option<Position>,
     pub quality: Option<AudioQuality>,
     pub queue: QueueView,
-    /// The music service behind the session, e.g. "Qobuz", when a provider
+    /// The music service behind the session, e.g. Qobuz, when a provider
     /// knows it.
-    pub service: Option<String>,
+    pub service: Option<Service>,
     pub palette: Option<Palette>,
 }
 
@@ -145,6 +202,8 @@ pub struct DeviceSnapshot {
     pub origin: Origin,
     /// The content the device itself knows, if any.
     pub content: Option<Content>,
+    /// The player's maker, when it is a known brand.
+    pub maker: Option<Brand>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
@@ -163,6 +222,10 @@ pub struct PlayerSnapshot {
     pub content: Option<Content>,
     /// The audio input, while one plays.
     pub input: Option<AudioInput>,
+    /// Where the music comes from, when it is known.
+    pub source: Option<Source>,
+    /// The player's maker, when it is a known brand.
+    pub maker: Option<Brand>,
 }
 
 impl PlayerSnapshot {
@@ -175,6 +238,8 @@ impl PlayerSnapshot {
             session: Session::default(),
             content: None,
             input: None,
+            source: None,
+            maker: None,
         }
     }
 }

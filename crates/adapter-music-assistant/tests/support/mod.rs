@@ -159,6 +159,7 @@ pub fn now() -> Timestamp {
 
 pub fn device(origin: Origin) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Living Room".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -177,6 +178,7 @@ pub fn claimed_device() -> DeviceSnapshot {
 
 pub fn service_device() -> DeviceSnapshot {
     device(Origin::Service {
+        brand: None,
         id: "Qobuz".into(),
         name: "Qobuz".into(),
         cast: false,
