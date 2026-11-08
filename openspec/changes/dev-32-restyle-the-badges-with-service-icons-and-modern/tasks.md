@@ -10,10 +10,11 @@
 
 ## 2. User-supplied logos (stack layer 2, DEV-34: backend, compose, docs)
 
-- [ ] 2.1 Write failing HTTP tests "Logo supplied", "No logo", "Logo added later", "Unknown brand requested" and path safety (a temporary folder), then serve logos from `BRAND_ASSETS_DIR` with a short cache and publish logo URLs (with `?v=`) only when present, including `quality.hiResLogoUrl`
-- [ ] 2.2 `BRAND_ASSETS_DIR` in the configuration; the read-only mount in `docker-compose.yml`; `brand-assets/` in `.gitignore`; `.env.example` and `README.md`
-- [ ] 2.3 `docs/reference-setup.md`: the folder, file names and variants, the official source per brand, the Hi-Res logo, copying the folder to the host
+- [x] 2.1 Write failing HTTP tests "Logo supplied", "No logo", "Logo added later", "Unknown brand requested" and path safety (a temporary folder), then serve logos from `BRAND_ASSETS_DIR` with a short cache and publish logo URLs (with `?v=`) only when present, including `quality.hiResLogoUrl`
+- [x] 2.2 `BRAND_ASSETS_DIR` in the configuration; the read-only mount in `docker-compose.yml`; `brand-assets/` in `.gitignore`; `.env.example` and `README.md`
+- [x] 2.3 `docs/reference-setup.md`: the folder, file names and variants, the official source per brand, the Hi-Res logo, copying the folder to the host
 - [ ] 2.4 Verify the layer (as 1.6); open the pull request and verify CI is green
+- [x] 2.5 Review of layer 2: a logo is cacheable for good only when the request names its current version (`?v=`), otherwise `no-cache`; the artwork route's doc comment back in its place
 
 ## 3. The new badges (stack layer 3, DEV-35: kiosk)
 

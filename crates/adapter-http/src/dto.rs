@@ -1,7 +1,7 @@
 //! The published JSON shapes (API v1). Separate from domain types, so the
 //! domain can change without breaking the kiosk.
 
-use jukelight_application::ArtworkSource;
+use jukelight_application::{ArtworkSource, BrandLogos};
 use jukelight_domain::{
     ArtworkRef, AudioInput, AudioQuality, Brand, InputKind, PlaybackState, PlayerSnapshot,
     QualityMeasure, QueueView, Rgb, Source, Timestamp,
@@ -93,6 +93,8 @@ pub struct QualityDto {
     pub label: String,
     pub detail: Option<String>,
     pub hi_res: bool,
+    /// The user's Hi-Res logo, for a Hi-Res quality; `None` (`null`) otherwise.
+    pub hi_res_logo_url: Option<String>,
     /// For a lossless format; `None` (`null`) for a lossy one.
     pub codec: Option<String>,
     pub bit_depth: Option<u32>,
@@ -128,7 +130,11 @@ pub struct InputDto {
     pub started_at: Option<u64>,
 }
 
-pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> PlayerDto {
+pub fn player_dto(
+    snapshot: &PlayerSnapshot,
+    artwork: &dyn ArtworkSource,
+    logos: &dyn BrandLogos,
+) -> PlayerDto {
     let content = snapshot.content.as_ref();
     let art_url = |art: Option<&ArtworkRef>, size: &str| {
         art.map(|a| format!("/api/v1/art/{}{size}", artwork.issue(a).as_str()))
@@ -155,7 +161,9 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             duration: p.duration.map(|d| d.as_secs_f64()),
             observed_at: p.observed_at.as_millis(),
         }),
-        quality: content.and_then(|c| c.quality.as_ref()).map(quality_dto),
+        quality: content
+            .and_then(|c| c.quality.as_ref())
+            .map(|quality| quality_dto(quality, logos)),
         queue: content.and_then(|c| match &c.queue {
             QueueView::Available(entries) => Some(
                 entries
@@ -174,11 +182,14 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             accent: rgb(p.accent),
         }),
         input: snapshot.input.as_ref().map(input_dto),
-        source: snapshot.source.as_ref().map(source_dto),
+        source: snapshot
+            .source
+            .as_ref()
+            .map(|source| source_dto(source, logos)),
         device: DeviceDto {
             brand: brand(snapshot.maker.as_ref()),
             name: snapshot.player_name.clone(),
-            logo_url: None,
+            logo_url: logo_url(snapshot.maker.as_ref(), logos),
         },
     }
 }
@@ -187,21 +198,29 @@ fn brand(brand: Option<&Brand>) -> Option<String> {
     brand.map(|brand| brand.as_str().to_owned())
 }
 
-fn source_dto(source: &Source) -> SourceDto {
+/// The URL of `brand`'s logo, when the user supplied one.
+fn logo_url(brand: Option<&Brand>, logos: &dyn BrandLogos) -> Option<String> {
+    let brand = brand?;
+    let version = logos.version(brand)?;
+    Some(format!("/api/v1/logos/{}?v={version}", brand.as_str()))
+}
+
+fn source_dto(source: &Source, logos: &dyn BrandLogos) -> SourceDto {
     SourceDto {
         brand: brand(source.service.brand.as_ref()),
         name: source.service.name.clone(),
-        logo_url: None,
+        logo_url: logo_url(source.service.brand.as_ref(), logos),
         via: source.via.as_ref().map(|route| RouteDto {
             brand: brand(route.service.brand.as_ref()),
             name: route.service.name.clone(),
             available: route.available,
-            logo_url: None,
+            logo_url: logo_url(route.service.brand.as_ref(), logos),
         }),
     }
 }
 
-fn quality_dto(quality: &AudioQuality) -> QualityDto {
+fn quality_dto(quality: &AudioQuality, logos: &dyn BrandLogos) -> QualityDto {
+    let hi_res = quality.is_hi_res();
     let (format, bitrate) = match &quality.measure {
         QualityMeasure::Format(format) => (Some(format), None),
         QualityMeasure::Bitrate { bits_per_second } => (None, Some(*bits_per_second)),
@@ -209,7 +228,12 @@ fn quality_dto(quality: &AudioQuality) -> QualityDto {
     QualityDto {
         label: quality.label(),
         detail: quality.detail.clone(),
-        hi_res: quality.is_hi_res(),
+        hi_res,
+        hi_res_logo_url: if hi_res {
+            logo_url(Brand::new("hi-res").as_ref(), logos)
+        } else {
+            None
+        },
         codec: format.map(|f| f.codec.clone()),
         bit_depth: format.map(|f| f.bit_depth),
         sample_rate_hz: format.map(|f| f.sample_rate_hz),

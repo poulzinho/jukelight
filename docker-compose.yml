@@ -14,3 +14,7 @@ services:
       JUKELIGHT_DEVICE: ${JUKELIGHT_DEVICE:-}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
+    volumes:
+      # Optional: your brand logos (see docs/reference-setup.md). Without the
+      # folder, the kiosk shows its plain badges.
+      - ./brand-assets:/brand-assets:ro

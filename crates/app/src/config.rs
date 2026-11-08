@@ -1,6 +1,7 @@
 //! Configuration from environment variables. Invalid configuration stops
 //! the process at start, with a message naming the variable.
 
+use std::path::PathBuf;
 use std::time::Duration;
 
 use jukelight_adapter_fake::SCENARIOS;
@@ -10,6 +11,8 @@ const LOG_LEVELS: [&str; 5] = ["trace", "debug", "info", "warn", "error"];
 const DEFAULT_GRACE_MINUTES: u64 = 10;
 /// A full CD (at most 80 minutes) and some slack.
 const DEFAULT_INPUT_DISPLAY_MINUTES: u64 = 90;
+/// Where the container finds the user's logos (`./brand-assets`, mounted).
+const DEFAULT_BRAND_ASSETS: &str = "/brand-assets";
 /// One day, for any setting in minutes.
 const MAX_MINUTES: u64 = 1440;
 
@@ -30,6 +33,8 @@ pub struct Config {
     pub input_display_limit: Duration,
     /// `None`: Music Assistant streams show as plain streams.
     pub music_assistant: Option<MusicAssistantConfig>,
+    /// The folder with the user's brand logos; without it, no logos.
+    pub brand_assets: PathBuf,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -110,6 +115,9 @@ impl Config {
                 DEFAULT_INPUT_DISPLAY_MINUTES,
             )?,
             music_assistant: music_assistant(get("MA_URL"), get("MA_TOKEN"))?,
+            brand_assets: PathBuf::from(
+                get("BRAND_ASSETS_DIR").unwrap_or_else(|| DEFAULT_BRAND_ASSETS.into()),
+            ),
         })
     }
 }

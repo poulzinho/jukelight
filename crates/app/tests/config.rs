@@ -26,6 +26,20 @@ fn bluos_with_defaults() {
     );
     assert_eq!(config.http_port, 8080);
     assert_eq!(config.log_level, "info");
+    assert_eq!(
+        config.brand_assets,
+        std::path::PathBuf::from("/brand-assets")
+    );
+}
+
+#[test]
+fn brand_assets_folder() {
+    let config = parse(&[
+        ("BLUOS_HOST", "192.168.1.40"),
+        ("BRAND_ASSETS_DIR", "/srv/logos"),
+    ])
+    .unwrap();
+    assert_eq!(config.brand_assets, std::path::PathBuf::from("/srv/logos"));
 }
 
 #[test]

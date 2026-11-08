@@ -41,6 +41,7 @@ Set these in `.env` (see `.env.example`):
 | `JUKELIGHT_DEVICE` | no | | `fake:<scenario>` runs without a player (see below) |
 | `MA_URL` | no | | Music Assistant's address, e.g. `http://192.168.1.50:8095` |
 | `MA_TOKEN` | with `MA_URL` | | A long-lived Music Assistant token |
+| `BRAND_ASSETS_DIR` | no | `/brand-assets` | The folder with your brand logos; `docker-compose.yml` mounts `./brand-assets` there (see below) |
 
 `.env` is git-ignored. Never commit it.
 
@@ -118,6 +119,18 @@ crates/
 web/kiosk/           the kiosk screen (React, Tailwind)
 openspec/            specifications and changes
 ```
+
+### Brand logos
+
+Jukelight ships no brand logos: the music services', Music Assistant's, the
+player maker's and the Hi-Res Audio logo are their owners' trademarks. The
+kiosk shows plain badges (an icon and the name) instead. To show logos, put
+your own copies into `brand-assets/` next to `.env`, named by brand
+(`qobuz.svg`, `spotify.svg`, `music-assistant.svg`, `bluesound.png`,
+`hi-res.png`, …), in the variant for dark backgrounds. The folder is
+git-ignored; Jukelight picks up added or replaced files within a few
+seconds. [docs/reference-setup.md](docs/reference-setup.md) lists the
+brands and where to get their official logos.
 
 ### Privacy
 

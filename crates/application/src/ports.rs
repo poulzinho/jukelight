@@ -93,6 +93,17 @@ pub enum ArtworkSize {
     Backdrop,
 }
 
+/// Logos the user supplied for brands, such as music services, the player's
+/// maker or Hi-Res. The project itself ships none.
+pub trait BrandLogos: Send + Sync + 'static {
+    /// The version of `brand`'s logo (it changes when the file is
+    /// replaced), or `None` when the user supplied none.
+    fn version(&self, brand: &Brand) -> Option<u64>;
+
+    /// The logo itself, or `None` when the user supplied none.
+    fn logo(&self, brand: &Brand) -> Option<Image>;
+}
+
 /// Issues opaque artwork ids and serves the images behind them.
 pub trait ArtworkSource: Send + Sync + 'static {
     fn issue(&self, artwork: &ArtworkRef) -> ArtworkId;

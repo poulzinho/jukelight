@@ -18,6 +18,8 @@ export interface Player {
     label: string
     detail: string | null
     hiRes: boolean
+    /** The user's Hi-Res logo, for a Hi-Res quality; `null` otherwise. */
+    hiResLogoUrl: string | null
     /** For a lossless format; `null` for a lossy one. */
     codec: string | null
     bitDepth: number | null

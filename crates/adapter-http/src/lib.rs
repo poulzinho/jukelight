@@ -18,9 +18,9 @@ use axum::response::{IntoResponse, Json, Response};
 use axum::routing::get;
 use futures::{Stream, StreamExt, stream};
 use jukelight_application::{
-    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayHandle, PlayerHandle,
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, BrandLogos, DisplayHandle, PlayerHandle,
 };
-use jukelight_domain::{DisplayPower, PlayerSnapshot};
+use jukelight_domain::{Brand, DisplayPower, PlayerSnapshot};
 use rust_embed::RustEmbed;
 use tokio::sync::watch;
 use tokio_stream::wrappers::WatchStream;
@@ -46,6 +46,7 @@ struct AppState {
     player: PlayerHandle,
     display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
+    logos: Arc<dyn BrandLogos>,
     keep_alive: Duration,
     shutdown: watch::Receiver<bool>,
 }
@@ -82,10 +83,11 @@ pub fn router(
     player: PlayerHandle,
     display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
+    logos: Arc<dyn BrandLogos>,
     config: &HttpConfig,
 ) -> Router {
     let (_, never) = watch::channel(false);
-    router_with_shutdown(player, display, artwork, config, never)
+    router_with_shutdown(player, display, artwork, logos, config, never)
 }
 
 /// The router; setting `shutdown` to `true` ends every live event stream, so a
@@ -94,6 +96,7 @@ pub fn router_with_shutdown(
     player: PlayerHandle,
     display: DisplayHandle,
     artwork: Arc<dyn ArtworkSource>,
+    logos: Arc<dyn BrandLogos>,
     config: &HttpConfig,
     shutdown: watch::Receiver<bool>,
 ) -> Router {
@@ -101,6 +104,7 @@ pub fn router_with_shutdown(
         player,
         display,
         artwork,
+        logos,
         keep_alive: config.keep_alive,
         shutdown,
     };
@@ -109,6 +113,7 @@ pub fn router_with_shutdown(
         .route("/api/v1/player/events", get(player_events))
         .route("/api/v1/display", get(display_events))
         .route("/api/v1/art/{id}", get(artwork_image))
+        .route("/api/v1/logos/{brand}", get(brand_logo))
         .route("/api/{*rest}", get(|| async { StatusCode::NOT_FOUND }))
         .fallback(get(kiosk))
         .with_state(state)
@@ -118,6 +123,7 @@ async fn player_snapshot(State(state): State<AppState>) -> Json<PlayerDto> {
     Json(dto::player_dto(
         &state.player.current(),
         state.artwork.as_ref(),
+        state.logos.as_ref(),
     ))
 }
 
@@ -128,8 +134,13 @@ async fn player_events(
     State(state): State<AppState>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let artwork = Arc::clone(&state.artwork);
+    let logos = Arc::clone(&state.logos);
     let snapshot_event = move |snapshot: PlayerSnapshot| {
-        let event = Event::default().json_data(dto::player_dto(&snapshot, artwork.as_ref()));
+        let event = Event::default().json_data(dto::player_dto(
+            &snapshot,
+            artwork.as_ref(),
+            logos.as_ref(),
+        ));
         futures::future::ready(event.ok().map(Ok))
     };
     let current = stream::once(futures::future::ready(state.player.current()))
@@ -173,6 +184,41 @@ async fn shutdown_requested(mut shutdown: watch::Receiver<bool>) {
 #[derive(serde::Deserialize)]
 struct ArtworkQuery {
     size: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct LogoQuery {
+    v: Option<u64>,
+}
+
+/// A logo the user supplied, by brand; 404 for any other name. With the
+/// current version in the URL (`?v=`, as published) it may be cached for
+/// good; any other request gets the current file, not to be cached.
+async fn brand_logo(
+    State(state): State<AppState>,
+    Path(brand): Path<String>,
+    Query(query): Query<LogoQuery>,
+) -> Response {
+    let Some(brand) = Brand::new(&brand) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let (Some(version), Some(image)) = (state.logos.version(&brand), state.logos.logo(&brand))
+    else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let cache = if query.v == Some(version) {
+        "public, max-age=31536000, immutable"
+    } else {
+        "no-cache"
+    };
+    (
+        [
+            (header::CONTENT_TYPE, image.content_type),
+            (header::CACHE_CONTROL, cache.into()),
+        ],
+        image.bytes,
+    )
+        .into_response()
 }
 
 /// `?size=large` or `?size=backdrop`; without it, the original image.
