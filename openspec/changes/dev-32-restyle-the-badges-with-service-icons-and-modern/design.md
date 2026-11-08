@@ -84,7 +84,10 @@ Responses: the file with its content type, `Cache-Control` long-lived;
 identifier alphabet (`[a-z0-9-]`), so no path tricks.
 
 `.gitignore` gets `brand-assets/`. The reference setup describes the
-folder, the official sources per brand, and copying it to the host.
+folder, the official sources per brand, and copying it to the host. It
+creates the folder before the first `docker compose up`: a missing bind
+mount source is created by Docker, owned by root, and copying logos into
+it then fails (found during the acceptance).
 
 - Alternative: logos in the image or the repo. Rejected: trademarks.
 - Alternative: the kiosk probes for logo files itself. Rejected: one
