@@ -12,7 +12,8 @@ export function DeviceSignature({ device }: { device: Player['device'] }) {
       className="pointer-events-none fixed inset-x-0 bottom-[2.6vh] flex items-center justify-center gap-[1.2vmin] text-[1.8vmin] font-medium text-kiosk-text/50 landscape:bottom-[3vmin] landscape:left-auto landscape:right-page-x"
     >
       {device.logoUrl && (
-        <img src={device.logoUrl} alt={device.brand ?? ''} className="block h-[1.6vmin] w-auto opacity-80" />
+        // Decorative: the player's name follows.
+        <img src={device.logoUrl} alt="" aria-hidden="true" className="block h-[1.6vmin] w-auto opacity-80" />
       )}
       {device.logoUrl && (
         <span aria-hidden="true" className="text-kiosk-text/30">

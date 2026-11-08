@@ -1,6 +1,7 @@
 import { Clock } from './Clock'
 
-/** Nothing plays: the time; the player's name is in the signature. */
+/** Nothing plays: the time. The player's name is in the signature, once
+ * the first snapshot has named the player. */
 export function IdleScreen() {
   return (
     <main className="grid h-full place-items-center text-center motion-safe:animate-fade-in">

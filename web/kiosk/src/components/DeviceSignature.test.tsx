@@ -20,10 +20,8 @@ for (const [name, overrides] of screens) {
   test(`${name} screen: the player's logo and name`, () => {
     show({ ...overrides, device: withLogo })
     const signature = screen.getByTestId('device-signature')
-    expect(within(signature).getByRole('img', { name: 'bluesound' })).toHaveAttribute(
-      'src',
-      '/api/v1/logos/bluesound?v=1',
-    )
+    // The logo is decorative: the name next to it says which player it is.
+    expect(signature.querySelector('img')).toHaveAttribute('src', '/api/v1/logos/bluesound?v=1')
     expect(within(signature).getByText('Example Player')).toBeInTheDocument()
   })
 }
@@ -32,5 +30,5 @@ test('no logo: only the name', () => {
   show({ device: { brand: 'bluesound', name: 'Example Player', logoUrl: null } })
   const signature = screen.getByTestId('device-signature')
   expect(signature).toHaveTextContent('Example Player')
-  expect(within(signature).queryByRole('img')).toBeNull()
+  expect(signature.querySelector('img')).toBeNull()
 })

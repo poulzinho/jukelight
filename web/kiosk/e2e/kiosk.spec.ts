@@ -49,8 +49,8 @@ test('playing with queue', async ({ page }) => {
   // The player's signature sits below everything, overlapping nothing.
   const signature = await box(page, ['contentinfo'])
   const lastEntry = await upNext.nth(portrait() ? 2 : 3).boundingBox()
-  expect(lastEntry).not.toBeNull()
-  if (portrait()) expect((lastEntry?.y ?? 0) + (lastEntry?.height ?? 0)).toBeLessThanOrEqual(signature.y)
+  if (!lastEntry) throw new Error('the last "Up next" entry has no box')
+  if (portrait()) expect(lastEntry.y + lastEntry.height).toBeLessThanOrEqual(signature.y)
   await screenshot(page, 'playing-with-queue')
 })
 
