@@ -389,6 +389,25 @@ async fn lossless() {
 }
 
 #[tokio::test]
+async fn codec_in_capitals() {
+    // Music Assistant reports `flac`, BluOS `FLAC`: the API writes it as the label does.
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut lower = device("Example Song", 42, 1_000_000);
+    if let Some(content) = lower.content.as_mut() {
+        content.quality = Some(AudioQuality::format(AudioFormat {
+            codec: "flac".into(),
+            bit_depth: 24,
+            sample_rate_hz: 88_200,
+        }));
+    }
+    monitor.apply(&lower);
+    assert_eq!(
+        player_json(&app(&monitor)).await["quality"]["codec"],
+        "FLAC"
+    );
+}
+
+#[tokio::test]
 async fn lossy() {
     let monitor = PlayerMonitor::new(Vec::new());
     let mut lossy = device("Example Song", 42, 1_000_000);

@@ -32,3 +32,4 @@
 - [x] 4.4 Review of layer 4: the signature's logo is decorative (empty alt, hidden from assistive technology), the idle screen's comment covers the time before the first snapshot, and the e2e check throws instead of falling back to 0
 - [x] 4.5 Signature fallback (from the acceptance): write failing component tests "No logo" (a streamer icon, "Bluesound" and the player's name) and "Unknown maker" (only the name), then show a streamer icon and the maker's name when there is no logo
 - [x] 4.6 From the acceptance: the reference setup creates `brand-assets/` before the first `docker compose up` (otherwise Docker creates it owned by root and copying logos fails), with a troubleshooting entry for "Permission denied"
+- [x] 4.7 From the acceptance: the API writes the codec in capitals, as the label does (Music Assistant reports `flac`, BluOS `FLAC`)
