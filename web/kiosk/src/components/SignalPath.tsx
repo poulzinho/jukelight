@@ -15,13 +15,14 @@ export function SignalPath({ player }: { player: Player }) {
   const box = useRef<HTMLDivElement>(null)
   const { source, signal } = player
   const level = useGiveWay(row, box, signal ? soundText(signal).join('|') : '')
+  const moving = Boolean(signal) && player.state !== 'paused' && (!player.source?.via || player.source.via.available)
+  const beat = useBeat(moving)
   if (!signal) return null
 
   const via = source?.via ?? null
   // When the route can't be reached and is itself the source, its node says it all.
   const routeIsSource = via && !via.available && source?.brand === via.brand && source?.name === via.name
   const route = via && !routeIsSource ? via : null
-  const moving = player.state !== 'paused' && (!via || via.available)
   const known = signal.class !== 'unknown'
   const colours = {
     '--signal': `var(--color-signal-${signal.class})`,
@@ -36,13 +37,14 @@ export function SignalPath({ player }: { player: Player }) {
       className="mt-[1.6vmin] flex items-center gap-[0.4em] overflow-hidden whitespace-nowrap text-signal"
     >
       {source && <Node service={source} unavailable={Boolean(routeIsSource)} route={Boolean(routeIsSource)} />}
-      <Wave shade="main" moving={moving} label={known ? sourceLabel(signal.source) : null} />
+      <Wave shade="main" moving={moving} beat={beat} label={known ? sourceLabel(signal.source) : null} />
       {route && (
         <>
           <Node service={route} unavailable={!route.available} route iconOnly={level >= 2} />
           <Wave
             shade="soft"
             moving={moving}
+            beat={beat}
             label={known && route.available ? deliveredLabel(signal) : null}
           />
         </>
@@ -93,13 +95,41 @@ function Node({
   )
 }
 
+/** A new pulse every 4 seconds; each runs once (1.6 s), then nothing animates. */
+const PULSE_EVERY_MS = 4_000
+
+/**
+ * Counts pulses while the waves may move. Each count remounts the pulses,
+ * which starts their one-off animation again; between pulses no animation
+ * runs, so the browser can stop drawing frames.
+ */
+function useBeat(moving: boolean): number {
+  const [beat, setBeat] = useState(0)
+  useEffect(() => {
+    if (!moving) return
+    const timer = setInterval(() => setBeat((count) => count + 1), PULSE_EVERY_MS)
+    return () => clearInterval(timer)
+  }, [moving])
+  return beat
+}
+
 /**
  * A calm wave between two ports. While the music plays, a pulse of light
  * runs along it towards the end and the arrival port lights up; only
  * transform and opacity animate. Its label goes when it is wider than the
  * wave.
  */
-function Wave({ shade, moving, label }: { shade: 'main' | 'soft'; moving: boolean; label: WaveLabel | null }) {
+function Wave({
+  shade,
+  moving,
+  beat,
+  label,
+}: {
+  shade: 'main' | 'soft'
+  moving: boolean
+  beat: number
+  label: WaveLabel | null
+}) {
   const wave = useRef<HTMLDivElement>(null)
   const text = useRef<HTMLSpanElement>(null)
   const [fits, setFits] = useState(true)
@@ -153,6 +183,7 @@ function Wave({ shade, moving, label }: { shade: 'main' | 'soft'; moving: boolea
         <div className="signal-wave absolute inset-y-0 right-[1.6vmin] left-[0.9vmin] overflow-hidden bg-linear-to-r from-(--wave)/25 to-(--wave)">
           {moving && (
             <span
+              key={beat}
               data-testid="pulse"
               className="absolute inset-y-0 left-0 w-1/5 -translate-x-full bg-linear-to-r from-transparent via-white to-transparent motion-safe:animate-signal-pulse"
             />
@@ -160,6 +191,7 @@ function Wave({ shade, moving, label }: { shade: 'main' | 'soft'; moving: boolea
         </div>
         <span className="absolute top-1/2 right-0 size-[1.6vmin] -translate-y-1/2 rounded-full border-[0.2vmin] border-(--wave) bg-black/60 shadow-[0_0_0.9vmin_var(--wave)]">
           <span
+            key={beat}
             className={`absolute inset-[0.2vmin] rounded-full bg-(--wave) opacity-50 ${moving ? 'motion-safe:animate-signal-arrive' : ''}`}
           />
         </span>

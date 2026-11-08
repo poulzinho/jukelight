@@ -1,7 +1,7 @@
 // Spec: kiosk-display, "Signal path", "Signal colours", "Sound box" and
 // "Wave motion".
-import { render, screen, within } from '@testing-library/react'
-import { expect, test } from 'vitest'
+import { act, render, screen, within } from '@testing-library/react'
+import { expect, test, vi } from 'vitest'
 import type { Player, Signal, Source } from '../api'
 import { Kiosk } from '../Kiosk'
 import { player, quality } from '../test/fixtures'
@@ -197,4 +197,18 @@ test('playing: a pulse on each wave, only with motion allowed', () => {
 test('paused: no pulse', () => {
   show({ state: 'paused', signal: signal() })
   expect(within(path()).queryAllByTestId('pulse')).toHaveLength(0)
+})
+
+test('one pulse every 4 seconds, each a new one-off animation', () => {
+  vi.useFakeTimers()
+  try {
+    show({ signal: signal() })
+    const first = within(path()).getByTestId('pulse')
+    act(() => vi.advanceTimersByTime(3_900))
+    expect(within(path()).getByTestId('pulse')).toBe(first)
+    act(() => vi.advanceTimersByTime(200))
+    expect(within(path()).getByTestId('pulse')).not.toBe(first)
+  } finally {
+    vi.useRealTimers()
+  }
 })

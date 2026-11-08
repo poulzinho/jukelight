@@ -370,12 +370,13 @@ test.describe('signal path', () => {
 
   /** The CSS properties the signal path's running animations change. */
   async function animated(page: Page) {
-    await open(page, 'music-assistant')
+    if (!page.url().includes(String(portFor('music-assistant')))) await open(page, 'music-assistant')
     await expect(page.getByTestId('signal-path')).toBeVisible()
     return page.evaluate(() =>
       document
         .getAnimations()
         .filter((animation) => {
+          if (animation.playState !== 'running') return false
           const target = (animation.effect as KeyframeEffect | null)?.target
           return target instanceof Element && target.closest('[data-testid="signal-path"]') !== null
         })
@@ -397,9 +398,15 @@ test.describe('signal path', () => {
     test.use({ reducedMotion: 'no-preference' })
 
     test('pulses run, animating only transform and opacity', async ({ page }) => {
-      const properties = await animated(page)
-      expect(properties.length).toBeGreaterThan(0)
+      let properties: string[] = []
+      await expect
+        .poll(async () => (properties = await animated(page)).length, { timeout: 5_000 })
+        .toBeGreaterThan(0)
       expect([...new Set(properties)].sort()).toEqual(['opacity', 'transform'])
+    })
+
+    test('between pulses no animation runs', async ({ page }) => {
+      await expect.poll(async () => (await animated(page)).length, { timeout: 5_000 }).toBe(0)
     })
   })
 })

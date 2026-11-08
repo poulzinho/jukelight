@@ -41,10 +41,11 @@
   --animate-backdrop-in: fade-in 1500ms ease-in-out;
   /* One turn every 24 s: calm, not a loading spinner. */
   --animate-disc: disc-turn 24s linear infinite;
-  /* A pulse of light runs along a wave to the end; the arrival port lights
-     up as it arrives (92 % of the run). */
-  --animate-signal-pulse: signal-pulse 1.6s linear infinite;
-  --animate-signal-arrive: signal-arrive 1.6s linear infinite;
+  /* A pulse of light runs once along a wave to the end; the arrival port
+     lights up as it arrives (92 % of the run). The signal path starts the
+     next pulse; in between nothing animates. */
+  --animate-signal-pulse: signal-pulse 1.6s linear;
+  --animate-signal-arrive: signal-arrive 1.6s linear;
 
   @keyframes signal-pulse {
     from {
