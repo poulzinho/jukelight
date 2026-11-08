@@ -14,8 +14,8 @@ use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
 use jukelight_application::testing::FakeProvider;
 use jukelight_application::{
-    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayController, DisplayHandle, Image,
-    PlayerMonitor,
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, BrandLogos, DisplayController,
+    DisplayHandle, Image, PlayerMonitor,
 };
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
@@ -117,11 +117,54 @@ fn display() -> DisplayHandle {
     .handle()
 }
 
+/// Logos the test supplies, by brand, each with a version.
+#[derive(Default)]
+struct TestLogos(std::sync::Mutex<std::collections::HashMap<String, (u64, Image)>>);
+
+impl TestLogos {
+    fn supply(&self, brand: &str, version: u64, content_type: &str, bytes: &[u8]) {
+        self.0.lock().unwrap().insert(
+            brand.into(),
+            (
+                version,
+                Image {
+                    content_type: content_type.into(),
+                    bytes: bytes.to_vec(),
+                },
+            ),
+        );
+    }
+}
+
+impl BrandLogos for TestLogos {
+    fn version(&self, brand: &Brand) -> Option<u64> {
+        self.0.lock().unwrap().get(brand.as_str()).map(|(v, _)| *v)
+    }
+
+    fn logo(&self, brand: &Brand) -> Option<Image> {
+        self.0
+            .lock()
+            .unwrap()
+            .get(brand.as_str())
+            .map(|(_, image)| image.clone())
+    }
+}
+
 fn app(monitor: &PlayerMonitor) -> Router {
+    app_with_logos(monitor, Arc::new(TestLogos::default()))
+}
+
+fn app_with_logos(monitor: &PlayerMonitor, logos: Arc<TestLogos>) -> Router {
     let config = HttpConfig {
         keep_alive: Duration::from_millis(100),
     };
-    router(monitor.handle(), display(), Arc::new(TestArtwork), &config)
+    router(
+        monitor.handle(),
+        display(),
+        Arc::new(TestArtwork),
+        logos,
+        &config,
+    )
 }
 
 async fn get(app: &Router, path: &str) -> (StatusCode, Vec<u8>, Option<String>) {
@@ -215,6 +258,86 @@ async fn qobuz_through_music_assistant() {
         json["device"],
         serde_json::json!({"brand": "bluesound", "name": "Example Player", "logoUrl": null})
     );
+}
+
+// Spec: published-api, "Brand logos".
+
+/// A Bluesound player playing Qobuz itself, Hi-Res.
+fn qobuz_on_bluesound() -> DeviceSnapshot {
+    let mut player = device("Example Song", 42, 1_000_000);
+    player.origin = Origin::Service {
+        id: "Qobuz".into(),
+        name: "Qobuz".into(),
+        cast: false,
+        brand: Brand::new("qobuz"),
+    };
+    player.maker = Brand::new("bluesound");
+    player
+}
+
+#[tokio::test]
+async fn logo_supplied() {
+    let logos = Arc::new(TestLogos::default());
+    logos.supply("qobuz", 7, "image/svg+xml", b"<svg/>");
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&qobuz_on_bluesound());
+    let app = app_with_logos(&monitor, logos);
+
+    let json = player_json(&app).await;
+    assert_eq!(json["source"]["logoUrl"], "/api/v1/logos/qobuz?v=7");
+    let (status, body, content_type) = get(&app, "/api/v1/logos/qobuz?v=7").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(content_type.as_deref(), Some("image/svg+xml"));
+    assert_eq!(body, b"<svg/>");
+}
+
+#[tokio::test]
+async fn no_logo() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&qobuz_on_bluesound());
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(json["source"].get("logoUrl"), Some(&Value::Null));
+    assert_eq!(json["device"].get("logoUrl"), Some(&Value::Null));
+    assert_eq!(json["quality"].get("hiResLogoUrl"), Some(&Value::Null));
+}
+
+#[tokio::test]
+async fn logo_added_later() {
+    let logos = Arc::new(TestLogos::default());
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&qobuz_on_bluesound());
+    let app = app_with_logos(&monitor, Arc::clone(&logos));
+    assert_eq!(player_json(&app).await["device"]["logoUrl"], Value::Null);
+
+    logos.supply("bluesound", 3, "image/png", &[0x89, b'P', b'N', b'G']);
+    assert_eq!(
+        player_json(&app).await["device"]["logoUrl"],
+        "/api/v1/logos/bluesound?v=3"
+    );
+}
+
+#[tokio::test]
+async fn hi_res_logo() {
+    let logos = Arc::new(TestLogos::default());
+    logos.supply("hi-res", 1, "image/png", &[0x89, b'P', b'N', b'G']);
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&qobuz_on_bluesound());
+    let json = player_json(&app_with_logos(&monitor, logos)).await;
+    assert_eq!(json["quality"]["hiResLogoUrl"], "/api/v1/logos/hi-res?v=1");
+}
+
+#[tokio::test]
+async fn unknown_brand_requested() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let app = app(&monitor);
+    for path in [
+        "/api/v1/logos/example",
+        "/api/v1/logos/..%2F..%2Fetc%2Fpasswd",
+        "/api/v1/logos/Qobuz",
+    ] {
+        let (status, _, _) = get(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+    }
 }
 
 // Spec: published-api, "Quality details".
@@ -639,6 +762,7 @@ async fn shutdown_ends_live_streams() {
         monitor.handle(),
         display(),
         Arc::new(TestArtwork),
+        Arc::new(TestLogos::default()),
         &config,
         shutdown,
     );

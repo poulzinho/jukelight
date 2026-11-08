@@ -68,5 +68,9 @@ coverage/
 .idea/
 .vscode/
 
+# Brand logos, including the Hi-Res Audio logo, are trademarks: supplied by
+# whoever runs Jukelight, never committed (see docs/reference-setup.md).
+brand-assets/
+
 # Personal Claude Code settings (shared commands and skills stay tracked)
 .claude/settings.local.json

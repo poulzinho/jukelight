@@ -1,6 +1,10 @@
 //! Artwork proxy: issues opaque ids for artwork sources and serves the
 //! images itself, so the browser never learns where artwork comes from.
 
+mod logos;
+
+pub use logos::LogoFolder;
+
 use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::fmt::Write as _;

@@ -3,8 +3,9 @@
 pub mod config;
 
 use std::sync::Arc;
+use std::time::Duration;
 
-use jukelight_adapter_artwork::ArtworkProxy;
+use jukelight_adapter_artwork::{ArtworkProxy, LogoFolder};
 use jukelight_adapter_bluos::{BluosConfig, BluosMonitor};
 use jukelight_adapter_fake::FakeDevice;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
@@ -73,6 +74,11 @@ pub async fn run(config: Config) -> Result<(), RunError> {
         player,
         display_handle,
         Arc::new(ArtworkProxy::new()),
+        // Logos added or replaced in the folder show within a few seconds.
+        Arc::new(LogoFolder::new(
+            &config.brand_assets,
+            Duration::from_secs(5),
+        )),
         &HttpConfig::default(),
         shutdown,
     );

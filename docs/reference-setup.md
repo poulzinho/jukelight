@@ -177,6 +177,41 @@ For a private copy of the repository, give the host a read-only deploy key
 (an SSH key added under the repository's Settings, Deploy keys, without
 write access) instead of your own credentials.
 
+### Brand logos (optional)
+
+The kiosk shows where the music comes from in a badge, and the player's
+maker in a footer. Jukelight ships no logos: they are their owners'
+trademarks. Without them the kiosk shows plain badges (an icon and the
+name). To show logos, put your own copies into `brand-assets/` next to
+`.env`. `docker-compose.yml` mounts the folder read-only, git ignores it,
+and Jukelight picks up added or replaced files within a few seconds.
+
+Name each file after its brand, as `<brand>.svg` (preferred) or
+`<brand>.png`, and use the brand's variant for **dark backgrounds** (white or
+coloured on transparent): the badges are dark. Use each logo unmodified, only
+to show where the music comes from, and follow its owner's guidelines.
+
+| File | Brand | Official source | Notes |
+| --- | --- | --- | --- |
+| `qobuz.svg` | Qobuz | Qobuz (ask for the logo without tagline) | No public brand guidelines |
+| `spotify.svg` | Spotify | Spotify's developer branding guidelines | Spotify expects its logo when its content is shown |
+| `tidal.svg` | TIDAL | TIDAL's press assets | The white version |
+| `apple-music.svg` | Apple Music | Apple's marketing guidelines and badges | Apple restricts its logo to its official badges |
+| `deezer.svg` | Deezer | deezerbrand.com | |
+| `plex.svg`, `jellyfin.svg` | Plex, Jellyfin | Their press or branding pages | Through Music Assistant |
+| `navidrome.png`, `subsonic.svg`, `library.svg` | Navidrome, other Subsonic servers, local files | Navidrome's repository; any icon you like for the others | Navidrome shows when the Music Assistant provider is named "Navidrome" |
+| `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | Shown as "via" inside the badge |
+| `bluesound.png` | Bluesound (the player's maker) | Bluesound's press or media kit | In the footer, with the player's name |
+| `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; replaces the "HI-RES" tag |
+
+Keep a note of where each file came from (for example in
+`brand-assets/SOURCES.md`, ignored with the folder). To bring the folder to
+the host, from the machine that has it:
+
+```sh
+scp -r brand-assets/ <your-user>@<host>:~/repos/jukelight/
+```
+
 ## Kiosk session
 
 ### 1. Tell the host where Jukelight runs
