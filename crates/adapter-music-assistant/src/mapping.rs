@@ -282,7 +282,7 @@ fn service(instance: &str, providers: &[api::ProviderInfo]) -> Option<Service> {
 /// named the provider so, Subsonic otherwise.
 fn brand(provider: &api::ProviderInfo) -> Option<Brand> {
     let id = match provider.domain.as_str() {
-        "opensubsonic" if provider.name.to_lowercase().contains("navidrome") => "navidrome",
+        "opensubsonic" if provider.name.to_ascii_lowercase().contains("navidrome") => "navidrome",
         "opensubsonic" => "subsonic",
         domain if domain.starts_with("filesystem_") => "library",
         "qobuz" => "qobuz",

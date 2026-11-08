@@ -47,10 +47,11 @@ impl FakeProvider {
         }
     }
 
-    /// The same provider, with a brand.
+    /// The same provider, with a brand; `brand` must be a valid identifier.
     #[must_use]
     pub fn with_brand(mut self, brand: &str) -> Self {
         self.brand = Brand::new(brand);
+        debug_assert!(self.brand.is_some(), "not a brand identifier: {brand:?}");
         self
     }
 

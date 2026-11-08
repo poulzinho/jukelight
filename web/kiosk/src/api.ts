@@ -42,7 +42,10 @@ export type Rgb = [number, number, number]
 export const PLAYER_URL = '/api/v1/player'
 export const EVENTS_URL = '/api/v1/player/events'
 
-/** A brand, as a short identifier such as `qobuz`, and the user's logo for it, if any. */
+/**
+ * A brand, as a short identifier such as `qobuz` (`null` when unknown), and
+ * the user's logo for it (`null` without one).
+ */
 export interface Brand {
   brand: string | null
   logoUrl: string | null
