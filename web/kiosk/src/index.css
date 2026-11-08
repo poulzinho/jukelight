@@ -15,6 +15,8 @@
   --text-album: 3.2vmin;
   --text-time: 2.4vmin;
   --text-badge: 2.2vmin;
+  /* The source badge, the Hi-Res mark and the quality line. */
+  --text-quality: 2.4vmin;
   --text-next-title: 2.6vmin;
   --text-next-artist: 2.2vmin;
   --text-clock: 16vmin;

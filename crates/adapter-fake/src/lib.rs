@@ -8,14 +8,15 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
-use jukelight_application::{Clock, DeviceMonitor};
+use jukelight_application::{Clock, DeviceMonitor, SessionProvider};
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
-    Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
+    Origin, Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Service, Timestamp,
+    Track,
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 11] = [
+pub const SCENARIOS: [&str; 14] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
@@ -27,6 +28,16 @@ pub const SCENARIOS: [&str; 11] = [
     "paused",
     "stopped",
     "offline",
+    "music-assistant",
+    "music-assistant-unavailable",
+    "long-badges",
+];
+
+/// Scenarios that a fake Music Assistant drives: it claims the stream.
+const MUSIC_ASSISTANT: [&str; 3] = [
+    "music-assistant",
+    "music-assistant-unavailable",
+    "long-badges",
 ];
 
 #[derive(Debug, thiserror::Error)]
@@ -94,13 +105,13 @@ impl DeviceMonitor for FakeDevice {
 /// A playing track with everything known, which the scenarios vary.
 fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
     DeviceSnapshot {
-        maker: None,
+        maker: Brand::new("bluesound"),
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
         state: PlaybackState::Playing,
         origin: Origin::Service {
-            brand: None,
+            brand: Brand::new("qobuz"),
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,
@@ -154,7 +165,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
     match (scenario, content) {
         ("cast-without-queue", Some(content)) => {
             snapshot.origin = Origin::Service {
-                brand: None,
+                brand: Brand::new("spotify"),
                 id: "Spotify".into(),
                 name: "Spotify".into(),
                 cast: true,
@@ -180,6 +191,14 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
         }
         ("no-artwork", Some(content)) => {
             content.artwork = None;
+        }
+        (scenario, _) if MUSIC_ASSISTANT.contains(&scenario) => {
+            // Music Assistant streams to the player; the fake provider knows
+            // the track.
+            snapshot.origin = Origin::Stream {
+                url: "http://192.168.1.50:8097/flow/session1/aabbccddeeff/1.flac".into(),
+            };
+            snapshot.content = None;
         }
         ("hi-res", Some(content)) => {
             content.quality = Some(AudioQuality::format(AudioFormat {
@@ -262,4 +281,69 @@ fn hsl(hue: u16, saturation: f64, lightness: f64) -> [u8; 3] {
         let byte = ((channel + offset) * 255.0).round().clamp(0.0, 255.0) as u8;
         byte
     })
+}
+
+/// A fake Music Assistant for the scenarios it drives: it claims the
+/// player's stream and plays a Hi-Res Qobuz track (with a short detail, or
+/// for `long-badges` a long one), or can't be reached. `None` for the other
+/// scenarios.
+pub fn music_assistant(
+    scenario: &str,
+    clock: &dyn Clock,
+) -> Option<std::sync::Arc<dyn SessionProvider>> {
+    if !MUSIC_ASSISTANT.contains(&scenario) {
+        return None;
+    }
+    let content = (scenario != "music-assistant-unavailable").then(|| {
+        let mut content = scenario_snapshot("playing-with-queue", clock)
+            .content
+            .unwrap_or_else(|| unreachable!("the example always has content"));
+        content.quality = Some(
+            AudioQuality::format(AudioFormat {
+                codec: "FLAC".into(),
+                bit_depth: 24,
+                sample_rate_hz: if scenario == "long-badges" {
+                    192_000
+                } else {
+                    96_000
+                },
+            })
+            .with_detail(if scenario == "long-badges" {
+                "Normalised, crossfade 6 s, dynamic range 12 dB, track gain −7.4 dB"
+            } else {
+                "Normalised"
+            }),
+        );
+        content.service = Some(Service::new(Brand::new("qobuz"), "Qobuz"));
+        content
+    });
+    Some(std::sync::Arc::new(FakeMusicAssistant { content }))
+}
+
+struct FakeMusicAssistant {
+    content: Option<Content>,
+}
+
+impl SessionProvider for FakeMusicAssistant {
+    fn label(&self) -> &'static str {
+        "Music Assistant"
+    }
+
+    fn brand(&self) -> Option<Brand> {
+        Brand::new("music-assistant")
+    }
+
+    fn claims(&self, device: &DeviceSnapshot) -> bool {
+        matches!(device.origin, Origin::Stream { .. })
+    }
+
+    fn content(&self) -> Option<Content> {
+        self.content.clone()
+    }
+
+    fn follow(&self, _: &DeviceSnapshot) {}
+
+    fn updates(&self) -> BoxStream<'static, ()> {
+        stream::pending().boxed()
+    }
 }

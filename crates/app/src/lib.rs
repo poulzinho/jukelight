@@ -52,6 +52,11 @@ pub async fn run(config: Config) -> Result<(), RunError> {
     };
 
     let mut providers: Vec<Arc<dyn SessionProvider>> = Vec::new();
+    if let DeviceConfig::Fake { scenario } = &config.device
+        && let Some(provider) = jukelight_adapter_fake::music_assistant(scenario, clock.as_ref())
+    {
+        providers.push(provider);
+    }
     if let Some(config) = &config.music_assistant {
         tracing::info!("following Music Assistant sessions");
         let provider = MusicAssistantProvider::new(config, Arc::clone(&clock))?;
