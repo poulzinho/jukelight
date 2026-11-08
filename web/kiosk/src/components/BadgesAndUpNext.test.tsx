@@ -1,5 +1,5 @@
-// Spec: kiosk-display, "Playing screen" (badges), "Hi-Res badge" and
-// "Up next" (task 9.4).
+// Spec: kiosk-display, "Playing screen" (source and quality), "Hi-Res badge"
+// and "Up next".
 import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
@@ -17,25 +17,23 @@ const upNext = (count: number) =>
     artUrl: null,
   }))
 
-test('session and quality badges', () => {
+test('source and quality', () => {
   show()
   expect(screen.getByText('Qobuz')).toBeInTheDocument()
-  expect(screen.getByText('FLAC 16/44.1 · CD quality')).toBeInTheDocument()
+  expect(screen.getByText('16 bit / 44.1 kHz')).toBeInTheDocument()
+  expect(screen.getByText('FLAC')).toBeInTheDocument()
+  expect(screen.getByText('CD quality')).toBeInTheDocument()
 })
 
-test('unavailable session', () => {
-  show({ session: { label: 'Example Provider', available: false } })
-  expect(screen.getByText('Example Provider unavailable')).toBeInTheDocument()
-})
-
-test('quality without detail', () => {
+test('lossy quality without detail', () => {
   show({ quality: quality('160 kbps', null, false) })
   expect(screen.getByText('160 kbps')).toBeInTheDocument()
 })
 
-test('Hi-Res track shows the HI-RES badge', () => {
+test('Hi-Res track shows the HI-RES tag', () => {
   show({ quality: quality('FLAC 24/96', null, true) })
   expect(screen.getByText('HI-RES')).toBeInTheDocument()
+  expect(screen.getByText('24 bit / 96 kHz')).toBeInTheDocument()
 })
 
 test('CD-quality track has no HI-RES badge', () => {

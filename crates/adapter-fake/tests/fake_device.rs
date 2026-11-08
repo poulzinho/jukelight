@@ -56,6 +56,9 @@ fn all_scenarios_exist() {
             "paused",
             "stopped",
             "offline",
+            "music-assistant",
+            "music-assistant-unavailable",
+            "long-badges",
         ]
     );
     for scenario in SCENARIOS {

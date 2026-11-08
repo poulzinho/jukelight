@@ -41,7 +41,8 @@ test('playing with queue', async ({ page }) => {
 
   await expect(page.getByRole('progressbar')).toBeVisible()
   await expect(page.getByText('Qobuz', { exact: true })).toBeVisible()
-  await expect(page.getByText('FLAC 16/44.1 · CD quality')).toBeVisible()
+  await expect(page.getByText('16 bit / 44.1 kHz')).toBeVisible()
+  await expect(page.getByText('CD quality')).toBeVisible()
   const upNext = page.getByRole('list', { name: 'Up next' }).getByRole('listitem')
   // Four entries in landscape; in portrait the fourth is hidden.
   await expect(upNext).toHaveCount(portrait() ? 3 : 4)
@@ -78,7 +79,7 @@ test('missing artwork shows initials', async ({ page }) => {
 test('hi-res track shows the HI-RES badge', async ({ page }) => {
   await open(page, 'hi-res')
   await expect(page.getByText('HI-RES')).toBeVisible()
-  await expect(page.getByText('FLAC 24/96')).toBeVisible()
+  await expect(page.getByText('24 bit / 96 kHz')).toBeVisible()
   await screenshot(page, 'hi-res')
 })
 
@@ -258,5 +259,84 @@ test.describe('steady portrait layout', () => {
     same(none.progress, album.progress)
     same(none.upNext, album.upNext)
     await screenshot(page, 'no-album')
+  })
+})
+
+// Spec: kiosk-display, "Source badge" and "Quality on one line".
+test.describe('badges on one line', () => {
+  /** The badge line and its parts' boxes. */
+  async function line(page: Page) {
+    const row = page.getByTestId('source-badge').locator('..')
+    await expect(row).toBeVisible()
+    return row.evaluate((element) => {
+      const parts = [...element.children].map((child) => {
+        const box = child.getBoundingClientRect()
+        return {
+          text: child.textContent ?? '',
+          height: box.height,
+          right: box.right,
+          clipped: child.scrollWidth > child.clientWidth + 1,
+        }
+      })
+      const lineHeight = parseFloat(getComputedStyle(element).fontSize) * 1.9
+      return {
+        parts,
+        lineHeight,
+        right: element.getBoundingClientRect().right,
+        overflows: element.scrollWidth > element.clientWidth + 1,
+      }
+    })
+  }
+
+  test('everything fits', async ({ page }) => {
+    test.skip(portrait(), 'landscape only')
+    await open(page, 'music-assistant')
+    const badge = page.getByTestId('source-badge')
+    await expect(badge.getByRole('img', { name: 'Qobuz' })).toBeVisible()
+    await expect(badge.getByText('via')).toBeVisible()
+    await expect(badge.getByRole('img', { name: 'Music Assistant' })).toBeVisible()
+    await expect(page.getByRole('img', { name: 'Hi-Res' })).toBeVisible()
+    await expect(page.getByText('24 bit / 96 kHz')).toBeVisible()
+    const result = await line(page)
+    expect(result.overflows).toBe(false)
+    expect(result.parts.filter((part) => part.clipped).map((part) => part.text)).toEqual([])
+    await screenshot(page, 'music-assistant')
+  })
+
+  test('too long for portrait: nothing wraps, the detail and "via" give way', async ({ page }) => {
+    test.skip(!portrait(), 'portrait only')
+    // Without logos: "Qobuz via Music Assistant" in text is the widest case.
+    await open(page, 'long-badges')
+    // Let the line settle after measuring.
+    await page.waitForTimeout(300)
+    const result = await line(page)
+    for (const part of result.parts) {
+      expect(part.height, part.text).toBeLessThanOrEqual(result.lineHeight)
+    }
+    expect(result.overflows).toBe(false)
+    // The detail gives way first (shortened with "…" or left out), then
+    // "via" as a whole.
+    const detail = result.parts.find((part) => part.text.startsWith('Normalised'))
+    expect(detail === undefined || detail.clipped).toBe(true)
+    await expect(page.getByTestId('source-badge')).toHaveText('Qobuz')
+    // The source, the Hi-Res mark and the quality are never cut.
+    await expect(page.getByText('HI-RES')).toBeVisible()
+    await expect(page.getByText('24 bit / 192 kHz')).toBeVisible()
+    await screenshot(page, 'long-badges')
+  })
+
+  test('long badges in landscape stay on one line', async ({ page }) => {
+    test.skip(portrait(), 'landscape only')
+    await open(page, 'long-badges')
+    await page.waitForTimeout(300)
+    const result = await line(page)
+    expect(result.overflows).toBe(false)
+    await screenshot(page, 'long-badges')
+  })
+
+  test('Music Assistant unavailable', async ({ page }) => {
+    await open(page, 'music-assistant-unavailable')
+    await expect(page.getByTestId('route-unavailable')).toHaveText('Music Assistant unavailable')
+    await screenshot(page, 'music-assistant-unavailable')
   })
 })

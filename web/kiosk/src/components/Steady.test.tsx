@@ -83,7 +83,8 @@ test('quality changes: only the badges change, nothing is rebuilt', () => {
   const title = screen.getByRole('heading', { name: 'Example Song' })
 
   update(player({ quality: quality('FLAC 24/96', 'Hi-Res', true) }))
-  expect(screen.getByText('FLAC 24/96 · Hi-Res')).toBeInTheDocument()
+  expect(screen.getByText('24 bit / 96 kHz')).toBeInTheDocument()
+  expect(screen.getByText('Hi-Res')).toBeInTheDocument()
   expect(cover('Example Album')).toBe(before)
   expect(screen.getByRole('heading', { name: 'Example Song' })).toBe(title)
 })

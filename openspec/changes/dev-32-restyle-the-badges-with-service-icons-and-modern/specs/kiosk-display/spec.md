@@ -51,6 +51,20 @@ in the steady portrait layout.
 
 ## MODIFIED Requirements
 
+### Requirement: Playing screen
+While a track is playing, the kiosk SHALL show the artwork, title, artists,
+album, a progress bar with elapsed time and duration, the source badge, and
+the quality with its detail on one line (see "Source badge" and "Quality on
+one line"). Titles longer than two lines SHALL end with an ellipsis.
+
+#### Scenario: Track with all data
+- **WHEN** the snapshot is playing "Example Song" by "Example Artist" with artwork, position, the source "Qobuz" and the quality FLAC at 16 bits and 44 100 Hz
+- **THEN** the screen shows the artwork, "Example Song", "Example Artist", the progress, a "Qobuz" source badge and "16 bit / 44.1 kHz FLAC"
+
+#### Scenario: No position
+- **WHEN** the snapshot has no position
+- **THEN** the progress bar and times are hidden
+
 ### Requirement: Hi-Res badge
 When the quality is Hi-Res, the kiosk SHALL show the Hi-Res mark next to
 the quality: the Hi-Res logo when `quality.hiResLogoUrl` is present,

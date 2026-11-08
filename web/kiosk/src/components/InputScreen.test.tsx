@@ -25,6 +25,7 @@ function input(startedAt: number | null, overrides: Partial<Player> = {}): Playe
     quality: null,
     queue: null,
     session: { label: 'Optical input', available: true },
+    source: { brand: null, name: 'Optical input', logoUrl: null, via: null },
     input: { kind: 'optical', name: 'Example Input', startedAt },
     ...overrides,
   })
