@@ -37,6 +37,7 @@ fn device(title: &str, online: bool, state: PlaybackState) -> DeviceSnapshot {
             artwork: None,
             position: None,
             quality: None,
+            delivery: None,
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,

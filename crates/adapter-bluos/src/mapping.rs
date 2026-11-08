@@ -154,6 +154,7 @@ fn content(
         artwork,
         position: position(status, origin, now),
         quality: quality(status, origin),
+        delivery: None,
         queue: queue(status, origin, playlist, base_url),
         service: None,
         palette: None,

@@ -18,5 +18,8 @@ pub use playback::{
     PlaybackState, PlayerSnapshot, Position, QueueEntry, QueueView, Rgb, Route, Service, Session,
     Source, Track,
 };
-pub use quality::{AudioFormat, AudioQuality, QualityMeasure};
+pub use quality::{
+    AudioFormat, AudioQuality, Change, Decibels, Delivery, QualityClass, QualityMeasure,
+    signal_class,
+};
 pub use time::Timestamp;

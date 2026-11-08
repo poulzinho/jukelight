@@ -1,5 +1,5 @@
 //! Spec: session-music-assistant, "Track and artwork", "Per-track position",
-//! "Source quality", "Up next", "Music provider name" and "Album colours",
+//! "Source quality", "Delivered quality", "Up next", "Music provider name" and "Album colours",
 //! against recorded responses.
 
 #![allow(clippy::unwrap_used, clippy::expect_used)] // tests may panic on bad test data
@@ -8,7 +8,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use jukelight_adapter_music_assistant::{Responses, to_content};
-use jukelight_domain::{ArtworkRef, Brand, Content, Palette, QueueView, Rgb, Timestamp};
+use jukelight_domain::{
+    ArtworkRef, AudioFormat, AudioQuality, Brand, Change, Content, Decibels, Delivery, Palette,
+    QueueView, Rgb, Timestamp,
+};
 use serde_json::{Value, json};
 
 const MA_URL: &str = "http://192.168.1.50:8095";
@@ -207,6 +210,106 @@ mod source_quality {
             json!({"content_type": "mp3", "sample_rate": 44100, "bit_depth": 16, "bit_rate": 320});
         let quality = recording.content().quality.unwrap();
         assert_eq!(quality.label(), "320 kbps");
+    }
+}
+
+// Spec: session-music-assistant, "Delivered quality".
+mod delivered_quality {
+    use super::*;
+
+    fn flac(bit_depth: u32, sample_rate_hz: u32) -> AudioQuality {
+        AudioQuality::format(AudioFormat {
+            codec: "flac".into(),
+            bit_depth,
+            sample_rate_hz,
+        })
+    }
+
+    fn details(recording: &mut Recording) -> &mut Value {
+        &mut recording.queue["current_item"]["streamdetails"]
+    }
+
+    #[test]
+    fn padded_cd_quality_source() {
+        let delivery = Recording::load("opensubsonic").content().delivery;
+        assert_eq!(
+            delivery,
+            Some(Delivery {
+                quality: Some(flac(24, 44_100)),
+                changes: vec![Change::BitDepth],
+            })
+        );
+    }
+
+    #[test]
+    fn upsampled_and_normalised() {
+        let mut recording = Recording::load("opensubsonic");
+        let details = details(&mut recording);
+        details["volume_normalization_mode"] = json!("dynamic");
+        let processing = &mut details["audio_processing"];
+        processing["queue_processing"]["normalization"]["applied_gain_db"] = json!(-6.0);
+        let output = &mut processing["outputs"][0];
+        output["output_format"]["sample_rate"] = json!(96000);
+        output["dsp"]["state"] = json!("enabled");
+
+        assert_eq!(
+            recording.content().delivery,
+            Some(Delivery {
+                quality: Some(flac(24, 96_000)),
+                changes: vec![
+                    Change::Resampled,
+                    Change::Normalised {
+                        gain: Some(Decibels::from_db(-6.0))
+                    },
+                    Change::Dsp,
+                ],
+            })
+        );
+    }
+
+    #[test]
+    fn untouched_hi_res() {
+        let delivery = Recording::load("qobuz").content().delivery;
+        assert_eq!(
+            delivery,
+            Some(Delivery {
+                quality: Some(flac(24, 88_200)),
+                changes: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn gain_falls_back_to_the_gain_correction() {
+        let mut recording = Recording::load("qobuz");
+        let details = details(&mut recording);
+        details["volume_normalization_mode"] = json!("fixed_gain");
+        details["audio_processing"]["queue_processing"]["normalization"] = Value::Null;
+        details["volume_normalization_gain_correct"] = json!(-3.5);
+
+        let delivery = recording.content().delivery.unwrap();
+        assert_eq!(
+            delivery.changes,
+            vec![Change::Normalised {
+                gain: Some(Decibels::from_db(-3.5))
+            }]
+        );
+    }
+
+    #[test]
+    fn no_output_for_the_player() {
+        let mut recording = Recording::load("qobuz");
+        details(&mut recording)["audio_processing"]["outputs"] = json!([]);
+        let delivery = recording.content().delivery.unwrap();
+        assert_eq!(delivery.quality, None);
+        assert_eq!(delivery.changes, vec![]);
+    }
+
+    #[test]
+    fn no_stream_details() {
+        let mut recording = Recording::load("qobuz");
+        recording.queue["current_item"]["streamdetails"] = Value::Null;
+        assert_eq!(recording.content().delivery, None);
     }
 }
 

@@ -19,6 +19,7 @@ fn content(title: String) -> Content {
         artwork: None,
         position: None,
         quality: None,
+        delivery: None,
         queue: QueueView::NotApplicable,
         service: None,
         palette: None,

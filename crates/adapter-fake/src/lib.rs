@@ -136,6 +136,7 @@ fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
                 })
                 .with_detail("CD quality"),
             ),
+            delivery: None,
             queue: QueueView::Available(
                 [
                     "Second Song",
