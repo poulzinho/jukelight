@@ -3,8 +3,9 @@
 
 use jukelight_application::{ArtworkSource, BrandLogos};
 use jukelight_domain::{
-    ArtworkRef, AudioInput, AudioQuality, Brand, InputKind, PlaybackState, PlayerSnapshot,
-    QualityMeasure, QueueView, Rgb, Source, Timestamp,
+    ArtworkRef, AudioInput, AudioQuality, Brand, Change, Content, Decibels, InputKind,
+    PlaybackState, PlayerSnapshot, QualityClass, QualityMeasure, QueueView, Rgb, Source, Timestamp,
+    signal_class,
 };
 use serde::Serialize;
 
@@ -29,7 +30,39 @@ pub struct PlayerDto {
     pub input: Option<InputDto>,
     /// Where the music comes from; `None` (`null`) when nothing is known.
     pub source: Option<SourceDto>,
+    /// How the music reaches the player; `None` (`null`) without content
+    /// (idle, or an input).
+    pub signal: Option<SignalDto>,
     pub device: DeviceDto,
+}
+
+/// The path from the source, through the route, to the player.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignalDto {
+    /// `hi-res`, `lossless`, `lossy` or `unknown`: the lowest along the path.
+    pub class: &'static str,
+    /// The quality as the source delivers it.
+    pub source: Option<QualityDto>,
+    /// The quality the route sends to the player; `None` (`null`) without a
+    /// route or when it isn't reported.
+    pub delivered: Option<QualityDto>,
+    pub changes: Vec<ChangeDto>,
+    /// The user's Hi-Res logo, when the whole path is Hi-Res.
+    pub hi_res_logo_url: Option<String>,
+}
+
+/// One thing the route changed on the way.
+#[derive(Debug, Serialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum ChangeDto {
+    Resampled,
+    BitDepth,
+    #[serde(rename_all = "camelCase")]
+    Normalised {
+        gain_db: Option<f64>,
+    },
+    Dsp,
 }
 
 /// A music service or another source.
@@ -186,6 +219,7 @@ pub fn player_dto(
             .source
             .as_ref()
             .map(|source| source_dto(source, logos)),
+        signal: content.map(|content| signal_dto(content, logos)),
         device: DeviceDto {
             brand: brand(snapshot.maker.as_ref()),
             name: snapshot.player_name.clone(),
@@ -216,6 +250,45 @@ fn source_dto(source: &Source, logos: &dyn BrandLogos) -> SourceDto {
             available: route.available,
             logo_url: logo_url(route.service.brand.as_ref(), logos),
         }),
+    }
+}
+
+fn signal_dto(content: &Content, logos: &dyn BrandLogos) -> SignalDto {
+    let delivery = content.delivery.as_ref();
+    let class = signal_class(content.quality.as_ref(), delivery);
+    SignalDto {
+        class: match class {
+            QualityClass::HiRes => "hi-res",
+            QualityClass::Lossless => "lossless",
+            QualityClass::Lossy => "lossy",
+            QualityClass::Unknown => "unknown",
+        },
+        source: content
+            .quality
+            .as_ref()
+            .map(|quality| quality_dto(quality, logos)),
+        delivered: delivery
+            .and_then(|delivery| delivery.quality.as_ref())
+            .map(|quality| quality_dto(quality, logos)),
+        changes: delivery
+            .map(|delivery| delivery.changes.iter().copied().map(change_dto).collect())
+            .unwrap_or_default(),
+        hi_res_logo_url: if class == QualityClass::HiRes {
+            logo_url(Brand::new("hi-res").as_ref(), logos)
+        } else {
+            None
+        },
+    }
+}
+
+fn change_dto(change: Change) -> ChangeDto {
+    match change {
+        Change::Resampled => ChangeDto::Resampled,
+        Change::BitDepth => ChangeDto::BitDepth,
+        Change::Normalised { gain } => ChangeDto::Normalised {
+            gain_db: gain.map(Decibels::as_db),
+        },
+        Change::Dsp => ChangeDto::Dsp,
     }
 }
 
