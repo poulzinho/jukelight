@@ -100,6 +100,18 @@ compositor runs the animation without repainting.
 Paused, reduced motion, or an unavailable route: the band is not rendered
 and the port core is static.
 
+**Pulses with a rest (acceptance finding).** On the reference host the
+badges' build already costs about 500 s of CPU per hour, mostly in
+Chrome's GPU and browser processes: drawing frames, which a never-ending
+animation keeps at about 60 a second (DEV-41 calms the progress bar). So
+a pulse is a one-off animation (1.6 s), started by a timer every 4 s: the
+band and the port's core remount with a new key. Between pulses no
+animation runs, and Chrome can stop drawing.
+
+- *Alternative:* an infinite animation whose keyframes hold still for the
+  rest. Rejected: Chrome keeps drawing while any animation is active, even
+  when its values don't change.
+
 ### 6. Fitting
 
 Waves are `flex: 1` with a minimum of 6 vmin. Each label measures itself
