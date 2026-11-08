@@ -15,8 +15,8 @@
   --text-album: 3.2vmin;
   --text-time: 2.4vmin;
   --text-badge: 2.2vmin;
-  /* The source badge, the Hi-Res mark and the quality line. */
-  --text-quality: 2.4vmin;
+  /* The signal path: its nodes, wave labels and sound box scale from it. */
+  --text-signal: 2.1vmin;
   --text-next-title: 2.6vmin;
   --text-next-artist: 2.2vmin;
   --text-clock: 16vmin;
@@ -41,6 +41,31 @@
   --animate-backdrop-in: fade-in 1500ms ease-in-out;
   /* One turn every 24 s: calm, not a loading spinner. */
   --animate-disc: disc-turn 24s linear infinite;
+  /* A pulse of light runs once along a wave to the end; the arrival port
+     lights up as it arrives (92 % of the run). The signal path starts the
+     next pulse, and relays it to the second wave; in between nothing
+     animates. */
+  --animate-signal-pulse: signal-pulse 2.2s linear;
+  --animate-signal-arrive: signal-arrive 2.2s linear;
+
+  @keyframes signal-pulse {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(500%);
+    }
+  }
+
+  @keyframes signal-arrive {
+    0%,
+    80% {
+      opacity: 0.5;
+    }
+    92% {
+      opacity: 1;
+    }
+  }
 
   @keyframes disc-turn {
     to {
@@ -76,6 +101,18 @@
 }
 
 :root {
+  /* The signal path's colour per quality class, and a lighter shade for
+     the wave after the route. Plain variables: no utility uses them, so
+     the theme would leave them out. */
+  --color-signal-hi-res: rgb(255 201 61);
+  --color-signal-hi-res-soft: rgb(255 224 138);
+  --color-signal-lossless: rgb(62 224 208);
+  --color-signal-lossless-soft: rgb(154 240 230);
+  --color-signal-lossy: rgb(180 140 255);
+  --color-signal-lossy-soft: rgb(214 194 255);
+  --color-signal-unknown: rgb(170 179 192);
+  --color-signal-unknown-soft: rgb(210 216 224);
+
   --bg: 18 18 22;
   --accent: 230 230 235;
   --text: 245 245 247;
@@ -95,4 +132,16 @@ body {
   cursor: none;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * A calm sine wave (a repeating mask, its period set by the height), faded
+ * out at both ends where it meets its ports.
+ */
+.signal-wave {
+  --sine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 3 20 8 T40 8' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+  mask-image: var(--sine), linear-gradient(90deg, transparent, black 1vmin, black calc(100% - 0.6vmin), transparent);
+  mask-size: auto 100%, 100% 100%;
+  mask-repeat: repeat-x, no-repeat;
+  mask-composite: intersect;
 }

@@ -38,7 +38,7 @@ export function Progress({ position, state, clockOffsetMs }: Props) {
 
 /**
  * The room the progress takes, for a track without a position: in portrait
- * it keeps the badges and "Up next" in place; in landscape it takes none.
+ * it keeps the signal path and "Up next" in place; in landscape it takes none.
  */
 export function ProgressSlot() {
   return (

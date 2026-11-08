@@ -124,7 +124,7 @@ openspec/            specifications and changes
 
 Jukelight ships no brand logos: the music services', Music Assistant's, the
 player maker's and the Hi-Res Audio logo are their owners' trademarks. The
-kiosk shows plain badges (an icon and the name) instead. To show logos, put
+kiosk shows an icon and the name instead. To show logos, put
 your own copies into `brand-assets/` next to `.env`, named by brand
 (`qobuz.svg`, `spotify.svg`, `music-assistant.svg`, `bluesound.png`,
 `hi-res.png`, …), in the variant for dark backgrounds. The folder is

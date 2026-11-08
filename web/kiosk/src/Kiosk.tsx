@@ -1,13 +1,13 @@
 import type { Player } from './api'
 import { Artwork } from './components/Artwork'
 import { Backdrop } from './components/Backdrop'
-import { Badges } from './components/Badges'
 import { ConnectionIndicator } from './components/ConnectionIndicator'
 import { DeviceSignature } from './components/DeviceSignature'
 import { IdleScreen } from './components/IdleScreen'
 import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
 import { Progress, ProgressSlot } from './components/Progress'
+import { SignalPath } from './components/SignalPath'
 import { TextSwap } from './components/TextSwap'
 import { TrackInfo } from './components/TrackInfo'
 import { UpNext } from './components/UpNext'
@@ -87,7 +87,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
           ) : (
             <ProgressSlot />
           )}
-          <Badges player={player} />
+          <SignalPath player={player} />
           {player.queue && <UpNext queue={player.queue} />}
         </section>
         {paused && <Dim />}

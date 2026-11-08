@@ -26,6 +26,7 @@ function input(startedAt: number | null, overrides: Partial<Player> = {}): Playe
     queue: null,
     session: { label: 'Optical input', available: true },
     source: { brand: null, name: 'Optical input', logoUrl: null, via: null },
+    signal: null,
     input: { kind: 'optical', name: 'Example Input', startedAt },
     ...overrides,
   })
@@ -40,8 +41,10 @@ test('optical input', () => {
   expect(screen.getByRole('timer')).toBeInTheDocument()
   expect(screen.getByRole('img', { name: 'Disc' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'Example Input' })).toBeInTheDocument()
-  expect(screen.getByText('Optical input')).toBeInTheDocument()
+  const label = screen.getByText('Optical input')
+  expect(label.querySelector('svg')).not.toBeNull()
   expect(screen.getByText('for 23 min')).toBeInTheDocument()
+  expect(screen.queryByTestId('signal-path')).not.toBeInTheDocument()
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   expect(screen.queryByText('Up next')).not.toBeInTheDocument()
   expect(screen.queryByText(/nothing playing/)).not.toBeInTheDocument()

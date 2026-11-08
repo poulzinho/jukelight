@@ -13,12 +13,14 @@ export const SCENARIOS = [
   'offline',
   'music-assistant',
   'music-assistant-unavailable',
-  'long-badges',
+  'long-signal',
+  'upsampled',
+  'unknown-quality',
 ] as const
 
 /**
  * Scenarios whose backend gets the test logos (plain shapes, never real
- * logos); the others show the plain badges.
+ * logos); the others show the icons and names.
  */
 export const WITH_LOGOS: readonly Scenario[] = ['music-assistant']
 

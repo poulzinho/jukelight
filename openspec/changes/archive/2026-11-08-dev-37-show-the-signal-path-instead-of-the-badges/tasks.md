@@ -1,0 +1,28 @@
+## 1. What Music Assistant does to the audio (stack layer 1, DEV-38: domain, Music Assistant adapter)
+
+- [x] 1.1 Write failing domain unit tests for `AudioQuality::class()` (Hi-Res, lossless, lossy) and `signal_class` (upsampled CD quality stays lossless, downsampled Hi-Res becomes lossless, no quality is unknown), then add `QualityClass`, `Delivery`, `Change` and `Content.delivery`; verify with `cargo test -p jukelight-domain`
+- [x] 1.2 Write failing MA fixture tests "Padded CD-quality source", "Upsampled and normalised", "Untouched Hi-Res" and "No output for the player" (scrubbed edited copies of the recorded `streamdetails`), then map the delivery from `audio_processing` (output format, `applied_gain_db` with the `volume_normalization_gain_correct` fallback, `dsp.state`); verify with `cargo test -p jukelight-adapter-music-assistant`
+- [x] 1.3 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.4 Review of layer 1: `signal_class` takes the delivered class only when the route reports a quality, instead of a Hi-Res stand-in
+
+## 2. The signal in the API (stack layer 2, DEV-39: API, fake adapter)
+
+- [x] 2.1 Write failing HTTP tests "Hi-Res through Music Assistant", "Upsampling stays lossless", "Downsampled Hi-Res", "Native service", "Quality not reported" and "Input", then publish `signal` (`SignalDto`, tagged changes, `hiResLogoUrl` only for Hi-Res); verify with `cargo test -p jukelight-adapter-http`
+- [x] 2.2 Kiosk API types for `signal`; fake scenarios `upsampled` and `unknown-quality` (the existing `cast-without-queue` is the lossy one), with the delivery on the `music-assistant` and `long-badges` scenarios; verify with the kiosk typecheck and by reading `/api/v1/player` for each scenario
+- [x] 2.3 Verify the layer (as 1.3); open the pull request and verify CI is green
+
+## 3. The signal path on the kiosk (stack layer 3, DEV-40: kiosk, reference host)
+
+- [x] 3.1 Move `Logo` and `SourceIcon` to `Brand.tsx`; write failing component tests "Through Music Assistant", "Native service", "No logos" and "Route unavailable", then `SignalPath` with its nodes and waves; verify with the kiosk tests
+- [x] 3.2 Write failing component tests for "Signal colours" and every "Sound box" scenario, then the colour tokens (with their soft shades) and `SoundBox`; verify with the kiosk tests
+- [x] 3.3 Write failing component tests "Reduced motion" and "Paused" (no pulse rendered) and an e2e check that the running animations change only `transform` and `opacity`, then the masked wave with its moving band and the arrival port; verify with the kiosk tests and Playwright
+- [x] 3.4 Write failing tests for the playing screen ("Track with all data", "Quality changes") and the input screen ("Optical input"), then replace `Badges` with `SignalPath`, give the input screen its icon and label, remove `Badges.tsx` and the accent tint of the quality, and replace the badge wording in `README.md` and `docs/reference-setup.md`; verify with the kiosk tests
+- [x] 3.5 Write failing screenshot checks "Landscape" and "Narrow portrait" (no part wraps or overflows; labels, then the third line, give way) and keep the steady portrait layout checks passing, with the fake scenarios from 2.2 (`long-badges` renamed `long-signal`), then the fitting; review the screenshots in landscape and portrait
+- [x] 3.6 Verify the layer (as 1.3); open the pull request and verify CI is green
+- [x] 3.7 Acceptance on the reference host: Qobuz via MA (Hi-Res, normalised), a Subsonic or Navidrome album via MA (upsampled), Spotify (lossy), MA unavailable, pause, the optical input; portrait; the kiosk's CPU use over an hour against the badges' build, as for DEV-28; record the results on DEV-37
+- [x] 3.8 Findings while applying: a lossy quality has no codec in the API, so the sound box shows "lossy" and the wave label only the bitrate ("Sound box", "Signal path"); a route's logo stands alone, as in the badges; without logos the landscape row still overflows after the third line, so the route's name gives way last, leaving its icon ("Signal path fits", new scenario "Route without a logo in landscape"); the signal colours are plain `:root` variables, since the theme drops colours no utility uses
+- [x] 3.9 Acceptance finding: Chrome spends most of its CPU drawing frames, and continuous pulses keep it drawing. Write failing tests "Between pulses" (no animation runs in the signal path once a pulse has finished, in the e2e check) and one pulse every 4 seconds (component test with fake timers), then make each pulse a one-off animation started by a timer; measure an hour on the reference host again (515 s of Chrome CPU per hour, against 500 s with the badges: within the noise)
+- [x] 3.10 Acceptance finding: with a route, both waves pulse at the same time, so the light doesn't travel from one end to the other. Write failing tests "From one end to the other" (component: the second wave's pulse and port start later; e2e: the running pulse animations have delays of 0 and the relay time), then relay the pulse from the first wave to the second
+- [x] 3.11 Acceptance finding: the light should travel slowly, with a longer rest. Update the tests to 2.2 s per wave, the second wave starting 2 s later, and one pulse every 8 seconds, then slow the pulse down
+- [x] 3.12 Review of layer 3: the unavailable route's caption carries its own leading space instead of a separate whitespace node in the column
+- [x] 3.13 Review of layer 3: `useGiveWay` cancels a pending re-measure before scheduling the next, so cleanup never misses one

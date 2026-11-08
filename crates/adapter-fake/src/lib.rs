@@ -30,7 +30,7 @@ pub const SCENARIOS: [&str; 16] = [
     "offline",
     "music-assistant",
     "music-assistant-unavailable",
-    "long-badges",
+    "long-signal",
     "upsampled",
     "unknown-quality",
 ];
@@ -39,7 +39,7 @@ pub const SCENARIOS: [&str; 16] = [
 const MUSIC_ASSISTANT: [&str; 4] = [
     "music-assistant",
     "music-assistant-unavailable",
-    "long-badges",
+    "long-signal",
     "upsampled",
 ];
 
@@ -292,7 +292,7 @@ fn hsl(hue: u16, saturation: f64, lightness: f64) -> [u8; 3] {
 
 /// A fake Music Assistant for the scenarios it drives: it claims the
 /// player's stream and plays a Hi-Res Qobuz track, normalised (for
-/// `long-badges` also resampled, with DSP and a long detail), a CD-quality
+/// `long-signal` also resampled, with DSP and a long detail), a CD-quality
 /// Subsonic track it upsamples (`upsampled`), or can't be reached. `None` for the other
 /// scenarios.
 pub fn music_assistant(
@@ -314,7 +314,7 @@ pub fn music_assistant(
                 vec![Change::Resampled],
                 "Lossless · → 24/96 to player",
             ),
-            "long-badges" => (
+            "long-signal" => (
                 Service::new(Brand::new("qobuz"), "Qobuz"),
                 flac(24, 192_000),
                 flac(24, 96_000),

@@ -42,7 +42,7 @@ test('playing with queue', async ({ page }) => {
   await expect(page.getByRole('progressbar')).toBeVisible()
   await expect(page.getByText('Qobuz', { exact: true })).toBeVisible()
   await expect(page.getByText('16 bit / 44.1 kHz')).toBeVisible()
-  await expect(page.getByText('CD quality')).toBeVisible()
+  await expect(page.getByTestId('sound-box')).toContainText('untouched')
   const upNext = page.getByRole('list', { name: 'Up next' }).getByRole('listitem')
   // Four entries in landscape; in portrait the fourth is hidden.
   await expect(upNext).toHaveCount(portrait() ? 3 : 4)
@@ -58,7 +58,7 @@ test('cast session without queue', async ({ page }) => {
   await open(page, 'cast-without-queue')
   await expect(page.getByRole('heading', { name: 'Cast Song' })).toBeVisible()
   await expect(page.getByText('Spotify', { exact: true })).toBeVisible()
-  await expect(page.getByText('160 kbps')).toBeVisible()
+  await expect(page.getByTestId('sound-box').getByText('160 kbps')).toBeVisible()
   await expect(page.getByRole('list', { name: 'Up next' })).toHaveCount(0)
   await screenshot(page, 'cast-without-queue')
 })
@@ -81,10 +81,11 @@ test('missing artwork shows initials', async ({ page }) => {
   await screenshot(page, 'no-artwork')
 })
 
-test('hi-res track shows the HI-RES badge', async ({ page }) => {
+test('hi-res track shows the HI-RES tag in the sound box', async ({ page }) => {
   await open(page, 'hi-res')
-  await expect(page.getByText('HI-RES')).toBeVisible()
-  await expect(page.getByText('24 bit / 96 kHz')).toBeVisible()
+  const sound = page.getByTestId('sound-box')
+  await expect(sound.getByText('HI-RES')).toBeVisible()
+  await expect(sound.getByText('24 bit / 96 kHz')).toBeVisible()
   await screenshot(page, 'hi-res')
 })
 
@@ -272,81 +273,153 @@ test.describe('steady portrait layout', () => {
   })
 })
 
-// Spec: kiosk-display, "Source badge" and "Quality on one line".
-test.describe('badges on one line', () => {
-  /** The badge line and its parts' boxes. */
-  async function line(page: Page) {
-    const row = page.getByTestId('source-badge').locator('..')
-    await expect(row).toBeVisible()
-    return row.evaluate((element) => {
-      const parts = [...element.children].map((child) => {
-        const box = child.getBoundingClientRect()
-        return {
-          text: child.textContent ?? '',
-          height: box.height,
-          right: box.right,
-          clipped: child.scrollWidth > child.clientWidth + 1,
-        }
-      })
-      const lineHeight = parseFloat(getComputedStyle(element).fontSize) * 1.9
+// Spec: kiosk-display, "Signal path", "Sound box", "Wave motion" and
+// "Signal path fits".
+test.describe('signal path', () => {
+  /** The row, its labels and the sound box's lines. */
+  async function row(page: Page) {
+    const path = page.getByTestId('signal-path')
+    await expect(path).toBeVisible()
+    // Let the labels and the box settle after measuring.
+    await page.waitForTimeout(300)
+    return path.evaluate((element) => {
+      const lineHeight = parseFloat(getComputedStyle(element).fontSize) * 1.6
+      const box = element.querySelector('[data-testid="sound-box"]')
+      const lines = [...(box?.querySelectorAll('span') ?? [])]
+        .filter((span) => !span.closest('img') && span.textContent !== 'HI-RES')
+        .map((span) => ({
+          text: span.textContent ?? '',
+          clipped: span.scrollWidth > span.clientWidth + 1,
+          height: span.getBoundingClientRect().height,
+        }))
+      const labels = [...element.querySelectorAll('[data-testid="wave-label"]')].map((label) => ({
+        text: label.textContent ?? '',
+        shown: getComputedStyle(label).visibility !== 'hidden',
+      }))
+      const nodes = [...element.querySelectorAll('[data-testid="signal-node"] > div')].map(
+        (node) => node.getBoundingClientRect().height,
+      )
       return {
-        parts,
-        lineHeight,
-        right: element.getBoundingClientRect().right,
         overflows: element.scrollWidth > element.clientWidth + 1,
+        lineHeight,
+        lines,
+        labels,
+        nodes,
       }
     })
   }
 
-  test('everything fits', async ({ page }) => {
+  test('landscape: everything shows in full', async ({ page }) => {
     test.skip(portrait(), 'landscape only')
     await open(page, 'music-assistant')
-    const badge = page.getByTestId('source-badge')
-    await expect(badge.getByRole('img', { name: 'Qobuz' })).toBeVisible()
-    await expect(badge.getByText('via')).toBeVisible()
-    await expect(badge.getByRole('img', { name: 'Music Assistant' })).toBeVisible()
-    await expect(page.getByRole('img', { name: 'Hi-Res' })).toBeVisible()
-    await expect(page.getByText('24 bit / 96 kHz')).toBeVisible()
-    const result = await line(page)
+    const path = page.getByTestId('signal-path')
+    await expect(path.getByRole('img', { name: 'Qobuz' })).toBeVisible()
+    await expect(path.getByRole('img', { name: 'Music Assistant' })).toBeVisible()
+    await expect(path.getByRole('img', { name: 'Hi-Res' })).toBeVisible()
+    await expect(page.getByTestId('sound-box')).toContainText('normalised (−6.2 dB)')
+    const result = await row(page)
     expect(result.overflows).toBe(false)
-    expect(result.parts.filter((part) => part.clipped).map((part) => part.text)).toEqual([])
+    expect(result.labels.filter((label) => !label.shown)).toEqual([])
+    expect(result.lines.filter((line) => line.clipped)).toEqual([])
     await screenshot(page, 'music-assistant')
   })
 
-  test('too long for portrait: nothing wraps, the detail and "via" give way', async ({ page }) => {
-    test.skip(!portrait(), 'portrait only')
-    // Without logos: "Qobuz via Music Assistant" in text is the widest case.
-    await open(page, 'long-badges')
-    // Let the line settle after measuring.
-    await page.waitForTimeout(300)
-    const result = await line(page)
-    for (const part of result.parts) {
-      expect(part.height, part.text).toBeLessThanOrEqual(result.lineHeight)
-    }
-    expect(result.overflows).toBe(false)
-    // The detail gives way first (shortened with "…" or left out), then
-    // "via" as a whole.
-    const detail = result.parts.find((part) => part.text.startsWith('Normalised'))
-    expect(detail === undefined || detail.clipped).toBe(true)
-    await expect(page.getByTestId('source-badge')).toHaveText('Qobuz')
-    // The source, the Hi-Res mark and the quality are never cut.
-    await expect(page.getByText('HI-RES')).toBeVisible()
-    await expect(page.getByText('24 bit / 192 kHz')).toBeVisible()
-    await screenshot(page, 'long-badges')
+  for (const scenario of ['long-signal', 'upsampled', 'music-assistant'] as const) {
+    test(`${scenario}: one row, nothing wraps or overflows`, async ({ page }) => {
+      await open(page, scenario)
+      const result = await row(page)
+      expect(result.overflows).toBe(false)
+      for (const height of result.nodes) expect(height).toBeLessThanOrEqual(result.lineHeight * 1.6)
+      // The format and the codec are never cut; only the last line may be.
+      const [numbers, codec] = result.lines
+      expect(numbers?.clipped).toBe(false)
+      expect(codec?.clipped).toBe(false)
+      for (const line of result.lines) expect(line.height, line.text).toBeLessThanOrEqual(result.lineHeight)
+      // Without logos, the route keeps at least its icon.
+      if (scenario === 'long-signal') {
+        await expect(page.getByTestId('signal-node').nth(1).locator('svg')).toBeVisible()
+      }
+      await screenshot(page, scenario)
+    })
+  }
+
+  test('upsampled CD quality: teal, no Hi-Res mark', async ({ page }) => {
+    await open(page, 'upsampled')
+    const sound = page.getByTestId('sound-box')
+    await expect(sound).toContainText('24 bit / 96 kHz')
+    await expect(sound).toContainText('resampled from 16 / 44.1')
+    await expect(sound.getByText('HI-RES')).toHaveCount(0)
+    const colour = await page
+      .getByTestId('signal-path')
+      .evaluate((element) => (element as HTMLElement).style.getPropertyValue('--signal'))
+    expect(colour).toBe('var(--color-signal-lossless)')
   })
 
-  test('long badges in landscape stay on one line', async ({ page }) => {
-    test.skip(portrait(), 'landscape only')
-    await open(page, 'long-badges')
-    await page.waitForTimeout(300)
-    const result = await line(page)
-    expect(result.overflows).toBe(false)
-    await screenshot(page, 'long-badges')
+  test('quality not reported', async ({ page }) => {
+    await open(page, 'unknown-quality')
+    await expect(page.getByTestId('sound-box')).toHaveText('quality not reported')
+    await screenshot(page, 'unknown-quality')
   })
 
   test('Music Assistant unavailable', async ({ page }) => {
     await open(page, 'music-assistant-unavailable')
-    await expect(page.getByTestId('route-unavailable')).toHaveText('Music Assistant unavailable')
+    await expect(page.getByTestId('signal-node')).toContainText('unavailable')
+    await expect(page.getByTestId('pulse')).toHaveCount(0)
     await screenshot(page, 'music-assistant-unavailable')
+  })
+
+  /** The CSS properties the signal path's running animations change. */
+  async function animated(page: Page) {
+    if (!page.url().includes(String(portFor('music-assistant')))) await open(page, 'music-assistant')
+    await expect(page.getByTestId('signal-path')).toBeVisible()
+    return page.evaluate(() =>
+      document
+        .getAnimations()
+        .filter((animation) => {
+          if (animation.playState !== 'running') return false
+          const target = (animation.effect as KeyframeEffect | null)?.target
+          return target instanceof Element && target.closest('[data-testid="signal-path"]') !== null
+        })
+        .flatMap((animation) =>
+          (animation.effect as KeyframeEffect)
+            .getKeyframes()
+            .flatMap((frame) =>
+              Object.keys(frame).filter((key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key)),
+            ),
+        ),
+    )
+  }
+
+  test('reduced motion: the waves stand still', async ({ page }) => {
+    expect(await animated(page)).toEqual([])
+  })
+
+  test.describe('without reduced motion', () => {
+    test.use({ reducedMotion: 'no-preference' })
+
+    test('pulses run, animating only transform and opacity', async ({ page }) => {
+      let properties: string[] = []
+      await expect
+        .poll(async () => (properties = await animated(page)).length, { timeout: 10_000 })
+        .toBeGreaterThan(0)
+      expect([...new Set(properties)].sort()).toEqual(['opacity', 'transform'])
+    })
+
+    test('the pulse travels from one end to the other', async ({ page }) => {
+      await open(page, 'music-assistant')
+      await expect(page.getByTestId('pulse')).toHaveCount(2)
+      // Both run together only while the first wave's pulse is under way.
+      const delays = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('[data-testid="pulse"]')].map((pulse) =>
+            pulse.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getTiming().delay),
+          ),
+        )
+      await expect.poll(delays, { timeout: 10_000, intervals: [50] }).toEqual([[0], [2000]])
+    })
+
+    test('between pulses no animation runs', async ({ page }) => {
+      await expect.poll(async () => (await animated(page)).length, { timeout: 10_000 }).toBe(0)
+    })
   })
 })

@@ -1,6 +1,6 @@
 import type { Player } from '../api'
 import { useNow } from '../useNow'
-import { Badges } from './Badges'
+import { SourceIcon } from './Brand'
 import { Clock } from './Clock'
 import { Disc } from './Disc'
 
@@ -19,7 +19,10 @@ export function InputScreen({ player, input, clockOffsetMs }: Props) {
       <section className="flex min-w-0 flex-col portrait:items-center portrait:text-center">
         <Clock />
         <h1 className="mt-[2vmin] text-title font-bold tracking-tight text-kiosk-text">{input.name}</h1>
-        <Badges player={player} />
+        <p className="mt-[2vmin] flex items-center gap-[0.45em] text-signal font-semibold text-kiosk-text/80">
+          <SourceIcon source={{ brand: null, name: player.session.label }} />
+          {player.session.label}
+        </p>
         <PlayingFor startedAt={input.startedAt} clockOffsetMs={clockOffsetMs} />
       </section>
     </main>
