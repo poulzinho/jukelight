@@ -36,17 +36,24 @@ quality SHALL never be shortened.
 - **THEN** the detail is shortened or left out first, and no part wraps
 
 ### Requirement: Device signature
-Every screen SHALL show the player's logo (when its `device.logoUrl` is
-present) and its name in a quiet footer: centred at the bottom in
-portrait, in the bottom-right corner in landscape. It SHALL keep its place
-in the steady portrait layout.
+Every screen SHALL show the player's maker and name in a quiet footer:
+the maker's logo when `device.logoUrl` is present, otherwise a streamer
+icon and the maker's name when the maker is a known brand; then the
+player's name. With an unknown maker, only the player's name SHALL show.
+The footer SHALL sit centred at the bottom in portrait and in the
+bottom-right corner in landscape, keeping its place in the steady portrait
+layout.
 
 #### Scenario: Bluesound player with its logo
 - **WHEN** the device has a `logoUrl` and the name "Example Player"
 - **THEN** the footer shows the logo and "Example Player" on the playing, input and idle screens
 
 #### Scenario: No logo
-- **WHEN** the device has no `logoUrl`
+- **WHEN** the device's brand is bluesound, without a `logoUrl`
+- **THEN** the footer shows a streamer icon, "Bluesound" and "Example Player"
+
+#### Scenario: Unknown maker
+- **WHEN** the device has no brand
 - **THEN** the footer shows only "Example Player"
 
 ## MODIFIED Requirements

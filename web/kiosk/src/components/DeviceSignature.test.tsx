@@ -26,9 +26,18 @@ for (const [name, overrides] of screens) {
   })
 }
 
-test('no logo: only the name', () => {
+test('no logo: a streamer icon and the maker\'s name', () => {
   show({ device: { brand: 'bluesound', name: 'Example Player', logoUrl: null } })
   const signature = screen.getByTestId('device-signature')
-  expect(signature).toHaveTextContent('Example Player')
   expect(signature.querySelector('img')).toBeNull()
+  expect(signature.querySelector('svg')).not.toBeNull()
+  expect(within(signature).getByText('Bluesound')).toBeInTheDocument()
+  expect(within(signature).getByText('Example Player')).toBeInTheDocument()
+})
+
+test('unknown maker: only the name', () => {
+  show({ device: { brand: null, name: 'Example Player', logoUrl: null } })
+  const signature = screen.getByTestId('device-signature')
+  expect(signature).toHaveTextContent(/^Example Player$/)
+  expect(signature.querySelector('svg, img')).toBeNull()
 })

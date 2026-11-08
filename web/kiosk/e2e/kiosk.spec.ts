@@ -151,7 +151,9 @@ test('paused shows the pause symbol', async ({ page }) => {
 test('stopped shows the idle screen', async ({ page }) => {
   await open(page, 'stopped')
   await expect(page.getByText('nothing playing')).toBeVisible()
-  await expect(page.getByTestId('device-signature')).toHaveText('Example Player')
+  // The fake player is a Bluesound, without a logo: the maker's name and the player's.
+  await expect(page.getByTestId('device-signature')).toContainText('Bluesound')
+  await expect(page.getByTestId('device-signature')).toContainText('Example Player')
   await expect(page.getByRole('timer')).toBeVisible()
   await screenshot(page, 'stopped')
 })

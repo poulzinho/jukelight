@@ -119,7 +119,10 @@ animation).
 ### 6. Device signature
 
 A footer component on every screen: the device's logo (about 2 vmin high,
-80 % opacity) and the name at 60 % opacity, centred in the bottom margin
+80 % opacity), or without one a streamer icon (Lucide `radio-receiver`)
+and the maker's name for a known maker (from the acceptance: the maker
+shouldn't simply vanish without its logo), then the player's name at 60 %
+opacity, centred in the bottom margin
 in portrait, in the bottom-right corner in landscape. In portrait its
 space is part of the fixed slots (the bottom padding grows by its height),
 so "Up next" keeps its place. The idle screen drops the player name from
