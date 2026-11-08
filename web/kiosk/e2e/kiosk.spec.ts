@@ -46,6 +46,11 @@ test('playing with queue', async ({ page }) => {
   const upNext = page.getByRole('list', { name: 'Up next' }).getByRole('listitem')
   // Four entries in landscape; in portrait the fourth is hidden.
   await expect(upNext).toHaveCount(portrait() ? 3 : 4)
+  // The player's signature sits below everything, overlapping nothing.
+  const signature = await box(page, ['contentinfo'])
+  const lastEntry = await upNext.nth(portrait() ? 2 : 3).boundingBox()
+  expect(lastEntry).not.toBeNull()
+  if (portrait()) expect((lastEntry?.y ?? 0) + (lastEntry?.height ?? 0)).toBeLessThanOrEqual(signature.y)
   await screenshot(page, 'playing-with-queue')
 })
 
@@ -145,7 +150,8 @@ test('paused shows the pause symbol', async ({ page }) => {
 
 test('stopped shows the idle screen', async ({ page }) => {
   await open(page, 'stopped')
-  await expect(page.getByText('Example Player · nothing playing')).toBeVisible()
+  await expect(page.getByText('nothing playing')).toBeVisible()
+  await expect(page.getByTestId('device-signature')).toHaveText('Example Player')
   await expect(page.getByRole('timer')).toBeVisible()
   await screenshot(page, 'stopped')
 })

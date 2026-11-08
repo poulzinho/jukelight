@@ -1,6 +1,6 @@
 // Spec: kiosk-display, "Paused screen", "Idle screen" and "Offline and
 // reconnecting" (task 9.5).
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
 import { Kiosk } from '../Kiosk'
@@ -26,19 +26,21 @@ test('playing has no pause symbol', () => {
 
 test('stopped shows the idle screen', () => {
   show({ state: 'stopped' })
-  expect(screen.getByText('Example Player · nothing playing')).toBeInTheDocument()
+  expect(screen.getByText('nothing playing')).toBeInTheDocument()
+  expect(within(screen.getByTestId('device-signature')).getByText('Example Player')).toBeInTheDocument()
   expect(screen.getByRole('timer')).toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: 'Example Song' })).not.toBeInTheDocument()
 })
 
 test('no track shows the idle screen', () => {
   show({ track: null })
-  expect(screen.getByText('Example Player · nothing playing')).toBeInTheDocument()
+  expect(screen.getByText('nothing playing')).toBeInTheDocument()
+  expect(within(screen.getByTestId('device-signature')).getByText('Example Player')).toBeInTheDocument()
 })
 
 test('no snapshot yet shows the idle screen', () => {
   render(<Kiosk player={null} connection="connecting" clockOffsetMs={0} />)
-  expect(screen.getByText('Nothing playing')).toBeInTheDocument()
+  expect(screen.getByText('nothing playing')).toBeInTheDocument()
 })
 
 test('buffering keeps the playing screen', () => {

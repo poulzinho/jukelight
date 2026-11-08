@@ -26,6 +26,6 @@
 
 ## 4. Device signature and acceptance (stack layer 4, DEV-36: kiosk, reference host)
 
-- [ ] 4.1 Write failing component tests for the device signature (with and without a logo) and the idle screen's "nothing playing", then the footer on every screen and its slot in the steady portrait layout; screenshot checks that the portrait slots still hold
+- [x] 4.1 Write failing component tests for the device signature (with and without a logo) and the idle screen's "nothing playing", then the footer on every screen and its slot in the steady portrait layout; screenshot checks that the portrait slots still hold
 - [ ] 4.2 Acceptance on the reference host: copy the user's `brand-assets/` (official logos where available); Qobuz via MA, Spotify, Navidrome via MA (provider renamed), the optical input, MA unavailable, idle; portrait and landscape; tune the per-brand logo heights; record the results on DEV-32
 - [ ] 4.3 Verify: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `shellcheck`, kiosk lint, typecheck and tests, `openspec validate --strict`; open the pull request and verify CI is green; after approval, sync and archive on this top layer before merging

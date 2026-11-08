@@ -3,6 +3,7 @@ import { Artwork } from './components/Artwork'
 import { Backdrop } from './components/Backdrop'
 import { Badges } from './components/Badges'
 import { ConnectionIndicator } from './components/ConnectionIndicator'
+import { DeviceSignature } from './components/DeviceSignature'
 import { IdleScreen } from './components/IdleScreen'
 import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
@@ -34,8 +35,9 @@ export function Kiosk({ player, connection, clockOffsetMs }: Props) {
       ) : player?.track && playing ? (
         <PlayingScreen player={player} track={player.track} clockOffsetMs={clockOffsetMs} />
       ) : (
-        <IdleScreen deviceName={player?.deviceName || null} />
+        <IdleScreen />
       )}
+      {player && <DeviceSignature device={player.device} />}
       {indicator && <ConnectionIndicator message={indicator} />}
     </>
   )
@@ -65,7 +67,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
       <main
         // In portrait every part has a fixed slot from the top, with "Up
         // next" at the bottom, so changing content never moves the others.
-        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:py-[5vh]"
+        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:pt-[5vh] portrait:pb-[7vh]"
       >
         <div className="relative">
           <Artwork

@@ -65,7 +65,7 @@ test('the time follows the clock offset', () => {
 
 test('stopped with an input shows the idle screen', () => {
   show(input(NOW - MINUTE, { state: 'stopped' }))
-  expect(screen.getByText('Example Player · nothing playing')).toBeInTheDocument()
+  expect(screen.getByText('nothing playing')).toBeInTheDocument()
   expect(screen.queryByRole('img', { name: 'Disc' })).not.toBeInTheDocument()
 })
 
