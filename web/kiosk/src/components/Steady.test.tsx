@@ -77,14 +77,18 @@ test('track with a new cover: the old one stays until the new one has loaded', a
   expect(cover('Other Album')).toHaveAttribute('src', '/api/v1/art/1111111111111111?size=large')
 })
 
-test('quality changes: only the badges change, nothing is rebuilt', () => {
+test('quality changes: only the signal path changes, its waves stay', () => {
   const update = screenFor(player())
   const before = cover('Example Album')
   const title = screen.getByRole('heading', { name: 'Example Song' })
+  const wave = screen.getByTestId('wave')
 
-  update(player({ quality: quality('FLAC 24/96', 'Hi-Res', true) }))
+  const hiRes = quality('FLAC 24/96', 'Hi-Res', true)
+  update(player({ quality: hiRes, signal: { class: 'hi-res', source: hiRes, delivered: null, changes: [], hiResLogoUrl: null } }))
   expect(screen.getByText('24 bit / 96 kHz')).toBeInTheDocument()
-  expect(screen.getByText('Hi-Res')).toBeInTheDocument()
+  expect(screen.getByText('HI-RES')).toBeInTheDocument()
+  expect(screen.getByTestId('signal-path').style.getPropertyValue('--signal')).toBe('var(--color-signal-hi-res)')
+  expect(screen.getByTestId('wave')).toBe(wave)
   expect(cover('Example Album')).toBe(before)
   expect(screen.getByRole('heading', { name: 'Example Song' })).toBe(title)
 })

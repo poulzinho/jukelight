@@ -21,7 +21,7 @@ export function UpNext({ queue }: { queue: NonNullable<Player['queue']> }) {
   if (queue.length === 0) return null
   return (
     // In portrait at the bottom, with room for three entries, so its top
-    // stays put whatever the queue's length; at least 4vmin below the badges.
+    // stays put whatever the queue's length; at least 4vmin below the signal path.
     <section className="mt-[4vmin] portrait:mt-auto portrait:min-h-[30vmin] portrait:pt-[4vmin]">
       <h2 id="up-next" className="mb-[1.6vmin] text-badge font-semibold tracking-[0.14em] text-kiosk-text/50 uppercase">
         Up next

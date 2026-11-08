@@ -58,7 +58,7 @@ fn all_scenarios_exist() {
             "offline",
             "music-assistant",
             "music-assistant-unavailable",
-            "long-badges",
+            "long-signal",
             "upsampled",
             "unknown-quality",
         ]

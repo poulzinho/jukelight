@@ -1,10 +1,9 @@
-// Spec: kiosk-display, "Playing screen" (source and quality), "Hi-Res badge"
-// and "Up next".
+// Spec: kiosk-display, "Playing screen" (the signal path) and "Up next".
 import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
 import { Kiosk } from '../Kiosk'
-import { player, quality } from '../test/fixtures'
+import { player } from '../test/fixtures'
 
 function show(overrides: Partial<Player> = {}) {
   return render(<Kiosk player={player(overrides)} connection="live" clockOffsetMs={0} />)
@@ -17,28 +16,18 @@ const upNext = (count: number) =>
     artUrl: null,
   }))
 
-test('source and quality', () => {
+test('track with all data: a signal path from Qobuz to the sound box', () => {
   show()
-  expect(screen.getByText('Qobuz')).toBeInTheDocument()
-  expect(screen.getByText('16 bit / 44.1 kHz')).toBeInTheDocument()
-  expect(screen.getByText('FLAC')).toBeInTheDocument()
-  expect(screen.getByText('CD quality')).toBeInTheDocument()
+  const path = screen.getByTestId('signal-path')
+  expect(within(path).getByTestId('signal-node')).toHaveTextContent('Qobuz')
+  const box = screen.getByTestId('sound-box')
+  expect(within(box).getByText('16 bit / 44.1 kHz')).toBeInTheDocument()
+  expect(within(box).getByText('FLAC')).toBeInTheDocument()
 })
 
-test('lossy quality without detail', () => {
-  show({ quality: quality('160 kbps', null, false) })
-  expect(screen.getByText('160 kbps')).toBeInTheDocument()
-})
-
-test('Hi-Res track shows the HI-RES tag', () => {
-  show({ quality: quality('FLAC 24/96', null, true) })
-  expect(screen.getByText('HI-RES')).toBeInTheDocument()
-  expect(screen.getByText('24 bit / 96 kHz')).toBeInTheDocument()
-})
-
-test('CD-quality track has no HI-RES badge', () => {
-  show()
-  expect(screen.queryByText('HI-RES')).not.toBeInTheDocument()
+test('no signal, no signal path', () => {
+  show({ signal: null })
+  expect(screen.queryByTestId('signal-path')).not.toBeInTheDocument()
 })
 
 test('up next shows four entries; the fourth is hidden in portrait', () => {
