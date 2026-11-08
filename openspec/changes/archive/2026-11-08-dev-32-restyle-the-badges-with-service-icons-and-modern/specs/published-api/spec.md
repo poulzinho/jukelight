@@ -37,8 +37,8 @@ the brand `hi-res`) SHALL be present only when its logo exists, and
 
 ### Requirement: Quality details
 Next to its existing `label`, `detail` and `hiRes`, the snapshot's
-`quality` SHALL contain `codec`, `bitDepth` and `sampleRateHz` for a
-lossless format, or `bitrate` (bits per second) for a lossy one; the
+`quality` SHALL contain `codec` (in capitals, such as "FLAC"), `bitDepth`
+and `sampleRateHz` for a lossless format, or `bitrate` (bits per second) for a lossy one; the
 fields that don't apply SHALL be `null`.
 
 #### Scenario: Lossless

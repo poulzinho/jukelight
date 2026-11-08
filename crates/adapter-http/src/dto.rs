@@ -234,7 +234,8 @@ fn quality_dto(quality: &AudioQuality, logos: &dyn BrandLogos) -> QualityDto {
         } else {
             None
         },
-        codec: format.map(|f| f.codec.clone()),
+        // As the label writes it: sources report `flac` or `FLAC`.
+        codec: format.map(|f| f.codec.to_uppercase()),
         bit_depth: format.map(|f| f.bit_depth),
         sample_rate_hz: format.map(|f| f.sample_rate_hz),
         bitrate,

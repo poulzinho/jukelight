@@ -156,6 +156,7 @@ As your own user (not the kiosk user), in a folder of your choice:
 git clone https://github.com/poulzinho/jukelight.git
 cd jukelight
 cp .env.example .env      # set BLUOS_HOST, and the other values you need
+mkdir -p brand-assets     # your logos (optional): created by you, not by Docker as root
 docker compose up --build -d
 docker compose ps         # "healthy" after about 30 seconds
 curl -s localhost:8080/api/v1/player
@@ -185,6 +186,10 @@ trademarks. Without them the kiosk shows plain badges (an icon and the
 name). To show logos, put your own copies into `brand-assets/` next to
 `.env`. `docker-compose.yml` mounts the folder read-only, git ignores it,
 and Jukelight picks up added or replaced files within a few seconds.
+Create the folder yourself before the first `docker compose up` (as in
+the commands above): if it's missing, Docker creates it owned by root, and
+copying logos into it fails with "Permission denied" (see
+[Troubleshooting](#troubleshooting)).
 
 Name each file after its brand, as `<brand>.svg` (preferred) or
 `<brand>.png`, and use the brand's variant for **dark backgrounds** (white or
@@ -199,7 +204,9 @@ to show where the music comes from, and follow its owner's guidelines.
 | `apple-music.svg` | Apple Music | Apple's marketing guidelines and badges | Apple restricts its logo to its official badges |
 | `deezer.svg` | Deezer | deezerbrand.com | |
 | `plex.svg`, `jellyfin.svg` | Plex, Jellyfin | Their press or branding pages | Through Music Assistant |
-| `navidrome.png`, `subsonic.svg`, `library.svg` | Navidrome, other Subsonic servers, local files | Navidrome's repository; any icon you like for the others | Navidrome shows when the Music Assistant provider is named "Navidrome" |
+| `navidrome.png` | Navidrome | Navidrome's repository | Shows when the Music Assistant provider is named "Navidrome" |
+| `subsonic.png` | Other Subsonic servers | subsonic.org (the yellow submarine) | For an OpenSubsonic provider not named "Navidrome" |
+| `library.svg` | Local files in Music Assistant | Any folder icon you like | |
 | `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | Shown as "via" inside the badge |
 | `bluesound.png` | Bluesound (the player's maker) | Bluesound's press or media kit | In the footer, with the player's name |
 | `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; replaces the "HI-RES" tag |
@@ -563,6 +570,12 @@ message: a timeout means a wrong address or the plug is offline; HTTP 401
 means a wrong password in `plug.netrc`, or a `machine` there that doesn't
 match the address in the commands. The agent retries with growing waits (up
 to 5 minutes) and logs `succeeded after retrying` once it works.
+
+**Copying logos into `brand-assets/` fails with "Permission denied".**
+Docker created the folder (owned by root) because it was missing at the
+first `docker compose up`. Give it to your user, then copy again; the
+container only reads it:
+`sudo chown -R "$USER": ~/repos/jukelight/brand-assets`.
 
 **curl reports HTTP 429.** The plug refuses everything for a while after
 several refused passwords. The agent's retries slow down to one every 5

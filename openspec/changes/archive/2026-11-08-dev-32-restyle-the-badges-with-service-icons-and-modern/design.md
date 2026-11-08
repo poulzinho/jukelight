@@ -84,7 +84,10 @@ Responses: the file with its content type, `Cache-Control` long-lived;
 identifier alphabet (`[a-z0-9-]`), so no path tricks.
 
 `.gitignore` gets `brand-assets/`. The reference setup describes the
-folder, the official sources per brand, and copying it to the host.
+folder, the official sources per brand, and copying it to the host. It
+creates the folder before the first `docker compose up`: a missing bind
+mount source is created by Docker, owned by root, and copying logos into
+it then fails (found during the acceptance).
 
 - Alternative: logos in the image or the repo. Rejected: trademarks.
 - Alternative: the kiosk probes for logo files itself. Rejected: one
@@ -119,11 +122,16 @@ animation).
 ### 6. Device signature
 
 A footer component on every screen: the device's logo (about 2 vmin high,
-80 % opacity) and the name at 60 % opacity, centred in the bottom margin
+80 % opacity), or without one a streamer icon (Lucide `radio-receiver`)
+and the maker's name for a known maker (from the acceptance: the maker
+shouldn't simply vanish without its logo), then the player's name at 60 %
+opacity, centred in the bottom margin
 in portrait, in the bottom-right corner in landscape. In portrait its
 space is part of the fixed slots (the bottom padding grows by its height),
 so "Up next" keeps its place. The idle screen drops the player name from
-its line ("nothing playing").
+its line ("nothing playing"). The connection indicator moves from the
+bottom-right to the top-right corner, so it never covers the signature in
+landscape (the spec only asks for "a corner").
 
 ## Risks / Trade-offs
 
