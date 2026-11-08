@@ -59,6 +59,8 @@ fn all_scenarios_exist() {
             "music-assistant",
             "music-assistant-unavailable",
             "long-badges",
+            "upsampled",
+            "unknown-quality",
         ]
     );
     for scenario in SCENARIOS {

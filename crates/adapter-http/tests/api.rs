@@ -18,9 +18,9 @@ use jukelight_application::{
     DisplayHandle, Image, PlayerMonitor,
 };
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
-    Origin, Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Service, Timestamp,
-    Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Change, Content, Decibels, Delivery,
+    DeviceSnapshot, InputKind, Origin, Palette, PlaybackState, Position, QueueEntry, QueueView,
+    Rgb, Service, Timestamp, Track,
 };
 use serde_json::Value;
 use tower::ServiceExt;
@@ -421,6 +421,152 @@ async fn lossy() {
     for field in ["codec", "bitDepth", "sampleRateHz"] {
         assert_eq!(quality.get(field), Some(&Value::Null), "{field}");
     }
+}
+
+// Spec: published-api, "Signal".
+
+fn flac(bit_depth: u32, sample_rate_hz: u32) -> AudioQuality {
+    AudioQuality::format(AudioFormat {
+        codec: "flac".into(),
+        bit_depth,
+        sample_rate_hz,
+    })
+}
+
+/// Qobuz through Music Assistant, delivering `source` as `delivery`.
+async fn signal_through_music_assistant(
+    source: AudioQuality,
+    delivery: Delivery,
+    logos: Arc<TestLogos>,
+) -> Value {
+    let mut content = device("Example Song", 42, 1_000_000).content.unwrap();
+    content.service = Some(Service::new(Brand::new("qobuz"), "Qobuz"));
+    content.quality = Some(source);
+    content.delivery = Some(delivery);
+    let provider =
+        FakeProvider::claiming("Music Assistant", Some(content)).with_brand("music-assistant");
+    let monitor = PlayerMonitor::new(vec![Arc::new(provider)]);
+    let mut player = device("Example Song", 42, 1_000_000);
+    player.origin = Origin::Stream {
+        url: "http://192.168.1.50:8097/flow/session1/aabbccddeeff/1.flac".into(),
+    };
+    monitor.apply(&player);
+    player_json(&app_with_logos(&monitor, logos)).await["signal"].clone()
+}
+
+#[tokio::test]
+async fn hi_res_through_music_assistant() {
+    let logos = Arc::new(TestLogos::default());
+    logos.supply("hi-res", 1, "image/png", &[0x89, b'P', b'N', b'G']);
+    let signal = signal_through_music_assistant(
+        flac(24, 96_000),
+        Delivery {
+            quality: Some(flac(24, 96_000)),
+            changes: vec![Change::Normalised {
+                gain: Some(Decibels::from_db(-6.0)),
+            }],
+        },
+        logos,
+    )
+    .await;
+
+    assert_eq!(signal["class"], "hi-res");
+    assert_eq!(signal["source"]["sampleRateHz"], 96_000);
+    assert_eq!(signal["delivered"]["sampleRateHz"], 96_000);
+    assert_eq!(signal["delivered"]["codec"], "FLAC");
+    assert_eq!(
+        signal["changes"],
+        serde_json::json!([{"kind": "normalised", "gainDb": -6.0}])
+    );
+    assert_eq!(signal["hiResLogoUrl"], "/api/v1/logos/hi-res?v=1");
+}
+
+#[tokio::test]
+async fn upsampling_stays_lossless() {
+    let logos = Arc::new(TestLogos::default());
+    logos.supply("hi-res", 1, "image/png", &[0x89, b'P', b'N', b'G']);
+    let signal = signal_through_music_assistant(
+        flac(16, 44_100),
+        Delivery {
+            quality: Some(flac(24, 96_000)),
+            changes: vec![Change::Resampled, Change::Dsp],
+        },
+        logos,
+    )
+    .await;
+
+    assert_eq!(signal["class"], "lossless");
+    assert_eq!(signal["hiResLogoUrl"], Value::Null);
+    assert_eq!(
+        signal["changes"],
+        serde_json::json!([{"kind": "resampled"}, {"kind": "dsp"}])
+    );
+}
+
+#[tokio::test]
+async fn downsampled_hi_res() {
+    let signal = signal_through_music_assistant(
+        flac(24, 192_000),
+        Delivery {
+            quality: Some(flac(16, 48_000)),
+            changes: vec![Change::Resampled],
+        },
+        Arc::new(TestLogos::default()),
+    )
+    .await;
+    assert_eq!(signal["class"], "lossless");
+}
+
+#[tokio::test]
+async fn normalised_without_a_gain() {
+    let signal = signal_through_music_assistant(
+        flac(24, 96_000),
+        Delivery {
+            quality: None,
+            changes: vec![Change::BitDepth, Change::Normalised { gain: None }],
+        },
+        Arc::new(TestLogos::default()),
+    )
+    .await;
+    assert_eq!(signal["delivered"], Value::Null);
+    assert_eq!(
+        signal["changes"],
+        serde_json::json!([{"kind": "bitDepth"}, {"kind": "normalised", "gainDb": null}])
+    );
+}
+
+#[tokio::test]
+async fn native_service() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut spotify = device("Example Song", 42, 1_000_000);
+    spotify.content.as_mut().unwrap().quality = Some(AudioQuality::bitrate(320_000));
+    monitor.apply(&spotify);
+    let signal = &player_json(&app(&monitor)).await["signal"];
+
+    assert_eq!(signal["class"], "lossy");
+    assert_eq!(signal["source"]["bitrate"], 320_000);
+    assert_eq!(signal["delivered"], Value::Null);
+    assert_eq!(signal["changes"], serde_json::json!([]));
+}
+
+#[tokio::test]
+async fn quality_not_reported() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut unknown = device("Example Song", 42, 1_000_000);
+    unknown.content.as_mut().unwrap().quality = None;
+    monitor.apply(&unknown);
+    let signal = &player_json(&app(&monitor)).await["signal"];
+
+    assert_eq!(signal["class"], "unknown");
+    assert_eq!(signal["source"], Value::Null);
+}
+
+#[tokio::test]
+async fn no_signal_for_an_input() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&optical_input(Some(1_000_000)));
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(json.get("signal"), Some(&Value::Null));
 }
 
 // Spec: published-api, "Cover and backdrop URLs".

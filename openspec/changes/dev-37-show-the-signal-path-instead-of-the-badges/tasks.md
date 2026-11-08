@@ -2,12 +2,12 @@
 
 - [x] 1.1 Write failing domain unit tests for `AudioQuality::class()` (Hi-Res, lossless, lossy) and `signal_class` (upsampled CD quality stays lossless, downsampled Hi-Res becomes lossless, no quality is unknown), then add `QualityClass`, `Delivery`, `Change` and `Content.delivery`; verify with `cargo test -p jukelight-domain`
 - [x] 1.2 Write failing MA fixture tests "Padded CD-quality source", "Upsampled and normalised", "Untouched Hi-Res" and "No output for the player" (scrubbed edited copies of the recorded `streamdetails`), then map the delivery from `audio_processing` (output format, `applied_gain_db` with the `volume_normalization_gain_correct` fallback, `dsp.state`); verify with `cargo test -p jukelight-adapter-music-assistant`
-- [ ] 1.3 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.3 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. The signal in the API (stack layer 2, DEV-39: API, fake adapter)
 
-- [ ] 2.1 Write failing HTTP tests "Hi-Res through Music Assistant", "Upsampling stays lossless", "Downsampled Hi-Res", "Native service", "Quality not reported" and "Input", then publish `signal` (`SignalDto`, tagged changes, `hiResLogoUrl` only for Hi-Res); verify with `cargo test -p jukelight-adapter-http`
-- [ ] 2.2 Kiosk API types for `signal`; fake scenarios `upsampled`, `lossy` and `unknown-quality`, with the delivery on the `music-assistant` scenario; verify with the kiosk typecheck and by reading `/api/v1/player` for each scenario
+- [x] 2.1 Write failing HTTP tests "Hi-Res through Music Assistant", "Upsampling stays lossless", "Downsampled Hi-Res", "Native service", "Quality not reported" and "Input", then publish `signal` (`SignalDto`, tagged changes, `hiResLogoUrl` only for Hi-Res); verify with `cargo test -p jukelight-adapter-http`
+- [x] 2.2 Kiosk API types for `signal`; fake scenarios `upsampled` and `unknown-quality` (the existing `cast-without-queue` is the lossy one), with the delivery on the `music-assistant` and `long-badges` scenarios; verify with the kiosk typecheck and by reading `/api/v1/player` for each scenario
 - [ ] 2.3 Verify the layer (as 1.3); open the pull request and verify CI is green
 
 ## 3. The signal path on the kiosk (stack layer 3, DEV-40: kiosk, reference host)

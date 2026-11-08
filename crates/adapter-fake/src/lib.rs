@@ -10,13 +10,13 @@ use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, DeviceMonitor, SessionProvider};
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
-    Origin, Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Service, Timestamp,
-    Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Change, Content, Decibels, Delivery,
+    DeviceSnapshot, InputKind, Origin, Palette, PlaybackState, Position, QueueEntry, QueueView,
+    Rgb, Service, Timestamp, Track,
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 14] = [
+pub const SCENARIOS: [&str; 16] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
@@ -31,13 +31,16 @@ pub const SCENARIOS: [&str; 14] = [
     "music-assistant",
     "music-assistant-unavailable",
     "long-badges",
+    "upsampled",
+    "unknown-quality",
 ];
 
 /// Scenarios that a fake Music Assistant drives: it claims the stream.
-const MUSIC_ASSISTANT: [&str; 3] = [
+const MUSIC_ASSISTANT: [&str; 4] = [
     "music-assistant",
     "music-assistant-unavailable",
     "long-badges",
+    "upsampled",
 ];
 
 #[derive(Debug, thiserror::Error)]
@@ -209,6 +212,9 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
             }));
             content.artwork = cover(30);
         }
+        ("unknown-quality", Some(content)) => {
+            content.quality = None;
+        }
         ("album-colours", Some(content)) => {
             content.artwork = cover(20);
             content.palette = Some(Palette {
@@ -285,8 +291,9 @@ fn hsl(hue: u16, saturation: f64, lightness: f64) -> [u8; 3] {
 }
 
 /// A fake Music Assistant for the scenarios it drives: it claims the
-/// player's stream and plays a Hi-Res Qobuz track (with a short detail, or
-/// for `long-badges` a long one), or can't be reached. `None` for the other
+/// player's stream and plays a Hi-Res Qobuz track, normalised (for
+/// `long-badges` also resampled, with DSP and a long detail), a CD-quality
+/// Subsonic track it upsamples (`upsampled`), or can't be reached. `None` for the other
 /// scenarios.
 pub fn music_assistant(
     scenario: &str,
@@ -299,26 +306,54 @@ pub fn music_assistant(
         let mut content = scenario_snapshot("playing-with-queue", clock)
             .content
             .unwrap_or_else(|| unreachable!("the example always has content"));
-        content.quality = Some(
-            AudioQuality::format(AudioFormat {
-                codec: "FLAC".into(),
-                bit_depth: 24,
-                sample_rate_hz: if scenario == "long-badges" {
-                    192_000
-                } else {
-                    96_000
-                },
-            })
-            .with_detail(if scenario == "long-badges" {
-                "Normalised, crossfade 6 s, dynamic range 12 dB, track gain −7.4 dB"
-            } else {
-                "Normalised"
-            }),
-        );
-        content.service = Some(Service::new(Brand::new("qobuz"), "Qobuz"));
+        let (service, source, delivered, changes, detail) = match scenario {
+            "upsampled" => (
+                Service::new(Brand::new("subsonic"), "Subsonic"),
+                flac(16, 44_100),
+                flac(24, 96_000),
+                vec![Change::Resampled],
+                "Lossless · → 24/96 to player",
+            ),
+            "long-badges" => (
+                Service::new(Brand::new("qobuz"), "Qobuz"),
+                flac(24, 192_000),
+                flac(24, 96_000),
+                vec![
+                    Change::Resampled,
+                    Change::Normalised {
+                        gain: Some(Decibels::from_db(-7.4)),
+                    },
+                    Change::Dsp,
+                ],
+                "Normalised, crossfade 6 s, dynamic range 12 dB, track gain −7.4 dB",
+            ),
+            _ => (
+                Service::new(Brand::new("qobuz"), "Qobuz"),
+                flac(24, 96_000),
+                flac(24, 96_000),
+                vec![Change::Normalised {
+                    gain: Some(Decibels::from_db(-6.2)),
+                }],
+                "Normalised",
+            ),
+        };
+        content.quality = Some(source.with_detail(detail));
+        content.delivery = Some(Delivery {
+            quality: Some(delivered),
+            changes,
+        });
+        content.service = Some(service);
         content
     });
     Some(std::sync::Arc::new(FakeMusicAssistant { content }))
+}
+
+fn flac(bit_depth: u32, sample_rate_hz: u32) -> AudioQuality {
+    AudioQuality::format(AudioFormat {
+        codec: "flac".into(),
+        bit_depth,
+        sample_rate_hz,
+    })
 }
 
 struct FakeMusicAssistant {

@@ -41,6 +41,13 @@ export function player(overrides: Partial<Player> = {}): Player {
     palette: null,
     input: null,
     source: { brand: 'qobuz', name: 'Qobuz', logoUrl: null, via: null },
+    signal: {
+      class: 'lossless',
+      source: quality('FLAC 16/44.1', 'CD quality', false),
+      delivered: null,
+      changes: [],
+      hiResLogoUrl: null,
+    },
     device: { brand: 'bluesound', name: 'Example Player', logoUrl: null },
     ...overrides,
   }
