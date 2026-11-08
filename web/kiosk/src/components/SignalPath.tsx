@@ -86,12 +86,9 @@ function Node({
         )}
         {named && <span>{service.name}</span>}
       </div>
-      {unavailable && (
-        <>
-          {' '}
-          <span className="text-[0.7em] font-medium">unavailable</span>
-        </>
-      )}
+      {/* The space keeps "Music Assistant unavailable" readable as text; at
+          the start of its own line it takes no room. */}
+      {unavailable && <span className="text-[0.7em] font-medium"> unavailable</span>}
     </div>
   )
 }
