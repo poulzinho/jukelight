@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use futures::stream::BoxStream;
 use futures::{StreamExt, stream};
-use jukelight_domain::{Content, DeviceSnapshot, Origin, Timestamp};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, Timestamp};
 use tokio::sync::{mpsc, watch};
 
 use crate::{Clock, DeviceMonitor, SessionProvider};
@@ -17,6 +17,7 @@ use crate::{Clock, DeviceMonitor, SessionProvider};
 /// content publishes an update; the device reports it follows are recorded.
 pub struct FakeProvider {
     label: String,
+    brand: Option<Brand>,
     claims: bool,
     content: Mutex<Option<Content>>,
     followed: Mutex<Vec<DeviceSnapshot>>,
@@ -27,6 +28,7 @@ impl FakeProvider {
     pub fn claiming(label: &str, content: Option<Content>) -> Self {
         Self {
             label: label.into(),
+            brand: None,
             claims: true,
             content: Mutex::new(content),
             followed: Mutex::new(Vec::new()),
@@ -37,11 +39,19 @@ impl FakeProvider {
     pub fn not_claiming(label: &str) -> Self {
         Self {
             label: label.into(),
+            brand: None,
             claims: false,
             content: Mutex::new(None),
             followed: Mutex::new(Vec::new()),
             updates: watch::channel(()).0,
         }
+    }
+
+    /// The same provider, with a brand.
+    #[must_use]
+    pub fn with_brand(mut self, brand: &str) -> Self {
+        self.brand = Brand::new(brand);
+        self
     }
 
     pub fn set_content(&self, content: Option<Content>) {
@@ -72,6 +82,10 @@ pub fn ticks(sender: &watch::Sender<()>) -> BoxStream<'static, ()> {
 impl SessionProvider for FakeProvider {
     fn label(&self) -> &str {
         &self.label
+    }
+
+    fn brand(&self) -> Option<Brand> {
+        self.brand.clone()
     }
 
     /// A claiming fake claims stream origins, like a real provider would.

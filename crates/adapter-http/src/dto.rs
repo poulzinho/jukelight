@@ -3,7 +3,8 @@
 
 use jukelight_application::ArtworkSource;
 use jukelight_domain::{
-    ArtworkRef, AudioInput, InputKind, PlaybackState, PlayerSnapshot, QueueView, Rgb, Timestamp,
+    ArtworkRef, AudioInput, AudioQuality, Brand, InputKind, PlaybackState, PlayerSnapshot,
+    QualityMeasure, QueueView, Rgb, Source, Timestamp,
 };
 use serde::Serialize;
 
@@ -26,6 +27,40 @@ pub struct PlayerDto {
     pub queue: Option<Vec<QueueEntryDto>>,
     pub palette: Option<PaletteDto>,
     pub input: Option<InputDto>,
+    /// Where the music comes from; `None` (`null`) when nothing is known.
+    pub source: Option<SourceDto>,
+    pub device: DeviceDto,
+}
+
+/// A music service or another source.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceDto {
+    /// A short identifier such as `qobuz`; `None` (`null`) when unknown.
+    pub brand: Option<String>,
+    pub name: String,
+    /// The user's logo for the brand; `None` (`null`) without one.
+    pub logo_url: Option<String>,
+    /// The route the music takes, such as Music Assistant.
+    pub via: Option<RouteDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RouteDto {
+    pub brand: Option<String>,
+    pub name: String,
+    pub available: bool,
+    pub logo_url: Option<String>,
+}
+
+/// The player itself: its maker's brand and its name.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceDto {
+    pub brand: Option<String>,
+    pub name: String,
+    pub logo_url: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,6 +93,12 @@ pub struct QualityDto {
     pub label: String,
     pub detail: Option<String>,
     pub hi_res: bool,
+    /// For a lossless format; `None` (`null`) for a lossy one.
+    pub codec: Option<String>,
+    pub bit_depth: Option<u32>,
+    pub sample_rate_hz: Option<u32>,
+    /// Bits per second, for a lossy stream; `None` (`null`) otherwise.
+    pub bitrate: Option<u32>,
 }
 
 #[derive(Debug, Serialize)]
@@ -114,13 +155,7 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             duration: p.duration.map(|d| d.as_secs_f64()),
             observed_at: p.observed_at.as_millis(),
         }),
-        quality: content
-            .and_then(|c| c.quality.as_ref())
-            .map(|q| QualityDto {
-                label: q.label(),
-                detail: q.detail.clone(),
-                hi_res: q.is_hi_res(),
-            }),
+        quality: content.and_then(|c| c.quality.as_ref()).map(quality_dto),
         queue: content.and_then(|c| match &c.queue {
             QueueView::Available(entries) => Some(
                 entries
@@ -139,6 +174,46 @@ pub fn player_dto(snapshot: &PlayerSnapshot, artwork: &dyn ArtworkSource) -> Pla
             accent: rgb(p.accent),
         }),
         input: snapshot.input.as_ref().map(input_dto),
+        source: snapshot.source.as_ref().map(source_dto),
+        device: DeviceDto {
+            brand: brand(snapshot.maker.as_ref()),
+            name: snapshot.player_name.clone(),
+            logo_url: None,
+        },
+    }
+}
+
+fn brand(brand: Option<&Brand>) -> Option<String> {
+    brand.map(|brand| brand.as_str().to_owned())
+}
+
+fn source_dto(source: &Source) -> SourceDto {
+    SourceDto {
+        brand: brand(source.service.brand.as_ref()),
+        name: source.service.name.clone(),
+        logo_url: None,
+        via: source.via.as_ref().map(|route| RouteDto {
+            brand: brand(route.service.brand.as_ref()),
+            name: route.service.name.clone(),
+            available: route.available,
+            logo_url: None,
+        }),
+    }
+}
+
+fn quality_dto(quality: &AudioQuality) -> QualityDto {
+    let (format, bitrate) = match &quality.measure {
+        QualityMeasure::Format(format) => (Some(format), None),
+        QualityMeasure::Bitrate { bits_per_second } => (None, Some(*bits_per_second)),
+    };
+    QualityDto {
+        label: quality.label(),
+        detail: quality.detail.clone(),
+        hi_res: quality.is_hi_res(),
+        codec: format.map(|f| f.codec.clone()),
+        bit_depth: format.map(|f| f.bit_depth),
+        sample_rate_hz: format.map(|f| f.sample_rate_hz),
+        bitrate,
     }
 }
 

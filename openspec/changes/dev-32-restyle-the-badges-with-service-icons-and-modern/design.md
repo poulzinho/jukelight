@@ -40,20 +40,26 @@ A brand is a short lowercase identifier (`qobuz`, `spotify`, `tidal`,
 `apple-music`, `deezer`, `navidrome`, `subsonic`, `library`, `plex`,
 `jellyfin`, `music-assistant`, `airplay`, `bluetooth`, `bluesound`,
 `hi-res`), the same as the logo's file name. In the domain it is a
-`Brand` newtype; the adapters map their vendor values to it. The source
-becomes `Source { brand: Option<Brand>, name, via: Option<Route> }` with
-`Route { brand: Option<Brand>, name, available }`; `Content.service`
-becomes a `Service { brand, name }`. The device snapshot gains its maker
-(`Option<Brand>`).
+`Brand` newtype; the adapters map their vendor values to it. A
+`Service { brand: Option<Brand>, name }` replaces `Content.service`'s plain
+name; the snapshot's `Source { service, via: Option<Route> }` has a
+`Route { service, available }`; `Origin::Service` gains its `brand`; the
+device and player snapshots gain the player's `maker` (`Option<Brand>`).
+Session providers may name their own brand (`SessionProvider::brand`,
+`None` by default; Music Assistant's is `music-assistant`).
 
 - Alternative: brand names as display text. Rejected: renamed providers
   and languages would break the mapping to logos.
 
 ### 2. Brand recognition per adapter
 
-- **MA:** by `domain`; `opensubsonic` is navidrome when the provider name
-  contains "navidrome" (case-insensitive), else subsonic; `builtin`,
-  `library` and `filesystem_*` are library. Unknown domains: no brand.
+- **MA:** by `domain` (the recorded fixtures confirm `qobuz` and
+  `opensubsonic`; the other domain names follow Music Assistant's provider
+  names and are unverified, where a wrong one only means the fallback
+  badge); `opensubsonic` is navidrome when the provider name
+  contains "navidrome" (case-insensitive), else subsonic; `filesystem_*`
+  is library. Unknown domains: no brand. MA's built-in provider still names
+  no service (the existing requirement), as it stands for MA itself.
 - **BluOS:** by service id (`Qobuz`, `QobuzConnect` → qobuz, …); the maker
   from `/SyncStatus` `brand` (`Bluesound` → bluesound; others no brand).
 - **Arbitration** builds the snapshot's source: the provider's service

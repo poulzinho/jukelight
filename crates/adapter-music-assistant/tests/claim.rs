@@ -10,6 +10,7 @@ const FLOW_URL: &str = "http://192.168.1.50:8097/flow/session1/aabbccddeeff/0000
 
 fn device(origin: Origin) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Living Room".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -47,6 +48,7 @@ fn stream_from_another_host() {
 fn service_session() {
     let rule = ClaimRule::new(MA_URL).unwrap();
     let origin = Origin::Service {
+        brand: None,
         id: "Qobuz".into(),
         name: "Qobuz".into(),
         cast: false,

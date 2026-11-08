@@ -222,6 +222,7 @@ fn offline(last: Option<&DeviceSnapshot>) -> DeviceSnapshot {
             ..snapshot.clone()
         },
         None => DeviceSnapshot {
+            maker: None,
             name: String::new(),
             player_key: String::new(),
             online: false,

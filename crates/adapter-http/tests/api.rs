@@ -12,13 +12,15 @@ use futures::FutureExt;
 use futures::future::BoxFuture;
 use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router, router_with_shutdown};
+use jukelight_application::testing::FakeProvider;
 use jukelight_application::{
     ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayController, DisplayHandle, Image,
     PlayerMonitor,
 };
 use jukelight_domain::{
-    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Content, DeviceSnapshot, InputKind, Origin,
-    Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Timestamp, Track,
+    ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
+    Origin, Palette, PlaybackState, Position, QueueEntry, QueueView, Rgb, Service, Timestamp,
+    Track,
 };
 use serde_json::Value;
 use tower::ServiceExt;
@@ -60,11 +62,13 @@ impl ArtworkSource for TestArtwork {
 
 fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
         state: PlaybackState::Playing,
         origin: Origin::Service {
+            brand: None,
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false,
@@ -174,6 +178,71 @@ async fn nothing_playing() {
     assert!(json["backdropUrl"].is_null());
     assert!(json["position"].is_null());
     assert!(json["queue"].is_null());
+}
+
+// Spec: published-api, "Source and device".
+
+#[tokio::test]
+async fn qobuz_through_music_assistant() {
+    let mut content = device("Example Song", 42, 1_000_000).content.unwrap();
+    content.service = Some(Service::new(Brand::new("qobuz"), "Qobuz"));
+    let provider =
+        FakeProvider::claiming("Music Assistant", Some(content)).with_brand("music-assistant");
+    let monitor = PlayerMonitor::new(vec![Arc::new(provider)]);
+    let mut player = device("Example Song", 42, 1_000_000);
+    player.origin = Origin::Stream {
+        url: "http://192.168.1.50:8097/flow/session1/aabbccddeeff/1.flac".into(),
+    };
+    player.maker = Brand::new("bluesound");
+    monitor.apply(&player);
+
+    let json = player_json(&app(&monitor)).await;
+    assert_eq!(
+        json["source"],
+        serde_json::json!({
+            "brand": "qobuz",
+            "name": "Qobuz",
+            "logoUrl": null,
+            "via": {
+                "brand": "music-assistant",
+                "name": "Music Assistant",
+                "available": true,
+                "logoUrl": null
+            }
+        })
+    );
+    assert_eq!(
+        json["device"],
+        serde_json::json!({"brand": "bluesound", "name": "Example Player", "logoUrl": null})
+    );
+}
+
+// Spec: published-api, "Quality details".
+
+#[tokio::test]
+async fn lossless() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    monitor.apply(&device("Example Song", 42, 1_000_000));
+    let quality = &player_json(&app(&monitor)).await["quality"];
+    assert_eq!(quality["codec"], "FLAC");
+    assert_eq!(quality["bitDepth"], 24);
+    assert_eq!(quality["sampleRateHz"], 96_000);
+    assert_eq!(quality.get("bitrate"), Some(&Value::Null));
+}
+
+#[tokio::test]
+async fn lossy() {
+    let monitor = PlayerMonitor::new(Vec::new());
+    let mut lossy = device("Example Song", 42, 1_000_000);
+    if let Some(content) = lossy.content.as_mut() {
+        content.quality = Some(AudioQuality::bitrate(160_000));
+    }
+    monitor.apply(&lossy);
+    let quality = &player_json(&app(&monitor)).await["quality"];
+    assert_eq!(quality["bitrate"], 160_000);
+    for field in ["codec", "bitDepth", "sampleRateHz"] {
+        assert_eq!(quality.get(field), Some(&Value::Null), "{field}");
+    }
 }
 
 // Spec: published-api, "Cover and backdrop URLs".

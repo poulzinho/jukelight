@@ -4,7 +4,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { Kiosk } from '../Kiosk'
 import type { Player } from '../api'
 import { loadImage } from '../loadImage'
-import { player } from '../test/fixtures'
+import { player, quality } from '../test/fixtures'
 
 vi.mock('../loadImage', () => ({ loadImage: vi.fn() }))
 
@@ -82,7 +82,7 @@ test('quality changes: only the badges change, nothing is rebuilt', () => {
   const before = cover('Example Album')
   const title = screen.getByRole('heading', { name: 'Example Song' })
 
-  update(player({ quality: { label: 'FLAC 24/96', detail: 'Hi-Res', hiRes: true } }))
+  update(player({ quality: quality('FLAC 24/96', 'Hi-Res', true) }))
   expect(screen.getByText('FLAC 24/96 · Hi-Res')).toBeInTheDocument()
   expect(cover('Example Album')).toBe(before)
   expect(screen.getByRole('heading', { name: 'Example Song' })).toBe(title)

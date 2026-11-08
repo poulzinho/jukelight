@@ -1,10 +1,10 @@
 ## 1. The source's brand (stack layer 1, DEV-33: domain, adapters, API)
 
-- [ ] 1.1 Domain: `Brand` (identifier alphabet), `Service { brand, name }` on the content, `Source { brand, name, via: Option<Route> }` on the snapshot, the device's maker; unit tests
-- [ ] 1.2 Write failing MA fixture tests "Renamed Qobuz provider", "Navidrome", "Another Subsonic server", "Local files" and "Unknown domain" (scrubbed fixture variants), then recognise the brand from the provider's domain
-- [ ] 1.3 Write failing BluOS fixture tests "Qobuz Connect", "Unknown service", "Bluesound player" and "Another BluOS maker", then map service ids to brands and read the maker from `/SyncStatus`
-- [ ] 1.4 Write failing application tests "Claimed by Music Assistant", "Music Assistant unreachable" and "Unclaimed service", then build the snapshot's source in arbitration
-- [ ] 1.5 Write failing HTTP tests "Qobuz through Music Assistant", "Lossless" and "Lossy", then publish `source`, `device` and the quality details (logo URLs still `null`); kiosk API types
+- [x] 1.1 Domain: `Brand` (identifier alphabet), `Service { brand, name }` on the content, `Source { brand, name, via: Option<Route> }` on the snapshot, the device's maker; unit tests
+- [x] 1.2 Write failing MA fixture tests "Renamed Qobuz provider", "Navidrome", "Another Subsonic server", "Local files" and "Unknown domain" (scrubbed fixture variants), then recognise the brand from the provider's domain
+- [x] 1.3 Write failing BluOS fixture tests "Qobuz Connect", "Unknown service", "Bluesound player" and "Another BluOS maker", then map service ids to brands and read the maker from `/SyncStatus`
+- [x] 1.4 Write failing application tests "Claimed by Music Assistant", "Music Assistant unreachable" and "Unclaimed service", then build the snapshot's source in arbitration
+- [x] 1.5 Write failing HTTP tests "Qobuz through Music Assistant", "Lossless" and "Lossy", then publish `source`, `device` and the quality details (logo URLs still `null`); kiosk API types
 - [ ] 1.6 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. User-supplied logos (stack layer 2, DEV-34: backend, compose, docs)

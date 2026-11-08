@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use futures::future::BoxFuture;
 use futures::stream::BoxStream;
-use jukelight_domain::{ArtworkRef, Content, DeviceSnapshot, Timestamp};
+use jukelight_domain::{ArtworkRef, Brand, Content, DeviceSnapshot, Timestamp};
 
 /// Follows one device and reports what it is doing.
 pub trait DeviceMonitor: Send + Sync + 'static {
@@ -14,6 +14,11 @@ pub trait DeviceMonitor: Send + Sync + 'static {
 pub trait SessionProvider: Send + Sync + 'static {
     /// Shown as the session label, e.g. "Music Assistant".
     fn label(&self) -> &str;
+
+    /// The provider's own brand, e.g. Music Assistant's, if it has one.
+    fn brand(&self) -> Option<Brand> {
+        None
+    }
 
     /// Whether this provider is driving the device. Decided from the
     /// provider's configuration and the device snapshot alone, without

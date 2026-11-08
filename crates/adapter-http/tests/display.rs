@@ -37,6 +37,7 @@ impl ArtworkSource for NoArtwork {
 
 fn device(state: PlaybackState) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,

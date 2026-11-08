@@ -5,9 +5,10 @@ The provider SHALL recognise the brand of the current item's music
 provider from the `domain` Music Assistant reports for the provider
 instance, not from its renameable name. A provider in the `opensubsonic`
 domain SHALL be Navidrome when its name contains "Navidrome" (in any
-case), and Subsonic otherwise. Music Assistant's built-in library and
-local file providers SHALL be the brand Library. A domain without a known
-brand SHALL have no brand; its name still names the service.
+case), and Subsonic otherwise. Providers of local files (domains
+`filesystem_*`) SHALL be the brand Library. A domain without a known brand
+SHALL have no brand; its name still names the service. As before, Music
+Assistant's built-in provider names no service.
 
 #### Scenario: Renamed Qobuz provider
 - **WHEN** the current item's provider is in the domain `qobuz` and Music Assistant names it "My Qobuz"

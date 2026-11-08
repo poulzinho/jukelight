@@ -9,8 +9,8 @@ use std::time::Duration;
 use jukelight_adapter_bluos::parse::{Identity, parse_playlist, parse_status, parse_sync_status};
 use jukelight_adapter_bluos::to_device_snapshot;
 use jukelight_domain::{
-    AudioInput, AudioQuality, DeviceSnapshot, InputKind, Origin, PlaybackState, QualityMeasure,
-    QueueView, Timestamp,
+    AudioInput, AudioQuality, Brand, DeviceSnapshot, InputKind, Origin, PlaybackState,
+    QualityMeasure, QueueView, Timestamp,
 };
 
 const BASE: &str = "http://192.168.1.40:11000";
@@ -47,6 +47,38 @@ fn identity_from_sync_status() {
     let identity = identity();
     assert_eq!(identity.name, "Example Player");
     assert_eq!(identity.player_key, "aabbccddeeff");
+}
+
+// Spec: device-bluos, "Player maker".
+
+#[test]
+fn bluesound_player() {
+    assert_eq!(identity().maker, Brand::new("bluesound"));
+    assert_eq!(
+        snapshot("qobuz-native-playing").maker,
+        Brand::new("bluesound")
+    );
+}
+
+#[test]
+fn another_bluos_maker() {
+    let xml = fixture("qobuz-native-playing", "syncstatus.xml")
+        .replace(r#"brand="Bluesound""#, r#"brand="Example Maker""#);
+    assert_eq!(parse_sync_status(&xml).unwrap().maker, None);
+}
+
+// Spec: device-bluos, "Service brand".
+
+#[test]
+fn unknown_service() {
+    let snapshot = inline_status(
+        "<service>ExampleService</service><serviceName>Example Service</serviceName><state>play</state>",
+    );
+    let Origin::Service { brand, name, .. } = snapshot.origin else {
+        panic!("not a service: {:?}", snapshot.origin)
+    };
+    assert_eq!(brand, None);
+    assert_eq!(name, "Example Service");
 }
 
 // Playback state mapping
@@ -111,6 +143,7 @@ fn cast_service() {
     assert_eq!(
         snapshot("spotify-connect-playing").origin,
         Origin::Service {
+            brand: Brand::new("spotify"),
             id: "Spotify".into(),
             name: "Spotify".into(),
             cast: true
@@ -119,6 +152,7 @@ fn cast_service() {
     assert_eq!(
         snapshot("qobuz-connect-playing").origin,
         Origin::Service {
+            brand: Brand::new("qobuz"),
             id: "QobuzConnect".into(),
             name: "Qobuz Connect".into(),
             cast: true
@@ -131,6 +165,7 @@ fn native_service() {
     assert_eq!(
         snapshot("qobuz-native-playing").origin,
         Origin::Service {
+            brand: Brand::new("qobuz"),
             id: "Qobuz".into(),
             name: "Qobuz".into(),
             cast: false

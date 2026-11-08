@@ -7,8 +7,8 @@ use std::sync::Arc;
 use jukelight_application::testing::FakeProvider;
 use jukelight_application::{SessionProvider, arbitrate};
 use jukelight_domain::{
-    AudioInput, Content, DeviceSnapshot, InputKind, Origin, PlaybackState, QueueView, Timestamp,
-    Track,
+    AudioInput, Brand, Content, DeviceSnapshot, InputKind, Origin, PlaybackState, QueueView, Route,
+    Service, Source, Timestamp, Track,
 };
 
 fn content(title: &str) -> Content {
@@ -29,6 +29,7 @@ fn content(title: &str) -> Content {
 
 fn device(origin: Origin, state: PlaybackState, title: &str) -> DeviceSnapshot {
     DeviceSnapshot {
+        maker: None,
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -97,6 +98,7 @@ fn provider_down() {
 #[test]
 fn native_service() {
     let origin = Origin::Service {
+        brand: None,
         id: "Qobuz".into(),
         name: "Qobuz".into(),
         cast: false,
@@ -154,7 +156,7 @@ fn claim_while_the_provider_is_down() {
 #[test]
 fn provider_names_the_music_service() {
     let mut named = content("Provider Song");
-    named.service = Some("Example Service".into());
+    named.service = Some(Service::new(None, "Example Service"));
     let provider = FakeProvider::claiming("Example Provider", Some(named));
     let snapshot = arbitrate(
         &device(stream(), PlaybackState::Playing, "x"),
@@ -207,4 +209,101 @@ fn input_kind_labels() {
 fn other_origins_have_no_input() {
     let snapshot = arbitrate(&device(stream(), PlaybackState::Playing, "Song"), &[]);
     assert_eq!(snapshot.input, None);
+}
+
+// Spec: session-arbitration, "Source of the session".
+mod source_of_the_session {
+    use super::*;
+
+    fn service(brand: &str, name: &str) -> Service {
+        Service::new(Brand::new(brand), name)
+    }
+
+    #[test]
+    fn claimed_by_music_assistant() {
+        let mut named = content("Provider Song");
+        named.service = Some(service("qobuz", "Qobuz"));
+        let provider =
+            FakeProvider::claiming("Music Assistant", Some(named)).with_brand("music-assistant");
+        let snapshot = arbitrate(
+            &device(stream(), PlaybackState::Playing, "x"),
+            &providers(vec![provider]),
+        );
+
+        assert_eq!(
+            snapshot.source,
+            Some(Source {
+                service: service("qobuz", "Qobuz"),
+                via: Some(Route {
+                    service: service("music-assistant", "Music Assistant"),
+                    available: true,
+                }),
+            })
+        );
+    }
+
+    #[test]
+    fn music_assistant_alone() {
+        let provider = FakeProvider::claiming("Music Assistant", Some(content("Library Song")))
+            .with_brand("music-assistant");
+        let snapshot = arbitrate(
+            &device(stream(), PlaybackState::Playing, "x"),
+            &providers(vec![provider]),
+        );
+
+        assert_eq!(
+            snapshot.source,
+            Some(Source {
+                service: service("music-assistant", "Music Assistant"),
+                via: None,
+            })
+        );
+    }
+
+    #[test]
+    fn music_assistant_unreachable() {
+        let provider =
+            FakeProvider::claiming("Music Assistant", None).with_brand("music-assistant");
+        let snapshot = arbitrate(
+            &device(stream(), PlaybackState::Playing, "x"),
+            &providers(vec![provider]),
+        );
+
+        assert_eq!(
+            snapshot.source,
+            Some(Source {
+                service: service("music-assistant", "Music Assistant"),
+                via: Some(Route {
+                    service: service("music-assistant", "Music Assistant"),
+                    available: false,
+                }),
+            })
+        );
+    }
+
+    #[test]
+    fn unclaimed_service() {
+        let origin = Origin::Service {
+            id: "Spotify".into(),
+            name: "Spotify".into(),
+            cast: true,
+            brand: Brand::new("spotify"),
+        };
+        let snapshot = arbitrate(&device(origin, PlaybackState::Playing, "x"), &[]);
+
+        assert_eq!(
+            snapshot.source,
+            Some(Source {
+                service: service("spotify", "Spotify"),
+                via: None,
+            })
+        );
+    }
+
+    #[test]
+    fn the_players_maker_is_carried() {
+        let mut bluesound = device(stream(), PlaybackState::Playing, "x");
+        bluesound.maker = Brand::new("bluesound");
+        assert_eq!(arbitrate(&bluesound, &[]).maker, Brand::new("bluesound"));
+    }
 }
