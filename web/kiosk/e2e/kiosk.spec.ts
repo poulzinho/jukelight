@@ -425,6 +425,20 @@ test.describe('signal path', () => {
       await expect.poll(delays, { timeout: 10_000, intervals: [50] }).toEqual([[0], [2000]])
     })
 
+    test('the pulse moves in steps, about 15 a second', async ({ page }) => {
+      await open(page, 'music-assistant')
+      await expect(page.getByTestId('pulse')).toHaveCount(2)
+      const easings = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('[data-pulse]')].flatMap((part) =>
+            // A CSS animation's timing function sits on its keyframes.
+            part.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getKeyframes()[0]?.easing),
+          ),
+        )
+      // Two waves, each with its pulse and its arrival port.
+      await expect.poll(easings, { timeout: 10_000, intervals: [50] }).toEqual(Array(4).fill('steps(33)'))
+    })
+
     test('between pulses no animation runs', async ({ page }) => {
       await expect.poll(async () => (await animated(page)).length, { timeout: 10_000 }).toBe(0)
     })
