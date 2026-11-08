@@ -11,6 +11,6 @@ pub use arbiter::arbitrate;
 pub use display::{DisplayController, DisplayHandle};
 pub use monitor::{PlayerHandle, PlayerMonitor};
 pub use ports::{
-    ArtworkError, ArtworkId, ArtworkSource, Clock, DeviceMonitor, Image, SessionProvider,
-    SystemClock,
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, Clock, DeviceMonitor, Image,
+    SessionProvider, SystemClock,
 };

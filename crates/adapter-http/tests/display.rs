@@ -13,7 +13,8 @@ use futures::future::BoxFuture;
 use http_body_util::BodyExt;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
 use jukelight_application::{
-    ArtworkError, ArtworkId, ArtworkSource, DisplayController, Image, PlayerMonitor, SystemClock,
+    ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, DisplayController, Image, PlayerMonitor,
+    SystemClock,
 };
 use jukelight_domain::{ArtworkRef, DeviceSnapshot, DisplayPolicy, Origin, PlaybackState};
 use tokio::sync::watch;
@@ -25,7 +26,11 @@ impl ArtworkSource for NoArtwork {
     fn issue(&self, _: &ArtworkRef) -> ArtworkId {
         ArtworkId::new("none")
     }
-    fn fetch(&self, _: &ArtworkId) -> BoxFuture<'static, Result<Image, ArtworkError>> {
+    fn fetch(
+        &self,
+        _: &ArtworkId,
+        _: ArtworkSize,
+    ) -> BoxFuture<'static, Result<Image, ArtworkError>> {
         async { Err(ArtworkError::Unknown) }.boxed()
     }
 }

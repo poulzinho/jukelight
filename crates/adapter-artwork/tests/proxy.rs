@@ -10,7 +10,7 @@ use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Redirect};
 use axum::routing::get;
 use jukelight_adapter_artwork::ArtworkProxy;
-use jukelight_application::{ArtworkError, ArtworkId, ArtworkSource};
+use jukelight_application::{ArtworkError, ArtworkId, ArtworkSize, ArtworkSource};
 use jukelight_domain::ArtworkRef;
 
 const JPEG: &[u8] = &[0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3];
@@ -81,7 +81,7 @@ async fn issued_id_returns_the_image() {
     let proxy = ArtworkProxy::new();
     let id = proxy.issue(&ArtworkRef::new(format!("{base}/cover.jpg")));
 
-    let image = proxy.fetch(&id).await.unwrap();
+    let image = proxy.fetch(&id, ArtworkSize::Original).await.unwrap();
     assert_eq!(image.content_type, "image/jpeg");
     assert_eq!(image.bytes, JPEG);
 }
@@ -91,7 +91,9 @@ async fn unknown_id_makes_no_request() {
     let (_, hits) = source().await;
     let proxy = ArtworkProxy::new();
 
-    let result = proxy.fetch(&ArtworkId::new("0000000000000000")).await;
+    let result = proxy
+        .fetch(&ArtworkId::new("0000000000000000"), ArtworkSize::Original)
+        .await;
     assert_eq!(result, Err(ArtworkError::Unknown));
     assert_eq!(hits.load(Ordering::SeqCst), 0);
 }
@@ -102,7 +104,10 @@ async fn redirecting_source() {
     let proxy = ArtworkProxy::new();
     let id = proxy.issue(&ArtworkRef::new(format!("{base}/moved")));
 
-    assert_eq!(proxy.fetch(&id).await.unwrap().bytes, JPEG);
+    assert_eq!(
+        proxy.fetch(&id, ArtworkSize::Original).await.unwrap().bytes,
+        JPEG
+    );
 }
 
 #[tokio::test]
@@ -113,11 +118,11 @@ async fn source_fails() {
     let unreachable = proxy.issue(&ArtworkRef::new("http://127.0.0.1:1/cover.jpg"));
 
     assert!(matches!(
-        proxy.fetch(&broken).await,
+        proxy.fetch(&broken, ArtworkSize::Original).await,
         Err(ArtworkError::Source(_))
     ));
     assert!(matches!(
-        proxy.fetch(&unreachable).await,
+        proxy.fetch(&unreachable, ArtworkSize::Original).await,
         Err(ArtworkError::Source(_))
     ));
 }
@@ -128,8 +133,8 @@ async fn second_request_uses_the_cache() {
     let proxy = ArtworkProxy::new();
     let id = proxy.issue(&ArtworkRef::new(format!("{base}/cover.jpg")));
 
-    proxy.fetch(&id).await.unwrap();
-    proxy.fetch(&id).await.unwrap();
+    proxy.fetch(&id, ArtworkSize::Original).await.unwrap();
+    proxy.fetch(&id, ArtworkSize::Original).await.unwrap();
     assert_eq!(hits.load(Ordering::SeqCst), 1);
 }
 
@@ -141,10 +146,10 @@ async fn cache_is_bounded() {
         .map(|n| proxy.issue(&ArtworkRef::new(format!("{base}/cover.jpg?n={n}"))))
         .collect();
     for id in &ids {
-        proxy.fetch(id).await.unwrap();
+        proxy.fetch(id, ArtworkSize::Original).await.unwrap();
     }
     // The first image was evicted, so fetching it contacts the source again.
-    proxy.fetch(&ids[0]).await.unwrap();
+    proxy.fetch(&ids[0], ArtworkSize::Original).await.unwrap();
     assert_eq!(hits.load(Ordering::SeqCst), 4);
 }
 
@@ -154,7 +159,154 @@ async fn data_url_source() {
     // "<svg/>" in base64.
     let id = proxy.issue(&ArtworkRef::new("data:image/svg+xml;base64,PHN2Zy8+"));
 
-    let image = proxy.fetch(&id).await.unwrap();
+    let image = proxy.fetch(&id, ArtworkSize::Original).await.unwrap();
     assert_eq!(image.content_type, "image/svg+xml");
     assert_eq!(image.bytes, b"<svg/>");
+}
+
+// Spec: artwork, "Large covers". The CDNs' hosts point at a local test
+// server; the URL rules themselves are pinned by the unit tests in lib.rs.
+
+const SMALL: &[u8] = &[0xFF, 0xD8, 0xFF, 0xE0, 6, 0, 0];
+const LARGE: &[u8] = &[0xFF, 0xD8, 0xFF, 0xE0, 9, 9, 9];
+const SPOTIFY_ID: &str = "1234567890abcdef12345678";
+
+/// A stand-in for the Qobuz and Spotify CDNs, and a player that redirects
+/// to them. Returns its address as `host:port`.
+async fn cdn() -> String {
+    let jpeg = |bytes: &'static [u8]| {
+        move || async move { ([(header::CONTENT_TYPE, "image/jpeg")], bytes).into_response() }
+    };
+    let app = Router::new()
+        .route("/images/covers/ab/cd/abcdef_600.jpg", get(jpeg(SMALL)))
+        .route("/images/covers/ab/cd/abcdef_max.jpg", get(jpeg(LARGE)))
+        .route("/images/covers/ef/gh/nomax_600.jpg", get(jpeg(SMALL)))
+        .route(
+            &format!("/image/ab67616d0000b273{SPOTIFY_ID}"),
+            get(jpeg(SMALL)),
+        )
+        .route(
+            &format!("/image/ab67616d000082c1{SPOTIFY_ID}"),
+            get(jpeg(LARGE)),
+        )
+        .route("/plain.jpg", get(jpeg(SMALL)))
+        .route(
+            "/Artwork",
+            get(|| async { Redirect::temporary("/images/covers/ab/cd/abcdef_600.jpg") }),
+        );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let host = format!("127.0.0.1:{}", listener.local_addr().unwrap().port());
+    tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    host
+}
+
+async fn large(host: &str, path: &str) -> Vec<u8> {
+    let proxy = ArtworkProxy::new().with_cdn_hosts(host, host);
+    let id = proxy.issue(&ArtworkRef::new(format!("http://{host}{path}")));
+    proxy.fetch(&id, ArtworkSize::Large).await.unwrap().bytes
+}
+
+#[tokio::test]
+async fn qobuz_cover_after_a_redirect() {
+    let host = cdn().await;
+    assert_eq!(large(&host, "/Artwork?songid=1").await, LARGE);
+}
+
+#[tokio::test]
+async fn spotify_cover() {
+    let host = cdn().await;
+    assert_eq!(
+        large(&host, &format!("/image/ab67616d0000b273{SPOTIFY_ID}")).await,
+        LARGE
+    );
+}
+
+#[tokio::test]
+async fn larger_version_missing() {
+    let host = cdn().await;
+    assert_eq!(
+        large(&host, "/images/covers/ef/gh/nomax_600.jpg").await,
+        SMALL
+    );
+}
+
+#[tokio::test]
+async fn unknown_source() {
+    let host = cdn().await;
+    assert_eq!(large(&host, "/plain.jpg").await, SMALL);
+}
+
+#[tokio::test]
+async fn original_stays_original() {
+    let host = cdn().await;
+    let proxy = ArtworkProxy::new().with_cdn_hosts(&host, &host);
+    let id = proxy.issue(&ArtworkRef::new(format!("http://{host}/Artwork?songid=1")));
+    assert_eq!(
+        proxy.fetch(&id, ArtworkSize::Original).await.unwrap().bytes,
+        SMALL
+    );
+}
+
+// Spec: artwork, "Backdrop image".
+
+/// A 600 by 600 pixel PNG.
+fn cover_png() -> Vec<u8> {
+    let cover = image::RgbImage::from_fn(600, 600, |x, y| {
+        image::Rgb([
+            u8::try_from(x % 256).unwrap(),
+            u8::try_from(y % 256).unwrap(),
+            128,
+        ])
+    });
+    let mut png = Vec::new();
+    cover
+        .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
+        .unwrap();
+    png
+}
+
+async fn serve_once(content_type: &'static str, bytes: Vec<u8>) -> String {
+    let app = Router::new().route(
+        "/cover",
+        get(move || {
+            let bytes = bytes.clone();
+            async move { ([(header::CONTENT_TYPE, content_type)], bytes).into_response() }
+        }),
+    );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!(
+        "http://127.0.0.1:{}/cover",
+        listener.local_addr().unwrap().port()
+    );
+    tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    url
+}
+
+#[tokio::test]
+async fn backdrop_of_a_cover() {
+    let url = serve_once("image/png", cover_png()).await;
+    let proxy = ArtworkProxy::new();
+    let id = proxy.issue(&ArtworkRef::new(url));
+
+    let backdrop = proxy.fetch(&id, ArtworkSize::Backdrop).await.unwrap();
+    assert_eq!(backdrop.content_type, "image/png");
+    let decoded = image::load_from_memory(&backdrop.bytes).unwrap();
+    assert!(
+        decoded.width() <= 32 && decoded.height() <= 32,
+        "{}x{}",
+        decoded.width(),
+        decoded.height()
+    );
+}
+
+#[tokio::test]
+async fn backdrop_of_something_that_is_not_an_image() {
+    let url = serve_once("image/jpeg", JPEG.to_vec()).await;
+    let proxy = ArtworkProxy::new();
+    let id = proxy.issue(&ArtworkRef::new(url));
+
+    assert!(matches!(
+        proxy.fetch(&id, ArtworkSize::Backdrop).await,
+        Err(ArtworkError::Source(_))
+    ));
 }

@@ -87,7 +87,7 @@ async fn playing_with_queue() {
             .artwork
             .unwrap()
             .source()
-            .starts_with("data:image/svg+xml;base64,")
+            .starts_with("data:image/png;base64,")
     );
     let QueueView::Available(entries) = content.queue else {
         panic!("queue expected")

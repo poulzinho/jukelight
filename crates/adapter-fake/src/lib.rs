@@ -107,7 +107,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 artists: vec!["Example Artist".into()],
                 album: Some("Example Album".into()),
             },
-            artwork: Some(cover("Example Album", 210)),
+            artwork: cover(210),
             position: Some(Position {
                 elapsed: Duration::from_secs(42),
                 duration: Some(Duration::from_secs(214)),
@@ -133,7 +133,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 .map(|title| QueueEntry {
                     title: (*title).into(),
                     artists: vec!["Example Artist".into()],
-                    artwork: Some(cover("Example Album", 210)),
+                    artwork: cover(210),
                 })
                 .collect(),
             ),
@@ -151,7 +151,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 cast: true,
             };
             content.track.title = "Cast Song".into();
-            content.artwork = Some(cover("Cast Album", 140));
+            content.artwork = cover(140);
             content.quality = Some(AudioQuality::bitrate(160_000));
             content.queue = QueueView::NotApplicable;
         }
@@ -174,10 +174,10 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 bit_depth: 24,
                 sample_rate_hz: 96_000,
             }));
-            content.artwork = Some(cover("Hi-Res Album", 30));
+            content.artwork = cover(30);
         }
         ("album-colours", Some(content)) => {
-            content.artwork = Some(cover("Colour Album", 20));
+            content.artwork = cover(20);
             content.palette = Some(Palette {
                 background: Rgb(73, 51, 38),
                 accent: Rgb(209, 147, 108),
@@ -203,16 +203,50 @@ fn optical_input(clock: &dyn Clock) -> Origin {
     })
 }
 
-/// A generated square cover: a gradient with the initials of `title`.
-fn cover(title: &str, hue: u16) -> ArtworkRef {
-    let initials: String = title
-        .split_whitespace()
-        .take(2)
-        .filter_map(|w| w.chars().next())
-        .collect();
-    let svg = format!(
-        r#"<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl({hue},65%,55%)"/><stop offset="1" stop-color="hsl({},60%,25%)"/></linearGradient></defs><rect width="1000" height="1000" fill="url(#g)"/><text x="500" y="560" font-family="sans-serif" font-size="260" font-weight="700" fill="rgba(255,255,255,0.85)" text-anchor="middle">{initials}</text></svg>"#,
-        (hue + 40) % 360
-    );
-    ArtworkRef::new(format!("data:image/svg+xml;base64,{}", BASE64.encode(svg)))
+/// A generated square cover: a diagonal gradient around `hue`, as a PNG data
+/// URL. A raster image, so the backdrop can be made from it too. `None` if
+/// it can't be encoded: no cover rather than an empty image.
+fn cover(hue: u16) -> Option<ArtworkRef> {
+    const SIZE: u32 = 256;
+    let from = hsl(hue, 0.65, 0.55);
+    let to = hsl((hue + 40) % 360, 0.60, 0.25);
+    let image = image::RgbImage::from_fn(SIZE, SIZE, |x, y| {
+        let t = f64::from(x + y) / f64::from(2 * (SIZE - 1));
+        image::Rgb(std::array::from_fn(|i| {
+            let value = f64::from(from[i]) + (f64::from(to[i]) - f64::from(from[i])) * t;
+            // The mix of two bytes stays a byte.
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let byte = value.round().clamp(0.0, 255.0) as u8;
+            byte
+        }))
+    });
+    let mut png = Vec::new();
+    image
+        .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
+        .ok()?;
+    Some(ArtworkRef::new(format!(
+        "data:image/png;base64,{}",
+        BASE64.encode(png)
+    )))
+}
+
+/// An HSL colour (hue in degrees, saturation and lightness from 0 to 1) as RGB.
+fn hsl(hue: u16, saturation: f64, lightness: f64) -> [u8; 3] {
+    let chroma = (1.0 - (2.0 * lightness - 1.0).abs()) * saturation;
+    let sector = f64::from(hue) / 60.0;
+    let second = chroma * (1.0 - (sector % 2.0 - 1.0).abs());
+    let (r, g, b) = match hue / 60 {
+        0 => (chroma, second, 0.0),
+        1 => (second, chroma, 0.0),
+        2 => (0.0, chroma, second),
+        3 => (0.0, second, chroma),
+        4 => (second, 0.0, chroma),
+        _ => (chroma, 0.0, second),
+    };
+    let offset = lightness - chroma / 2.0;
+    [r, g, b].map(|channel| {
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let byte = ((channel + offset) * 255.0).round().clamp(0.0, 255.0) as u8;
+        byte
+    })
 }

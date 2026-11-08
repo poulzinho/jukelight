@@ -8,7 +8,10 @@ export interface Player {
   state: PlaybackState
   session: { label: string; available: boolean }
   track: { title: string; artists: string[]; album: string | null } | null
+  /** The large version of the track's cover. */
   artUrl: string | null
+  /** A tiny version of the same cover, to stretch over the screen. */
+  backdropUrl: string | null
   /** `elapsed` and `duration` in seconds, `observedAt` in epoch milliseconds. */
   position: { elapsed: number; duration: number | null; observedAt: number } | null
   quality: { label: string; detail: string | null; hiRes: boolean } | null

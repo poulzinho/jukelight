@@ -77,8 +77,23 @@ pub enum ArtworkError {
     Source(String),
 }
 
+/// Which version of an image to serve.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ArtworkSize {
+    /// As the source has it, for example for queue thumbnails.
+    Original,
+    /// The largest version the source offers, for the track's cover.
+    Large,
+    /// A tiny version, stretched over the screen as a blurred backdrop.
+    Backdrop,
+}
+
 /// Issues opaque artwork ids and serves the images behind them.
 pub trait ArtworkSource: Send + Sync + 'static {
     fn issue(&self, artwork: &ArtworkRef) -> ArtworkId;
-    fn fetch(&self, id: &ArtworkId) -> BoxFuture<'static, Result<Image, ArtworkError>>;
+    fn fetch(
+        &self,
+        id: &ArtworkId,
+        size: ArtworkSize,
+    ) -> BoxFuture<'static, Result<Image, ArtworkError>>;
 }
