@@ -108,6 +108,11 @@ a pulse is a one-off animation (1.6 s), started by a timer every 4 s: the
 band and the port's core remount with a new key. Between pulses no
 animation runs, and Chrome can stop drawing.
 
+A pulse takes 1.3 s per wave. On the second wave it starts 1.2 s later,
+as the first one arrives (an `animation-delay`), so one pulse travels the
+whole path in 2.5 s and rests for 1.5 s (acceptance finding: the waves
+must not light up at the same time).
+
 - *Alternative:* an infinite animation whose keyframes hold still for the
   rest. Rejected: Chrome keeps drawing while any animation is active, even
   when its values don't change.

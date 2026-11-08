@@ -72,8 +72,10 @@ SHALL show "quality not reported" when the class is unknown.
 - **THEN** the box shows "quality not reported"
 
 ### Requirement: Wave motion
-Pulses of light SHALL run along each wave towards the end, one every 4
-seconds, and the arrival port SHALL light up as each pulse arrives.
+A pulse of light SHALL run towards the end every 4 seconds, and each
+arrival port SHALL light up as the pulse arrives. With a route, the pulse
+SHALL run along the first wave and, as it arrives, go on along the second,
+so the light travels from the source to the sound box.
 Between pulses no animation SHALL run in the signal path, so the browser
 can stop drawing frames. The motion SHALL use only transform and opacity. With reduced motion, while paused, and on an
 unavailable route, the waves SHALL stand still, with no pulses.
@@ -81,6 +83,10 @@ unavailable route, the waves SHALL stand still, with no pulses.
 #### Scenario: Playing
 - **WHEN** a track plays
 - **THEN** the pulses move towards the sound box
+
+#### Scenario: From one end to the other
+- **WHEN** a track plays through Music Assistant
+- **THEN** the pulse on the second wave starts as the pulse on the first wave arrives
 
 #### Scenario: Between pulses
 - **WHEN** a pulse has reached the end and the next one is not due yet
