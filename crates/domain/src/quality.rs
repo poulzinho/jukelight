@@ -153,10 +153,11 @@ pub fn signal_class(source: Option<&AudioQuality>, delivery: Option<&Delivery>) 
     let Some(source) = source else {
         return QualityClass::Unknown;
     };
-    let delivered = delivery
-        .and_then(|delivery| delivery.quality.as_ref())
-        .map_or(QualityClass::HiRes, AudioQuality::class);
-    source.class().min(delivered)
+    let source_class = source.class();
+    match delivery.and_then(|delivery| delivery.quality.as_ref()) {
+        Some(delivered) => source_class.min(delivered.class()),
+        None => source_class,
+    }
 }
 
 /// 96000 -> "96", 44100 -> "44.1", 22050 -> "22.05".
