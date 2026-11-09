@@ -199,18 +199,50 @@ test('paused: no pulse', () => {
   expect(within(path()).queryAllByTestId('pulse')).toHaveLength(0)
 })
 
-test('one pulse every 8 seconds, each a new one-off animation', () => {
+// "Wave motion": one pulse when something changes, none while nothing does.
+
+function playing(overrides: Partial<Player> = {}) {
+  return <Kiosk player={player({ signal: signal(), ...overrides })} connection="live" clockOffsetMs={0} />
+}
+
+test('playing: a track starts with one pulse', () => {
+  render(playing())
+  expect(within(path()).getByTestId('pulse')).toBeInTheDocument()
+})
+
+test('nothing changes: no further pulse for a minute', () => {
   vi.useFakeTimers()
   try {
-    show({ signal: signal() })
+    const { rerender } = render(playing())
     const first = within(path()).getByTestId('pulse')
-    act(() => vi.advanceTimersByTime(7_900))
+    act(() => vi.advanceTimersByTime(60_000))
+    // A new snapshot with the same content changes nothing.
+    rerender(playing({ position: { elapsed: 120, duration: 200, observedAt: 1_060_000 } }))
     expect(within(path()).getByTestId('pulse')).toBe(first)
-    act(() => vi.advanceTimersByTime(200))
-    expect(within(path()).getByTestId('pulse')).not.toBe(first)
   } finally {
     vi.useRealTimers()
   }
+})
+
+test('quality changes: one new pulse', () => {
+  const { rerender } = render(playing())
+  const first = within(path()).getByTestId('pulse')
+  rerender(playing({ signal: signal({ delivered: quality('FLAC 24/96', null, true), changes: [{ kind: 'dsp' }] }) }))
+  expect(within(path()).getByTestId('pulse')).not.toBe(first)
+})
+
+test('a new track: one new pulse', () => {
+  const { rerender } = render(playing())
+  const first = within(path()).getByTestId('pulse')
+  rerender(playing({ track: { title: 'Next Song', artists: ['Example Artist'], album: 'Example Album' } }))
+  expect(within(path()).getByTestId('pulse')).not.toBe(first)
+})
+
+test('playback resumes: one pulse', () => {
+  const { rerender } = render(playing({ state: 'paused' }))
+  expect(within(path()).queryByTestId('pulse')).toBeNull()
+  rerender(playing())
+  expect(within(path()).getByTestId('pulse')).toBeInTheDocument()
 })
 
 test('from one end to the other: the second wave starts as the first pulse arrives', () => {

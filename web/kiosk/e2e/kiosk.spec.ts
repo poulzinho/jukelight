@@ -439,8 +439,14 @@ test.describe('signal path', () => {
       await expect.poll(easings, { timeout: 10_000, intervals: [50] }).toEqual(Array(4).fill('steps(33)'))
     })
 
-    test('between pulses no animation runs', async ({ page }) => {
+    test('between pulses: after the first pulse nothing animates while nothing changes', async ({ page }) => {
+      test.setTimeout(30_000)
       await expect.poll(async () => (await animated(page)).length, { timeout: 10_000 }).toBe(0)
+      // No timer starts another one.
+      for (let second = 0; second < 10; second++) {
+        await page.waitForTimeout(1_000)
+        expect(await animated(page)).toEqual([])
+      }
     })
   })
 })
