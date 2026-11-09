@@ -42,9 +42,9 @@
   /* One turn every 24 s: calm, not a loading spinner. */
   --animate-disc: disc-turn 24s linear infinite;
   /* A pulse of light runs once along a wave to the end; the arrival port
-     lights up as it arrives (92 % of the run). The signal path starts the
-     next pulse, and relays it to the second wave; in between nothing
-     animates. Both move in 33 steps (about 15 a second), so the browser
+     lights up as it arrives (92 % of the run). The signal path runs a
+     pulse when something changes, and relays it to the second wave; in
+     between nothing animates. Both move in 33 steps (about 15 a second), so the browser
      draws about 15 frames a second while a pulse runs instead of 60. */
   --animate-signal-pulse: signal-pulse 2.2s steps(33);
   --animate-signal-arrive: signal-arrive 2.2s steps(33);

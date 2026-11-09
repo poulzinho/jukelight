@@ -16,8 +16,21 @@ export function SignalPath({ player }: { player: Player }) {
   const { source, signal } = player
   const level = useGiveWay(row, box, signal ? soundText(signal).join('|') : '')
   const moving = Boolean(signal) && player.state !== 'paused' && (!player.source?.via || player.source.via.available)
-  const beat = useBeat(moving)
   if (!signal) return null
+  // One pulse for each new thing to show: a new key remounts the pulses,
+  // which runs their one-off animation once. JSON keeps the parts apart
+  // whatever characters they contain.
+  const pulse = JSON.stringify([
+    player.track?.title,
+    player.track?.artists,
+    source?.brand,
+    source?.name,
+    source?.via?.brand,
+    source?.via?.name,
+    source?.via?.available,
+    signal.class,
+    soundText(signal),
+  ])
 
   const via = source?.via ?? null
   // When the route can't be reached and is itself the source, its node says it all.
@@ -37,14 +50,14 @@ export function SignalPath({ player }: { player: Player }) {
       className="mt-[1.6vmin] flex items-center gap-[0.4em] overflow-hidden whitespace-nowrap text-signal"
     >
       {source && <Node service={source} unavailable={Boolean(routeIsSource)} route={Boolean(routeIsSource)} />}
-      <Wave shade="main" moving={moving} beat={beat} delayMs={0} label={known ? sourceLabel(signal.source) : null} />
+      <Wave shade="main" moving={moving} pulse={pulse} delayMs={0} label={known ? sourceLabel(signal.source) : null} />
       {route && (
         <>
           <Node service={route} unavailable={!route.available} route iconOnly={level >= 2} />
           <Wave
             shade="soft"
             moving={moving}
-            beat={beat}
+            pulse={pulse}
             delayMs={RELAY_MS}
             label={known && route.available ? deliveredLabel(signal) : null}
           />
@@ -94,27 +107,10 @@ function Node({
 }
 
 /**
- * A new pulse every 8 seconds. It takes 2.2 s along each wave and goes on
- * along the second wave as it arrives at the route, so it travels the whole
- * path; then nothing animates until the next one.
+ * The pulse takes 2.2 s along each wave and goes on along the second wave
+ * as it arrives at the route (after 2 s), so it travels the whole path.
  */
-const PULSE_EVERY_MS = 8_000
 const RELAY_MS = 2_000
-
-/**
- * Counts pulses while the waves may move. Each count remounts the pulses,
- * which starts their one-off animation again; between pulses no animation
- * runs, so the browser can stop drawing frames.
- */
-function useBeat(moving: boolean): number {
-  const [beat, setBeat] = useState(0)
-  useEffect(() => {
-    if (!moving) return
-    const timer = setInterval(() => setBeat((count) => count + 1), PULSE_EVERY_MS)
-    return () => clearInterval(timer)
-  }, [moving])
-  return beat
-}
 
 /**
  * A calm wave between two ports. While the music plays, a pulse of light
@@ -125,13 +121,14 @@ function useBeat(moving: boolean): number {
 function Wave({
   shade,
   moving,
-  beat,
+  pulse,
   delayMs,
   label,
 }: {
   shade: 'main' | 'soft'
   moving: boolean
-  beat: number
+  /** What the pulse is about: a new value runs the pulse once. */
+  pulse: string
   /** When this wave's pulse starts, after the pulse's start on the first wave. */
   delayMs: number
   label: WaveLabel | null
@@ -189,7 +186,7 @@ function Wave({
         <div className="signal-wave absolute inset-y-0 right-[1.6vmin] left-[0.9vmin] overflow-hidden bg-linear-to-r from-(--wave)/25 to-(--wave)">
           {moving && (
             <span
-              key={beat}
+              key={pulse}
               data-testid="pulse"
               data-pulse
               style={{ animationDelay: `${delayMs}ms` }}
@@ -199,7 +196,7 @@ function Wave({
         </div>
         <span className="absolute top-1/2 right-0 size-[1.6vmin] -translate-y-1/2 rounded-full border-[0.2vmin] border-(--wave) bg-black/60 shadow-[0_0_0.9vmin_var(--wave)]">
           <span
-            key={beat}
+            key={pulse}
             data-pulse={moving || undefined}
             style={moving ? { animationDelay: `${delayMs}ms` } : undefined}
             className={`absolute inset-[0.2vmin] rounded-full bg-(--wave) opacity-50 ${moving ? 'motion-safe:animate-signal-arrive' : ''}`}
