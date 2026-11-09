@@ -18,18 +18,19 @@ export function SignalPath({ player }: { player: Player }) {
   const moving = Boolean(signal) && player.state !== 'paused' && (!player.source?.via || player.source.via.available)
   if (!signal) return null
   // One pulse for each new thing to show: a new key remounts the pulses,
-  // which runs their one-off animation once.
-  const pulse = [
+  // which runs their one-off animation once. JSON keeps the parts apart
+  // whatever characters they contain.
+  const pulse = JSON.stringify([
     player.track?.title,
-    player.track?.artists.join(', '),
+    player.track?.artists,
     source?.brand,
     source?.name,
     source?.via?.brand,
     source?.via?.name,
     source?.via?.available,
     signal.class,
-    ...soundText(signal),
-  ].join('|')
+    soundText(signal),
+  ])
 
   const via = source?.via ?? null
   // When the route can't be reached and is itself the source, its node says it all.

@@ -238,6 +238,25 @@ test('a new track: one new pulse', () => {
   expect(within(path()).getByTestId('pulse')).not.toBe(first)
 })
 
+test('the source or the route changes: one new pulse', () => {
+  const { rerender } = render(playing({ source: qobuzViaMusicAssistant(false) }))
+  const first = within(path()).getAllByTestId('pulse')[0]
+  rerender(playing({ source: { brand: 'spotify', name: 'Spotify', logoUrl: null, via: null } }))
+  const second = within(path()).getByTestId('pulse')
+  expect(second).not.toBe(first)
+  // The route coming back (unavailable, then available) pulses again.
+  rerender(playing({ source: qobuzViaMusicAssistant(false, false) }))
+  rerender(playing({ source: qobuzViaMusicAssistant(false) }))
+  expect(within(path()).getAllByTestId('pulse')[0]).not.toBe(second)
+})
+
+test('a "|" in the title still tells two tracks apart', () => {
+  const { rerender } = render(playing({ track: { title: 'A|B', artists: ['C'], album: null } }))
+  const first = within(path()).getByTestId('pulse')
+  rerender(playing({ track: { title: 'A', artists: ['B|C'], album: null } }))
+  expect(within(path()).getByTestId('pulse')).not.toBe(first)
+})
+
 test('playback resumes: one pulse', () => {
   const { rerender } = render(playing({ state: 'paused' }))
   expect(within(path()).queryByTestId('pulse')).toBeNull()
