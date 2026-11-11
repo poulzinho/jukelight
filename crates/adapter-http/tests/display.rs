@@ -56,6 +56,7 @@ fn device(state: PlaybackState) -> DeviceSnapshot {
         state,
         origin: Origin::None,
         content: None,
+        outputs: Vec::new(),
     }
 }
 

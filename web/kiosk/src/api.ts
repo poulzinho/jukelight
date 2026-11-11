@@ -25,8 +25,27 @@ export interface Player {
   source: Source | null
   /** How the music reaches the player; `null` when idle or on an input. */
   signal: Signal | null
-  /** The player itself: its maker's brand and its name. */
-  device: Brand & { name: string }
+  /** The player itself: its maker's brand and its name; `markUrl` is the maker's mark, when supplied. */
+  device: Brand & { name: string; markUrl: string | null }
+  /** The other speakers playing the same session; empty when the player plays alone. */
+  speakers: Speaker[]
+  /** What the player itself drives: its output speaker, its subwoofer. */
+  outputs: Output[]
+}
+
+/** Another speaker of the session. */
+export interface Speaker {
+  name: string
+  kind: 'speaker' | 'computer'
+  playing: boolean
+  /** The format it receives, with its class; `null` when unknown. */
+  quality: (Quality & { class: QualityClass }) | null
+}
+
+/** Something the player drives. */
+export interface Output {
+  name: string
+  kind: 'speaker' | 'subwoofer'
 }
 
 export interface Quality {

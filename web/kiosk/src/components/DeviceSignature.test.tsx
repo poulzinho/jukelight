@@ -9,7 +9,7 @@ function show(overrides: Partial<Player> = {}) {
   return render(<Kiosk player={player(overrides)} connection="live" clockOffsetMs={0} />)
 }
 
-const withLogo = { brand: 'bluesound', name: 'Example Player', logoUrl: '/api/v1/logos/bluesound?v=1' }
+const withLogo = { brand: 'bluesound', name: 'Example Player', logoUrl: '/api/v1/logos/bluesound?v=1', markUrl: null }
 const screens: [string, Partial<Player>][] = [
   ['playing', {}],
   ['input', { track: null, input: { kind: 'optical', name: 'Example Input', startedAt: null } }],
@@ -27,7 +27,7 @@ for (const [name, overrides] of screens) {
 }
 
 test('no logo: a streamer icon and the maker\'s name', () => {
-  show({ device: { brand: 'bluesound', name: 'Example Player', logoUrl: null } })
+  show({ device: { brand: 'bluesound', name: 'Example Player', logoUrl: null, markUrl: null } })
   const signature = screen.getByTestId('device-signature')
   expect(signature.querySelector('img')).toBeNull()
   expect(signature.querySelector('svg')).not.toBeNull()
@@ -36,7 +36,7 @@ test('no logo: a streamer icon and the maker\'s name', () => {
 })
 
 test('unknown maker: only the name', () => {
-  show({ device: { brand: null, name: 'Example Player', logoUrl: null } })
+  show({ device: { brand: null, name: 'Example Player', logoUrl: null, markUrl: null } })
   const signature = screen.getByTestId('device-signature')
   expect(signature).toHaveTextContent(/^Example Player$/)
   expect(signature.querySelector('svg, img')).toBeNull()

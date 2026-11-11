@@ -105,7 +105,9 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
             }]),
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }),
+        outputs: Vec::new(),
     }
 }
 
@@ -257,7 +259,7 @@ async fn qobuz_through_music_assistant() {
     );
     assert_eq!(
         json["device"],
-        serde_json::json!({"brand": "bluesound", "name": "Example Player", "logoUrl": null})
+        serde_json::json!({"brand": "bluesound", "name": "Example Player", "logoUrl": null, "markUrl": null})
     );
 }
 
@@ -989,4 +991,133 @@ async fn streams_without_a_shutdown_signal_keep_running() {
     // Keep-alive comments keep arriving: the stream is still open.
     let (_, comments) = read_events(&mut body, Duration::from_millis(350)).await;
     assert!(comments >= 2);
+}
+
+// Spec: published-api, "Speakers and outputs" and "The maker's mark".
+mod speakers_and_outputs {
+    use super::*;
+    use jukelight_application::SpeakerNames;
+    use jukelight_domain::{Output, OutputKind, Speaker, SpeakerKind};
+
+    /// The router, with the monitor it reads from.
+    fn group_snapshot_app(logos: Arc<TestLogos>) -> (Router, PlayerMonitor) {
+        let mut content = device("Example Song", 42, 1_000_000).content.unwrap();
+        content.speakers = vec![
+            Speaker {
+                name: "Kitchen".into(),
+                kind: SpeakerKind::Speaker,
+                playing: true,
+                quality: Some(AudioQuality::format(AudioFormat {
+                    codec: "s16le".into(),
+                    bit_depth: 16,
+                    sample_rate_hz: 44_100,
+                })),
+            },
+            Speaker {
+                name: "Office".into(),
+                kind: SpeakerKind::Computer,
+                playing: false,
+                quality: None,
+            },
+        ];
+        let provider =
+            FakeProvider::claiming("Music Assistant", Some(content)).with_brand("music-assistant");
+        let monitor = PlayerMonitor::with_names(
+            vec![Arc::new(provider)],
+            SpeakerNames::new(
+                std::collections::HashMap::new(),
+                Some("Example Speaker".into()),
+            ),
+        );
+        let mut player = device("Example Song", 42, 1_000_000);
+        player.origin = Origin::Stream {
+            url: "http://192.168.1.50:8097/flow/session1/aabbccddeeff/1.flac".into(),
+        };
+        player.maker = Brand::new("bluesound");
+        player.outputs = vec![Output {
+            name: None,
+            kind: OutputKind::Subwoofer,
+        }];
+        monitor.apply(&player);
+        (app_with_logos(&monitor, logos), monitor)
+    }
+
+    #[tokio::test]
+    async fn recorded_group() {
+        let (app, _monitor) = group_snapshot_app(Arc::new(TestLogos::default()));
+        let json = player_json(&app).await;
+        let speakers = &json["speakers"];
+        assert_eq!(speakers[0]["name"], "Kitchen");
+        assert_eq!(speakers[0]["kind"], "speaker");
+        assert_eq!(speakers[0]["playing"], true);
+        assert_eq!(speakers[0]["quality"]["bitDepth"], 16);
+        assert_eq!(speakers[0]["quality"]["codec"], "PCM");
+        assert_eq!(speakers[0]["quality"]["class"], "lossless");
+        assert_eq!(speakers[1]["kind"], "computer");
+        assert_eq!(speakers[1]["playing"], false);
+        assert_eq!(speakers[1]["quality"], Value::Null);
+        assert_eq!(
+            json["outputs"],
+            serde_json::json!([
+                {"name": "Example Speaker", "kind": "speaker"},
+                {"name": "Subwoofer", "kind": "subwoofer"}
+            ])
+        );
+    }
+
+    #[tokio::test]
+    async fn padded_cd_quality_is_not_hi_res() {
+        let flac = |bit_depth, sample_rate_hz| {
+            AudioQuality::format(AudioFormat {
+                codec: "flac".into(),
+                bit_depth,
+                sample_rate_hz,
+            })
+        };
+        let mut content = device("Example Song", 42, 1_000_000).content.unwrap();
+        content.quality = Some(flac(16, 44_100));
+        content.speakers = vec![Speaker {
+            name: "Office".into(),
+            kind: SpeakerKind::Computer,
+            playing: true,
+            quality: Some(flac(24, 44_100)),
+        }];
+        let provider = FakeProvider::claiming("Music Assistant", Some(content));
+        let monitor = PlayerMonitor::new(vec![Arc::new(provider)]);
+        let mut player = device("Example Song", 42, 1_000_000);
+        player.origin = Origin::Stream {
+            url: "http://192.168.1.50:8097/flow/session1/aabbccddeeff/1.flac".into(),
+        };
+        monitor.apply(&player);
+        let json = player_json(&app(&monitor)).await;
+        assert_eq!(json["speakers"][0]["quality"]["class"], "lossless");
+    }
+
+    #[tokio::test]
+    async fn playing_alone() {
+        let monitor = PlayerMonitor::new(Vec::new());
+        monitor.apply(&device("Example Song", 42, 1_000_000));
+        let json = player_json(&app(&monitor)).await;
+        assert_eq!(json["speakers"], serde_json::json!([]));
+        assert_eq!(json["outputs"], serde_json::json!([]));
+    }
+
+    #[tokio::test]
+    async fn mark_supplied() {
+        let logos = Arc::new(TestLogos::default());
+        logos.supply("bluesound-mark", 4, "image/svg+xml", b"<svg/>");
+        let (app, _monitor) = group_snapshot_app(logos);
+        let json = player_json(&app).await;
+        assert_eq!(
+            json["device"]["markUrl"],
+            "/api/v1/logos/bluesound-mark?v=4"
+        );
+    }
+
+    #[tokio::test]
+    async fn no_mark() {
+        let (app, _monitor) = group_snapshot_app(Arc::new(TestLogos::default()));
+        let json = player_json(&app).await;
+        assert_eq!(json["device"]["markUrl"], Value::Null);
+    }
 }

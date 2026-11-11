@@ -51,6 +51,8 @@ export default async function globalSetup(): Promise<() => void> {
       env: {
         ...process.env,
         JUKELIGHT_DEVICE: `fake:${scenario}`,
+        // The speaker on the example player's output (an example name).
+        PLAYER_OUTPUT_NAME: 'Example Speaker',
         HTTP_PORT: String(portFor(scenario)),
         LOG_LEVEL: 'warn',
         BRAND_ASSETS_DIR: WITH_LOGOS.includes(scenario) ? logos : join(logos, 'none'),
