@@ -28,6 +28,14 @@ const BUILT_IN: &[&str] = &["builtin", "library"];
 /// Music Assistant's default provider names that are too long to show.
 const SHORT_NAMES: &[(&str, &str)] = &[("OpenSubsonic Media Server Library", "Subsonic")];
 
+/// The Music Assistant queue the player plays from, when Music Assistant
+/// drives it: its own queue (its player key), or its group leader's. `None`
+/// for anything else, such as a phone's AirPlay (`active_source` `AirPlay`).
+pub fn music_assistant_queue(player: &api::Player, player_key: &str) -> Option<String> {
+    let source = player.active_source.as_deref()?;
+    (source == player_key || player.synced_to.as_deref() == Some(source)).then(|| source.to_owned())
+}
+
 /// What one poll of Music Assistant returned.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Responses {

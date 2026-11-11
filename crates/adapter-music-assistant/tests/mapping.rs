@@ -504,3 +504,48 @@ mod album_colours {
         assert_eq!(recording.content().palette, None);
     }
 }
+
+// Spec: session-music-assistant, "Claiming the session": which queue Music
+// Assistant plays to the player from, by the recorded `players/get`.
+mod music_assistant_queue {
+    use jukelight_adapter_music_assistant::{api, music_assistant_queue};
+
+    fn player(fixture: &str) -> api::Player {
+        serde_json::from_value(super::fixture_json(fixture, "player.json")).unwrap()
+    }
+
+    #[test]
+    fn music_assistant_plays_to_a_group() {
+        assert_eq!(
+            music_assistant_queue(&player("group-playing"), "aabbccddeeff").as_deref(),
+            Some("aabbccddeeff")
+        );
+    }
+
+    #[test]
+    fn a_member_of_another_players_group() {
+        let mut member = player("group-playing");
+        member.active_source = Some("112233445566".into());
+        member.synced_to = Some("112233445566".into());
+        assert_eq!(
+            music_assistant_queue(&member, "aabbccddeeff").as_deref(),
+            Some("112233445566")
+        );
+    }
+
+    #[test]
+    fn airplay_from_a_phone() {
+        assert_eq!(
+            music_assistant_queue(&player("airplay-phone"), "aabbccddeeff"),
+            None
+        );
+    }
+}
+
+fn fixture_json(fixture: &str, file: &str) -> Value {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(fixture)
+        .join(file);
+    serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
+}

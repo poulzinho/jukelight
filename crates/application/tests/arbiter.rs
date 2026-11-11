@@ -308,3 +308,22 @@ mod source_of_the_session {
         assert_eq!(arbitrate(&bluesound, &[]).maker, Brand::new("bluesound"));
     }
 }
+
+// Spec: session-arbitration, "Claims are decided offline": an AirPlay
+// session the provider can't confirm stays the device's.
+#[test]
+fn airplay_while_the_provider_is_down() {
+    let airplay = Origin::Service {
+        brand: Brand::new("airplay"),
+        id: "AirPlay".into(),
+        name: "AirPlay".into(),
+        cast: true,
+    };
+    let provider = FakeProvider::not_claiming("Music Assistant");
+    let snapshot = arbitrate(
+        &device(airplay, PlaybackState::Playing, "Phone Song"),
+        &providers(vec![provider]),
+    );
+    assert_eq!(snapshot.session.label, "AirPlay");
+    assert_eq!(snapshot.content.unwrap().track.title, "Phone Song");
+}

@@ -7,5 +7,5 @@ mod mapping;
 mod provider;
 
 pub use claim::{ClaimRule, UrlError};
-pub use mapping::{Responses, UP_NEXT, to_content};
+pub use mapping::{Responses, UP_NEXT, music_assistant_queue, to_content};
 pub use provider::{MusicAssistantConfig, MusicAssistantProvider, Timing, Token};
