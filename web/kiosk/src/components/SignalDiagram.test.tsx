@@ -183,7 +183,7 @@ test('upsampled CD quality: teal, no Hi-Res logo', () => {
 
 // "Pulse along the diagram"
 
-test('a track starts in a group: one pulse along every line, branches together', () => {
+test('a track starts in a group: one pulse along every line, from the source on', () => {
   show({ source: qobuzViaMusicAssistant(), signal: signal(), speakers: [speaker('Kitchen'), speaker('Office')], outputs, queue })
   const sparks = parts('spark') as HTMLElement[]
   expect(sparks.length).toBeGreaterThan(5)

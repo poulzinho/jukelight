@@ -3,7 +3,7 @@
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
 import { player, quality } from '../test/fixtures'
-import { type Layout, type Measure, fit, layout } from './layout'
+import { type Layout, type Measure, type Port, fit, layout } from './layout'
 import { diagramModel } from './model'
 
 // Roughly Inter's average widths.
@@ -86,6 +86,13 @@ test('long names are shortened to their room, never over the quality', () => {
   expect((nameText?.x ?? 0) + measure(name ?? '', 12.5, false)).toBeLessThanOrEqual(qualityLeft)
 })
 
+test('a long output name is shortened with "…", never past the diagram', () => {
+  const out = laidOut(group(1, { outputs: [{ name: 'Example Speaker With A Very Long Name', kind: 'speaker' }] }))
+  const output = out.texts.find((t) => t.part === 'output')
+  expect(output?.text).toMatch(/…$/)
+  expect((output?.x ?? 0) + measure(output?.text ?? '', 12, false)).toBeLessThanOrEqual(out.width)
+})
+
 test('the format on the streamer is never shortened', () => {
   const out = laidOut(group(0), 190, 262)
   expect(out.card.main).toBe('16 bit / 44.1 kHz')
@@ -102,11 +109,15 @@ test('fit shortens with "…" to the room', () => {
   expect(fit('Upstairs Bathroom', 10, 40, false, measure)).toMatch(/^Ups.*…$/)
 })
 
-test('the pulse reaches every speaker at the same moment, the outputs later', () => {
-  const out = laidOut(group(2))
-  const speakerPorts = out.ports.filter((p) => p.soft && p.ink === 'lossless' && p.x === 50)
-  // Rows branch from one trunk: each arrives when the trunk reaches its row.
-  expect(speakerPorts.length).toBeGreaterThanOrEqual(2)
+test('the pulse reaches the speakers in turn, as it passes their junctions, then the outputs', () => {
+  const out = laidOut(group(3))
+  const speakerPorts = out.ports.filter((p) => p.soft && p.ink === 'lossless' && p.x === 50).sort((a, b) => a.y - b.y)
+  // Rows branch from one line: each lights up when the pulse passes its row.
+  expect(speakerPorts.length).toBe(3)
+  for (let i = 1; i < speakerPorts.length; i++) {
+    const [above, below] = [speakerPorts[i - 1], speakerPorts[i]] as [Port, Port]
+    expect(below.arrive - above.arrive).toBeCloseTo(below.y - above.y)
+  }
   const outputPorts = out.ports.filter((p) => p.x > 100)
   for (const port of outputPorts) {
     for (const row of speakerPorts) expect(port.arrive).toBeGreaterThan(row.arrive)
