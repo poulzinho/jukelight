@@ -106,8 +106,10 @@ The diagram's lines are split into straight segments. Each segment has a
 bright band animated with `transform` along it, `steps()` at about 15 a
 second, as today, keyed by the same change key (DEV-43). A segment's
 `animation-delay` is the length of the path before it divided by the
-pulse's speed, so all branches leaving Music Assistant start together, and
-the outputs start when the pulse reaches the streamer. Ports light up with
+pulse's speed, so each speaker's branch starts as the pulse passes its
+junction on the line down to the streamer, and the outputs start when the
+pulse reaches the streamer. (The rows branch off one vertical line, so a
+pulse that reached them all at once would have to jump ahead of itself.) Ports light up with
 `opacity` at their arrival time.
 
 ### Tests per layer

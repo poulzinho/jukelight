@@ -79,8 +79,9 @@ A pulse of light SHALL run once along the diagram when something changes:
 when a track starts (also when the screen first shows it), when the source,
 the route or the speakers change, when the quality changes, and when
 playback resumes after a pause. It SHALL run from the source to Music
-Assistant, then along every branch at once to the speakers and the
-streamer, then on from the streamer to its outputs; each port SHALL light
+Assistant, then down the line to the streamer, each speaker's branch
+starting as the pulse passes its junction, then on from the streamer to
+its outputs; each port SHALL light
 up as the pulse arrives. The pulse SHALL move in about 15 steps a second,
 using only transform and opacity. Between pulses, with reduced motion,
 while paused and while the route is unavailable, no animation SHALL run in
@@ -88,7 +89,7 @@ the diagram.
 
 #### Scenario: Track starts in a group
 - **WHEN** a track starts playing to a group of three speakers
-- **THEN** one pulse runs from the source, reaches Music Assistant, then all three branches at the same moment, then the outputs
+- **THEN** one pulse runs from the source, reaches Music Assistant, then each of the three branches in turn as it passes their junctions, then the streamer and its outputs
 
 #### Scenario: Nothing changes
 - **WHEN** a track keeps playing and nothing about it changes for a minute after its pulse
