@@ -5,7 +5,7 @@
 - [x] 1.3 Write failing provider tests "AirPlay session" (only `players/get` is polled) and "Claimed" for a group, then poll during unclaimed AirPlay sessions and tick `updates` when the answer changes; verify with the provider tests
 - [x] 1.4 Write failing fixture tests "The player leads the group" and "The player is a member", then read the queue named by `active_source`; verify with the mapping tests
 - [x] 1.5 Write the failing application test "AirPlay while the provider is down", then make it pass; verify with `cargo test -p jukelight-application`
-- [ ] 1.6 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
+- [x] 1.6 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck and tests; open the pull request and verify CI is green
 
 ## 2. Speakers, outputs and names (stack layer 2, DEV-44: domain, adapters, application, API, configuration)
 
@@ -14,15 +14,15 @@
 - [x] 2.3 Write failing BluOS fixture tests "Subwoofer on" and "Subwoofer off" (scrubbed `/SyncStatus` from the recordings), then report the subwoofer, and read `/SyncStatus` again when `/Status`'s `syncStat` changes (found while applying: it was read once per connection, so switching the subwoofer off went unnoticed; test "subwoofer switched off"); verify with `cargo test -p jukelight-adapter-bluos`
 - [x] 2.4 Write failing application tests "Group with an output speaker and a subwoofer", "Nothing configured", "Renamed speaker", "Not renamed" and "Invalid names", then merge outputs and apply names; read `SPEAKER_NAMES` and `PLAYER_OUTPUT_NAME` in `app` (found while applying: the configuration is read before logging starts, so an invalid `SPEAKER_NAMES` becomes a warning that `run` logs); `.env.example`, `README.md`, `docs/reference-setup.md` (with `<maker>-mark` in the logos table); verify with the application and app tests
 - [x] 2.5 Write failing HTTP tests "Recorded group", "Playing alone", "Mark supplied" and "No mark", then publish `speakers`, `outputs` and `device.markUrl`; kiosk API types; fake scenarios for a group (with a dropped speaker, many speakers, long names), AirPlay, Bluetooth, radio and Music Assistant unavailable; verify with the HTTP tests and by reading `/api/v1/player` for each scenario
-- [ ] 2.6 Verify the layer (as 1.6); open the pull request and verify CI is green
+- [x] 2.6 Verify the layer (as 1.6); open the pull request and verify CI is green
 - [x] 2.7 Finding while applying (reading the API per scenario): a speaker fed CD quality padded to 24/44.1 was classed Hi-Res. A speaker's class is now the lower of the source's and what it receives, as for the player ("Padded CD quality is not Hi-Res")
 
 ## 3. The diagram on the kiosk (stack layer 3, DEV-45: kiosk, reference host)
 
-- [ ] 3.1 Write failing tests for the layout function (direction, rows, give-way order, fitting with measured text), then the layout; verify with the kiosk tests
-- [ ] 3.2 Write failing component tests for every "Signal diagram", "Streamer card" and "Line colours" scenario, then `SignalDiagram` with its nodes, lines, ports, the streamer card and the PCM icon, replacing `SignalPath`; verify with the kiosk tests
-- [ ] 3.3 Write failing tests for "Pulse along the diagram" (delays along the tree, nothing between pulses, reduced motion, paused), then the pulse per segment; verify with the kiosk tests and Playwright
-- [ ] 3.4 Write failing tests for "Playing screen", "Up next" and "Steady portrait layout" (two columns, top-aligned, one-line titles), then the layout; verify with the kiosk tests
-- [ ] 3.5 Write failing e2e checks for every fake scenario in landscape and portrait (nothing past the screen, under the footer, into the queue's column or over a logo) with screenshots, then fix what they find; review the screenshots against the mocks
+- [x] 3.1 Write failing tests for the layout function (direction, rows, give-way order, fitting with measured text), then the layout; verify with the kiosk tests
+- [x] 3.2 Write failing component tests for every "Signal diagram", "Streamer card" and "Line colours" scenario, then `SignalDiagram` with its nodes, lines, ports, the streamer card and the PCM icon, replacing `SignalPath`; verify with the kiosk tests
+- [x] 3.3 Write failing tests for "Pulse along the diagram" (delays along the tree, nothing between pulses, reduced motion, paused), then the pulse per segment; verify with the kiosk tests and Playwright
+- [x] 3.4 Write failing tests for "Playing screen", "Up next" and "Steady portrait layout" (two columns, top-aligned, one-line titles), then the layout; verify with the kiosk tests
+- [x] 3.5 Write failing e2e checks for every fake scenario in landscape and portrait (nothing past the screen, under the footer, into the queue's column or over a logo) with screenshots, then fix what they find; review the screenshots against the mocks (found: in portrait "Up next" ran under the footer, so it now shows as many entries as fit; the streamer's fixed width kept the diagram from ever running across, so across it is as wide as its lines need; the codec beside the source's format was placed by an estimate and could touch it, so the browser now sets it after the format; a two-speaker group folded in portrait, so the rows sit closer; without Music Assistant the source's line keeps one colour to the streamer)
 - [ ] 3.6 Verify the layer (as 1.6); open the pull request and verify CI is green
 - [ ] 3.7 Acceptance on the reference host: a Music Assistant group (playing, a member dropping out, paused), a phone's AirPlay, Qobuz Connect, Spotify, the optical input, the subwoofer off and on, your names in `.env`; portrait from across the room; an hour's CPU against about 62 s per hour; record the results on DEV-12 and DEV-13
