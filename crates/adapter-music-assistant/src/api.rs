@@ -14,6 +14,30 @@ pub struct Player {
     pub active_source: Option<String>,
     /// The group leader's player id, when this player is a group member.
     pub synced_to: Option<String>,
+    /// The group's player ids, this one included, when this player leads.
+    pub group_members: Vec<String>,
+}
+
+/// An entry of `players/all`: what the provider needs about another player
+/// of the group.
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
+#[serde(default)]
+pub struct PlayerInfo {
+    pub player_id: String,
+    pub provider: String,
+    pub name: String,
+    pub display_name: Option<String>,
+    /// `playing`, `paused` or `idle`.
+    pub playback_state: Option<String>,
+    pub synced_to: Option<String>,
+    pub group_members: Vec<String>,
+    pub device_info: Option<DeviceInfo>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Deserialize)]
+#[serde(default)]
+pub struct DeviceInfo {
+    pub manufacturer: Option<String>,
 }
 
 /// What the player reports as playing; the fallback for the queue.

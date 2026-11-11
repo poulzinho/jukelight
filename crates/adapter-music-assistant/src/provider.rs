@@ -295,11 +295,18 @@ impl Inner {
             cache.queue_key = queue_key;
         }
 
+        // The group's other players, only while in a group.
+        let players = if mapping::in_group(&player) {
+            self.call("players/all", json!({})).await?
+        } else {
+            Vec::new()
+        };
         let mut responses = Responses {
             player,
             queue,
             upcoming: std::mem::take(&mut cache.upcoming),
             providers: cache.providers.take().unwrap_or_default(),
+            players,
         };
         // Provider names are reloaded when an unknown instance appears.
         let unknown = mapping::provider_instance(&responses)

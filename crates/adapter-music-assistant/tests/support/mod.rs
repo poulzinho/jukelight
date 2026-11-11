@@ -141,9 +141,14 @@ pub async fn api(
         "player_queues/get" => "queue.json",
         "player_queues/items" => "items.json",
         "providers" => "providers.json",
+        "players/all" => "players.json",
         _ => return StatusCode::BAD_REQUEST.into_response(),
     };
-    let mut value = fixture(&server.fixture, file);
+    let mut value = if file == "players.json" && !fixture_path(&server.fixture, file).exists() {
+        Value::Array(Vec::new())
+    } else {
+        fixture(&server.fixture, file)
+    };
     let patch = match file {
         "queue.json" => server.queue_patch.as_ref(),
         "player.json" => server.player_patch.as_ref(),
@@ -155,6 +160,13 @@ pub async fn api(
         }
     }
     Json(value).into_response()
+}
+
+pub fn fixture_path(fixture: &str, file: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(fixture)
+        .join(file)
 }
 
 pub fn fixture(fixture: &str, file: &str) -> Value {
@@ -179,6 +191,7 @@ pub fn device(origin: Origin) -> DeviceSnapshot {
         state: PlaybackState::Playing,
         origin,
         content: None,
+        outputs: Vec::new(),
     }
 }
 
