@@ -9,8 +9,8 @@ use std::time::Duration;
 use jukelight_adapter_bluos::parse::{Identity, parse_playlist, parse_status, parse_sync_status};
 use jukelight_adapter_bluos::to_device_snapshot;
 use jukelight_domain::{
-    AudioInput, AudioQuality, Brand, DeviceSnapshot, InputKind, Origin, PlaybackState,
-    QualityMeasure, QueueView, Timestamp,
+    AudioInput, AudioQuality, Brand, DeviceSnapshot, InputKind, Origin, Output, OutputKind,
+    PlaybackState, QualityMeasure, QueueView, Timestamp,
 };
 
 const BASE: &str = "http://192.168.1.40:11000";
@@ -450,4 +450,29 @@ fn unnamed_input() {
          <state>stream</state><secs>5</secs>",
     );
     assert_eq!(input_of(&snapshot).name, "Input");
+}
+
+// Spec: device-bluos, "Subwoofer".
+
+/// A snapshot from one situation's own `/Status` and `/SyncStatus`.
+fn snapshot_with_identity(name: &str) -> DeviceSnapshot {
+    let status = parse_status(&fixture(name, "status.xml")).unwrap();
+    let identity = parse_sync_status(&fixture(name, "syncstatus.xml")).unwrap();
+    to_device_snapshot(&status, &identity, &[], BASE, NOW)
+}
+
+#[test]
+fn subwoofer_on() {
+    assert_eq!(
+        snapshot_with_identity("sub-on").outputs,
+        vec![Output {
+            name: None,
+            kind: OutputKind::Subwoofer
+        }]
+    );
+}
+
+#[test]
+fn subwoofer_off() {
+    assert_eq!(snapshot_with_identity("sub-off").outputs, vec![]);
 }

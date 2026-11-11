@@ -45,6 +45,11 @@ pub struct Identity {
     pub player_key: String,
     /// The player's maker, from `brand`, when it is a known brand.
     pub maker: Option<Brand>,
+    /// `hasSubwoofer="true"`: BluOS leaves the attribute out while the
+    /// subwoofer is switched off.
+    pub has_subwoofer: bool,
+    /// Changes whenever the player's settings change; `/Status` repeats it.
+    pub sync_stat: Option<String>,
 }
 
 /// One `<song>` of `/Playlist`.
@@ -85,6 +90,8 @@ pub fn parse_sync_status(xml: &str) -> Result<Identity, ParseError> {
         name,
         player_key,
         maker,
+        has_subwoofer: root.get("hasSubwoofer").map(String::as_str) == Some("true"),
+        sync_stat: root.get("syncStat").cloned(),
     })
 }
 
