@@ -27,6 +27,7 @@ fn content(track: Track, position: Option<Position>, queue: QueueView) -> Conten
         queue,
         service: None,
         palette: None,
+        speakers: Vec::new(),
     }
 }
 
@@ -48,6 +49,7 @@ fn snapshot_of_a_playing_track() {
             QueueView::NotApplicable,
         )),
         input: None,
+        outputs: Vec::new(),
     };
 
     assert_eq!(snapshot.state, PlaybackState::Playing);
