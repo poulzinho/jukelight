@@ -62,8 +62,8 @@ Hi-Res logo (or the "HI-RES" tag) on its left. The maker's mark
 Each line, its ports and the card it leads to SHALL take the colour of the
 quality class of what flows on it: yellow for Hi-Res, teal for lossless,
 violet for lossy and grey for unknown. Lines after the route SHALL use a
-lighter shade, and each speaker's line the class of the format that
-speaker receives. Lines SHALL brighten gently towards their end. The
+lighter shade, and each speaker's line its own class from the API (the
+lower of the source's and what it receives). Lines SHALL brighten gently towards their end. The
 album's colours SHALL NOT change them.
 
 #### Scenario: One lossy speaker in a lossless group
