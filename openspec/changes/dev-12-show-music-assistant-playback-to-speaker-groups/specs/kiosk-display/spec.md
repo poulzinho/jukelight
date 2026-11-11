@@ -11,7 +11,8 @@ with its codec, or "not playing", dimmed, when it doesn't play); the player
 as a streamer card; and the player's outputs (`outputs`: an icon by kind
 and the name) hanging from the streamer. Lines SHALL run straight with
 right angles and rounded corners, branch at junction dots, and end in a
-port. With a queue the diagram SHALL run top to bottom; without a queue it
+port. The diagram SHALL start at the left edge of the progress bar. With a
+queue the diagram SHALL run top to bottom; without a queue it
 SHALL run left to right, the source on the left and the outputs on the
 right.
 
@@ -100,8 +101,8 @@ the diagram.
 - **THEN** no pulse moves
 
 ### Requirement: Diagram fits
-No part of the diagram SHALL leave its area, run under the footer or into
-the queue's column, or run over a logo. Names, the codec line and the room
+No part of the diagram SHALL leave its area, come within 3vmin of the
+footer, run into the queue's column, or run over a logo. Names, the codec line and the room
 SHALL be shortened with "…" to the room they have; the format on the
 streamer SHALL never be shortened (the maker's mark gives way first). When
 the diagram runs top to bottom and is too tall for the space above the
@@ -114,7 +115,7 @@ run top to bottom.
 
 #### Scenario: Many speakers in portrait
 - **WHEN** the session plays to five other speakers in portrait
-- **THEN** as many rows as fit show, followed by "+ N more" for the rest, and nothing runs under the footer
+- **THEN** as many rows as fit show, followed by "+ N more" for the rest, and nothing comes within 3vmin of the footer
 
 #### Scenario: Long names
 - **WHEN** a speaker is named "Upstairs Bathroom Speaker" and the output "Example Speaker With A Very Long Name"
