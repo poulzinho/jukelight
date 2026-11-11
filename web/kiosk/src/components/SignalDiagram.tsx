@@ -322,7 +322,9 @@ function useBoxSize(ref: React.RefObject<HTMLDivElement | null>, queue: boolean)
     const update = () => {
       const unit = parseFloat(getComputedStyle(element).fontSize) / BASE || 1
       const footer = document.querySelector('[data-testid="device-signature"]')
-      const bottom = footer ? footer.getBoundingClientRect().top - 8 : window.innerHeight
+      // Clear of the footer by 3vmin.
+      const clearance = 0.03 * Math.min(window.innerWidth, window.innerHeight)
+      const bottom = footer ? footer.getBoundingClientRect().top - clearance : window.innerHeight
       const top = element.getBoundingClientRect().top
       const next = { width: element.clientWidth, height: Math.max(0, bottom - top), unit }
       setSize((current) =>

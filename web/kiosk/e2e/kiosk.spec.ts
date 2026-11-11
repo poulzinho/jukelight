@@ -301,6 +301,7 @@ test.describe('signal diagram', () => {
       const screen = document.documentElement.getBoundingClientRect()
       const footer = document.querySelector('[data-testid="device-signature"]')?.getBoundingClientRect()
       const queue = document.querySelector('[aria-labelledby="up-next"]')?.closest('section')?.getBoundingClientRect()
+      const clearance = 0.03 * Math.min(window.innerWidth, window.innerHeight)
       const found: string[] = []
       const name = (element: Element) => (element.textContent || element.getAttribute('data-part') || element.tagName).slice(0, 30)
       for (const element of diagram.querySelectorAll('text, image, rect, path, circle')) {
@@ -308,7 +309,8 @@ test.describe('signal diagram', () => {
         const r = element.getBoundingClientRect()
         if (r.width === 0 && r.height === 0) continue
         if (r.right > screen.right || r.left < screen.left) found.push(`past the screen: ${name(element)}`)
-        if (footer && r.bottom > footer.top) found.push(`under the footer: ${name(element)}`)
+        // 3vmin clear of the footer, less a pixel for rounding.
+        if (footer && r.bottom > footer.top - clearance + 1) found.push(`near the footer: ${name(element)}`)
         if (queue && r.right > queue.left) found.push(`into the queue: ${name(element)}`)
       }
       const logos = [...diagram.querySelectorAll('image')].map((image) => image.getBoundingClientRect())
@@ -370,6 +372,19 @@ test.describe('signal diagram', () => {
     await open(page, 'airplay')
     // The landscape column is too narrow for the outputs' names beside the streamer.
     await expect(page.getByTestId('signal-diagram')).toHaveAttribute('data-direction', portrait() ? 'across' : 'down')
+  })
+
+  test('the diagram starts level with the progress bar', async ({ page }) => {
+    await open(page, 'group')
+    const bar = await page.getByRole('progressbar').boundingBox()
+    // The drawing's left edge: a source's logo starts there (an icon has a small inset).
+    const drawing = await page.getByTestId('signal-diagram').getByRole('img').boundingBox()
+    expect(Math.abs((drawing?.x ?? 0) - (bar?.x ?? 0))).toBeLessThan(2)
+    // Its leftmost part, here the source's icon, within that inset of it.
+    const start = await page.getByTestId('signal-diagram').evaluate((diagram) =>
+      Math.min(...[...diagram.querySelectorAll('svg[role="img"] *')].map((element) => element.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => r.left)),
+    )
+    expect(start - (drawing?.x ?? 0)).toBeLessThan(20)
   })
 
   test('the diagram and "Up next" are top-aligned', async ({ page }) => {

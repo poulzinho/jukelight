@@ -111,14 +111,14 @@ test('fit shortens with "…" to the room', () => {
 
 test('the pulse reaches the speakers in turn, as it passes their junctions, then the outputs', () => {
   const out = laidOut(group(3))
-  const speakerPorts = out.ports.filter((p) => p.soft && p.ink === 'lossless' && p.x === 50).sort((a, b) => a.y - b.y)
+  const speakerPorts = out.ports.filter((p) => p.soft && p.ink === 'lossless' && p.x === 36).sort((a, b) => a.y - b.y)
   // Rows branch from one line: each lights up when the pulse passes its row.
   expect(speakerPorts.length).toBe(3)
   for (let i = 1; i < speakerPorts.length; i++) {
     const [above, below] = [speakerPorts[i - 1], speakerPorts[i]] as [Port, Port]
     expect(below.arrive - above.arrive).toBeCloseTo(below.y - above.y)
   }
-  const outputPorts = out.ports.filter((p) => p.x > 100)
+  const outputPorts = out.ports.filter((p) => p.x > 80)
   for (const port of outputPorts) {
     for (const row of speakerPorts) expect(port.arrive).toBeGreaterThan(row.arrive)
   }

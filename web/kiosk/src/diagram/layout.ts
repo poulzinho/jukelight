@@ -270,10 +270,11 @@ function qualityWidth(speaker: SpeakerRow, measure: Measure): number {
 
 function layoutDown(model: DiagramModel, w: number, option: Options, measure: Measure): Layout {
   const out = emptyLayout('down')
-  const tx = 26
-  const px = 50
-  const ix = 66
-  const nx = 80
+  // The source's logo starts at the left edge, level with the progress bar.
+  const tx = 12
+  const px = 36
+  const ix = 52
+  const nx = 66
   const trunkInk = model.playerClass
   const soft = model.soft
   const seg = option.compact ? SEG_COMPACT : SEG
