@@ -1,0 +1,356 @@
+[
+  {
+    "type": "metadata",
+    "domain": "theaudiodb",
+    "name": "The Audio DB",
+    "instance_id": "theaudiodb",
+    "supported_features": [
+      "album_metadata",
+      "artist_metadata",
+      "track_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "theaudiodb"
+  },
+  {
+    "type": "metadata",
+    "domain": "playlist_metadata",
+    "name": "Playlist Metadata",
+    "instance_id": "playlist_metadata",
+    "supported_features": [
+      "playlist_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "playlist_metadata"
+  },
+  {
+    "type": "music",
+    "domain": "builtin",
+    "name": "Music Assistant",
+    "instance_id": "builtin",
+    "supported_features": [
+      "browse",
+      "library_radios",
+      "playlist_create_radios",
+      "playlist_create_mixed",
+      "library_tracks",
+      "playlist_create_audiobooks",
+      "playlist_create",
+      "library_radios_edit",
+      "library_tracks_edit",
+      "playlist_tracks_edit",
+      "library_playlists",
+      "playlist_create_podcast_episodes",
+      "library_playlists_edit"
+    ],
+    "available": true,
+    "is_streaming_provider": false,
+    "lookup_key": "builtin"
+  },
+  {
+    "type": "metadata",
+    "domain": "itunes_artwork",
+    "name": "iTunes Artwork",
+    "instance_id": "itunes_artwork",
+    "supported_features": [
+      "album_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "itunes_artwork"
+  },
+  {
+    "type": "metadata",
+    "domain": "coverartarchive",
+    "name": "Cover Art Archive",
+    "instance_id": "coverartarchive",
+    "supported_features": [
+      "album_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "coverartarchive"
+  },
+  {
+    "type": "metadata",
+    "domain": "lrclib",
+    "name": "LRCLIB",
+    "instance_id": "lrclib",
+    "supported_features": [
+      "lyrics",
+      "track_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "lrclib"
+  },
+  {
+    "type": "metadata",
+    "domain": "musicbrainz",
+    "name": "MusicBrainz",
+    "instance_id": "musicbrainz",
+    "supported_features": [
+      "artist_metadata",
+      "recommendations"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "musicbrainz"
+  },
+  {
+    "type": "metadata",
+    "domain": "fanarttv",
+    "name": "fanart.tv",
+    "instance_id": "fanarttv",
+    "supported_features": [
+      "album_metadata",
+      "artist_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "fanarttv"
+  },
+  {
+    "type": "audio_analysis",
+    "domain": "loudness_analysis",
+    "name": "Loudness Analysis",
+    "instance_id": "loudness_analysis",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "loudness_analysis"
+  },
+  {
+    "type": "plugin",
+    "domain": "radio_playlist",
+    "name": "Endless Mix Playlists",
+    "instance_id": "radio_playlist",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "radio_playlist"
+  },
+  {
+    "type": "player",
+    "domain": "sync_group",
+    "name": "Sync Group Player",
+    "instance_id": "sync_group",
+    "supported_features": [
+      "remove_group_player",
+      "create_group_player"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "sync_group"
+  },
+  {
+    "type": "player",
+    "domain": "universal_player",
+    "name": "Universal Player",
+    "instance_id": "universal_player",
+    "supported_features": [
+      "remove_player"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "universal_player"
+  },
+  {
+    "type": "metadata",
+    "domain": "wikipedia",
+    "name": "Wikipedia",
+    "instance_id": "wikipedia",
+    "supported_features": [
+      "artist_metadata"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "wikipedia"
+  },
+  {
+    "type": "plugin",
+    "domain": "recommendations",
+    "name": "Library Recommendations",
+    "instance_id": "recommendations",
+    "supported_features": [
+      "recommendations"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "recommendations"
+  },
+  {
+    "type": "player",
+    "domain": "sendspin",
+    "name": "Sendspin",
+    "instance_id": "sendspin",
+    "supported_features": [
+      "sync_players"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "sendspin"
+  },
+  {
+    "type": "plugin",
+    "domain": "sendspin_source",
+    "name": "Sendspin Source",
+    "instance_id": "sendspin_source",
+    "supported_features": [
+      "audio_source"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "sendspin_source"
+  },
+  {
+    "type": "metadata",
+    "domain": "lastfm_recommendations",
+    "name": "Last.fm",
+    "instance_id": "lastfm_recommendations",
+    "supported_features": [
+      "artist_toptracks",
+      "recommendations",
+      "similar_artists",
+      "similar_tracks"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "lastfm_recommendations"
+  },
+  {
+    "type": "plugin",
+    "domain": "party",
+    "name": "Party",
+    "instance_id": "party",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "party"
+  },
+  {
+    "type": "music",
+    "domain": "ambient_sounds",
+    "name": "Ambient Sounds",
+    "instance_id": "ambient_sounds",
+    "supported_features": [
+      "sound_effects",
+      "browse"
+    ],
+    "available": true,
+    "is_streaming_provider": false,
+    "lookup_key": "ambient_sounds"
+  },
+  {
+    "type": "player",
+    "domain": "bluesound",
+    "name": "Bluesound",
+    "instance_id": "bluesound",
+    "supported_features": [
+      "sync_players"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "bluesound"
+  },
+  {
+    "type": "player",
+    "domain": "chromecast",
+    "name": "Chromecast",
+    "instance_id": "chromecast",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "chromecast"
+  },
+  {
+    "type": "player",
+    "domain": "dlna",
+    "name": "DLNA",
+    "instance_id": "dlna",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "dlna"
+  },
+  {
+    "type": "music",
+    "domain": "opensubsonic",
+    "name": "OpenSubsonic Media Server Library",
+    "instance_id": "opensubsonic--instance1",
+    "supported_features": [
+      "library_podcasts_edit",
+      "library_albums",
+      "similar_tracks",
+      "search",
+      "favorite_tracks_edit",
+      "favorite_artists_edit",
+      "lyrics",
+      "artist_albums",
+      "library_playlists",
+      "artist_toptracks",
+      "favorite_albums_edit",
+      "library_tracks",
+      "library_artists",
+      "library_playlists_edit",
+      "browse",
+      "library_radios",
+      "recommendations",
+      "playlist_create",
+      "library_podcasts",
+      "playlist_tracks_edit"
+    ],
+    "available": true,
+    "is_streaming_provider": false,
+    "lookup_key": "opensubsonic--instance1"
+  },
+  {
+    "type": "player",
+    "domain": "airplay",
+    "name": "AirPlay",
+    "instance_id": "airplay",
+    "supported_features": [
+      "sync_players"
+    ],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "airplay"
+  },
+  {
+    "type": "audio_analysis",
+    "domain": "smart_fades",
+    "name": "Smart Fades",
+    "instance_id": "smart_fades",
+    "supported_features": [],
+    "available": true,
+    "is_streaming_provider": null,
+    "lookup_key": "smart_fades"
+  },
+  {
+    "type": "music",
+    "domain": "qobuz",
+    "name": "Qobuz",
+    "instance_id": "qobuz--instance1",
+    "supported_features": [
+      "browse",
+      "library_tracks",
+      "playlist_create",
+      "library_albums_edit",
+      "artist_toptracks",
+      "library_artists",
+      "library_playlists_edit",
+      "library_tracks_edit",
+      "library_playlists",
+      "library_artists_edit",
+      "library_albums",
+      "playlist_tracks_edit",
+      "artist_albums",
+      "search"
+    ],
+    "available": true,
+    "is_streaming_provider": true,
+    "lookup_key": "qobuz--instance1"
+  }
+]

@@ -1,0 +1,1018 @@
+[
+  {
+    "player_id": "up00000001",
+    "provider": "universal_player",
+    "type": "player",
+    "name": "Example Laptop",
+    "available": false,
+    "device_info": {
+      "model": "Mac (Mac17,2)",
+      "manufacturer": "Apple",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "mac_address": "aa:bb:cc:dd:ee:ff",
+        "ip_address": "192.168.1.46",
+        "airplay_id": "apaabbccddeeff"
+      },
+      "mac_address": "aa:bb:cc:dd:ee:ff",
+      "ip_address": "192.168.1.46"
+    },
+    "supported_features": [],
+    "playback_state": "idle",
+    "elapsed_time": null,
+    "elapsed_time_last_updated": null,
+    "powered": true,
+    "volume_level": null,
+    "volume_muted": null,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "up00000001",
+    "source_list": [
+      {
+        "id": "up00000001",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": null,
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "mac",
+    "group_volume": 0,
+    "group_volume_muted": null,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "none",
+    "mute_control": "none",
+    "output_protocols": [
+      {
+        "output_protocol_id": "apaabbccddeeff",
+        "name": "Airplay",
+        "protocol_domain": "airplay",
+        "is_native": false,
+        "priority": 10,
+        "available": false,
+        "derived_from": null
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": false,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Example Laptop",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "up00000002",
+    "provider": "universal_player",
+    "type": "player",
+    "name": "Example Portable Speaker",
+    "available": true,
+    "device_info": {
+      "model": "Example Portable Speaker",
+      "manufacturer": "Bose",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "mac_address": "aa:bb:cc:dd:ee:ff",
+        "ip_address": "192.168.1.22",
+        "airplay_id": "apaabbccddeeff",
+        "uuid": "6c77ce12-8ef4-d2e3-190b-99e52668c393",
+        "cast_uuid": "6b5b0d21-abfc-7028-cf9c-272e74fd1733"
+      },
+      "mac_address": "aa:bb:cc:dd:ee:ff",
+      "ip_address": "192.168.1.22"
+    },
+    "supported_features": [
+      "set_members"
+    ],
+    "playback_state": "idle",
+    "elapsed_time": null,
+    "elapsed_time_last_updated": null,
+    "powered": true,
+    "volume_level": null,
+    "volume_muted": null,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [
+      "up00000003",
+      "00000000-0000-0000-0000-000000000005",
+      "ma_companion_00000000-0000-0000-0000-000000000006",
+      "aabbccddeeff"
+    ],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "up00000002",
+    "source_list": [
+      {
+        "id": "up00000002",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": null,
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "speaker",
+    "group_volume": 0,
+    "group_volume_muted": null,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "none",
+    "mute_control": "none",
+    "output_protocols": [
+      {
+        "output_protocol_id": "apaabbccddeeff",
+        "name": "AirPlay",
+        "protocol_domain": "airplay",
+        "is_native": false,
+        "priority": 10,
+        "available": true,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "6b5b0d21-abfc-7028-cf9c-272e74fd1733",
+        "name": "Chromecast",
+        "protocol_domain": "chromecast",
+        "is_native": false,
+        "priority": 30,
+        "available": true,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "f723e196-ac41-2406-f110-a462f0246cd9",
+        "name": "Chromecast",
+        "protocol_domain": "chromecast",
+        "is_native": false,
+        "priority": 30,
+        "available": false,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "spb_aabbccddeeff",
+        "name": "Sendspin",
+        "protocol_domain": "sendspin",
+        "is_native": false,
+        "priority": 40,
+        "available": true,
+        "derived_from": "apaabbccddeeff"
+      },
+      {
+        "output_protocol_id": "uuid:6c77ce12-8ef4-d2e3-190b-99e52668c393",
+        "name": "DLNA",
+        "protocol_domain": "dlna",
+        "is_native": false,
+        "priority": 50,
+        "available": true,
+        "derived_from": null
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": true,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Example Portable Speaker",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "up00000003",
+    "provider": "universal_player",
+    "type": "player",
+    "name": "[LG] webOS TV OLED55GX9LA",
+    "available": true,
+    "device_info": {
+      "model": "OLED55GX9LA",
+      "manufacturer": "LG Electronics",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "mac_address": "aa:bb:cc:dd:ee:ff",
+        "ip_address": "192.168.1.33",
+        "airplay_id": "apaabbccddeeff",
+        "uuid": "91c026f4-a9b8-62ad-53b8-0022dee7268c"
+      },
+      "mac_address": "aa:bb:cc:dd:ee:ff",
+      "ip_address": "192.168.1.33"
+    },
+    "supported_features": [
+      "volume_set",
+      "volume_mute",
+      "set_members"
+    ],
+    "playback_state": "idle",
+    "elapsed_time": null,
+    "elapsed_time_last_updated": null,
+    "powered": true,
+    "volume_level": 20,
+    "volume_muted": false,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [
+      "00000000-0000-0000-0000-000000000005",
+      "ma_companion_00000000-0000-0000-0000-000000000006",
+      "aabbccddeeff",
+      "up00000002"
+    ],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "up00000003",
+    "source_list": [
+      {
+        "id": "up00000003",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": null,
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "speaker",
+    "group_volume": 20,
+    "group_volume_muted": false,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "spb_aabbccddeeff",
+    "mute_control": "spb_aabbccddeeff",
+    "output_protocols": [
+      {
+        "output_protocol_id": "apaabbccddeeff",
+        "name": "AirPlay",
+        "protocol_domain": "airplay",
+        "is_native": false,
+        "priority": 10,
+        "available": false,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "spb_aabbccddeeff",
+        "name": "Sendspin",
+        "protocol_domain": "sendspin",
+        "is_native": false,
+        "priority": 40,
+        "available": true,
+        "derived_from": "apaabbccddeeff"
+      },
+      {
+        "output_protocol_id": "uuid:91c026f4-a9b8-62ad-53b8-0022dee7268c",
+        "name": "DLNA",
+        "protocol_domain": "dlna",
+        "is_native": false,
+        "priority": 50,
+        "available": false,
+        "derived_from": null
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": true,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "[LG] webOS TV OLED55GX9LA",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "up00000004",
+    "provider": "universal_player",
+    "type": "player",
+    "name": "Example Laptop 2",
+    "available": false,
+    "device_info": {
+      "model": "Mac (Mac17,2)",
+      "manufacturer": "Apple",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "mac_address": "aa:bb:cc:dd:ee:ff",
+        "ip_address": "192.168.1.63",
+        "airplay_id": "apaabbccddeeff"
+      },
+      "mac_address": "aa:bb:cc:dd:ee:ff",
+      "ip_address": "192.168.1.63"
+    },
+    "supported_features": [],
+    "playback_state": "idle",
+    "elapsed_time": null,
+    "elapsed_time_last_updated": null,
+    "powered": true,
+    "volume_level": null,
+    "volume_muted": null,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "up00000004",
+    "source_list": [
+      {
+        "id": "up00000004",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": null,
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "mac",
+    "group_volume": 0,
+    "group_volume_muted": null,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "none",
+    "mute_control": "none",
+    "output_protocols": [
+      {
+        "output_protocol_id": "apaabbccddeeff",
+        "name": "Airplay",
+        "protocol_domain": "airplay",
+        "is_native": false,
+        "priority": 10,
+        "available": false,
+        "derived_from": null
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": false,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Example Laptop 2",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "aabbccddeeff",
+    "provider": "bluesound",
+    "type": "player",
+    "name": "Bluesound Node",
+    "available": true,
+    "device_info": {
+      "model": "N130",
+      "manufacturer": "BluOS",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "ip_address": "192.168.1.40",
+        "mac_address": "aabbccddeeff"
+      },
+      "mac_address": "aabbccddeeff",
+      "ip_address": "192.168.1.40"
+    },
+    "supported_features": [
+      "pause",
+      "play_media",
+      "seek",
+      "volume_set",
+      "next_previous",
+      "set_members",
+      "volume_mute",
+      "select_source"
+    ],
+    "playback_state": "playing",
+    "elapsed_time": 54.0,
+    "elapsed_time_last_updated": 1794406270.706298,
+    "powered": true,
+    "volume_level": 62,
+    "volume_muted": false,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "AirPlay",
+    "source_list": [
+      {
+        "id": "preset-1",
+        "name": "Preset 01: Leak CDT",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": false,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "preset-2",
+        "name": "Preset 02: Spotify",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": false,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "preset-3",
+        "name": "Preset 03: Bluetooth ",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": false,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "preset-4",
+        "name": "Preset 04: SWR3",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": false,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "input-Capture:bluez:bluetooth",
+        "name": "Input: Bluetooth",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input2",
+        "name": "Input: HDMI ARC",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input1",
+        "name": "Input: Leak CDT",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "input-Spotify:play",
+        "name": "Input: Spotify",
+        "passive": false,
+        "can_play_pause": false,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "AirPlay",
+        "name": "AirPlay",
+        "passive": true,
+        "can_play_pause": true,
+        "can_seek": false,
+        "can_next_previous": false,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      },
+      {
+        "id": "aabbccddeeff",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": true,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": {
+      "uri": "AirPlay:airplay_pcm01:pcm/44100/16/2/4",
+      "media_type": "unknown",
+      "title": "De Mi Enamórate",
+      "artist": "Daniela Romo • Recommended for you",
+      "album": "Mujer De Todos Mujer De Nadie",
+      "album_artist": null,
+      "image_url": "http://192.168.1.40:11000/var/data/airplay/images/p01_7123e8b78f9d1e41.jpg",
+      "palette": {
+        "background_dark": [
+          67,
+          34,
+          32
+        ],
+        "background_light": [
+          199,
+          189,
+          188
+        ],
+        "primary": [
+          67,
+          34,
+          32
+        ],
+        "accent": [
+          226,
+          194,
+          160
+        ],
+        "on_dark": [
+          226,
+          194,
+          160
+        ],
+        "on_light": [
+          67,
+          34,
+          32
+        ]
+      },
+      "duration": 210.0,
+      "stream_duration": null,
+      "source_id": "AirPlay",
+      "queue_item_id": null,
+      "custom_data": null,
+      "elapsed_time": 54,
+      "elapsed_time_last_updated": 1794406270.706298
+    },
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "speaker",
+    "group_volume": 62,
+    "group_volume_muted": false,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "native",
+    "mute_control": "native",
+    "output_protocols": [
+      {
+        "output_protocol_id": "native",
+        "name": "Bluesound",
+        "protocol_domain": "bluesound",
+        "is_native": true,
+        "priority": 0,
+        "available": true,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "apaabbccddeeff",
+        "name": "AirPlay",
+        "protocol_domain": "airplay",
+        "is_native": false,
+        "priority": 10,
+        "available": true,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "spb_aabbccddeeff",
+        "name": "Sendspin",
+        "protocol_domain": "sendspin",
+        "is_native": false,
+        "priority": 40,
+        "available": true,
+        "derived_from": "apaabbccddeeff"
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": true,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Bluesound Node",
+    "state": "playing",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "00000000-0000-0000-0000-000000000005",
+    "provider": "chromecast",
+    "type": "player",
+    "name": "Google Nest Display",
+    "available": true,
+    "device_info": {
+      "model": "Google Nest Hub",
+      "manufacturer": "Google Inc.",
+      "software_version": null,
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {
+        "ip_address": "192.168.1.32",
+        "mac_address": "aa:bb:cc:dd:ee:ff",
+        "uuid": "00000000-0000-0000-0000-000000000005",
+        "cast_uuid": "00000000-0000-0000-0000-000000000005"
+      },
+      "mac_address": "aa:bb:cc:dd:ee:ff",
+      "ip_address": "192.168.1.32"
+    },
+    "supported_features": [
+      "volume_set",
+      "next_previous",
+      "seek",
+      "enqueue",
+      "volume_mute",
+      "set_members",
+      "pause",
+      "play_media"
+    ],
+    "playback_state": "idle",
+    "elapsed_time": null,
+    "elapsed_time_last_updated": null,
+    "powered": true,
+    "volume_level": 43,
+    "volume_muted": false,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [
+      "up00000003",
+      "ma_companion_00000000-0000-0000-0000-000000000006",
+      "aabbccddeeff",
+      "up00000002"
+    ],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "00000000-0000-0000-0000-000000000005",
+    "source_list": [
+      {
+        "id": "00000000-0000-0000-0000-000000000005",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": true,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": {
+      "uri": "library://track/3055",
+      "media_type": "track",
+      "title": "Amante del Amor",
+      "artist": "Luis Miguel",
+      "album": "20 Años",
+      "album_artist": "Luis Miguel",
+      "image_url": "http://192.168.1.67:8095/imageproxy/8a2a063683d024545accb540a7c53927cbaf0cc7b08c5c9c523c2a67b0b75dc9?size=512&fmt=jpg",
+      "palette": {
+        "background_dark": [
+          36,
+          50,
+          82
+        ],
+        "background_light": [
+          177,
+          190,
+          223
+        ],
+        "primary": [
+          81,
+          111,
+          183
+        ],
+        "accent": [
+          73,
+          31,
+          40
+        ],
+        "on_dark": [
+          221,
+          186,
+          165
+        ],
+        "on_light": [
+          73,
+          31,
+          40
+        ]
+      },
+      "duration": 202,
+      "stream_duration": null,
+      "source_id": "00000000-0000-0000-0000-000000000005",
+      "queue_item_id": "254bd2e223574bde85a256e701e15b63",
+      "custom_data": null,
+      "elapsed_time": 76,
+      "elapsed_time_last_updated": 1792166365.502122
+    },
+    "enabled": true,
+    "hide_in_ui": false,
+    "private": false,
+    "expose_to_ha": true,
+    "icon": "google-nest",
+    "group_volume": 43,
+    "group_volume_muted": false,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "native",
+    "mute_control": "native",
+    "output_protocols": [
+      {
+        "output_protocol_id": "native",
+        "name": "Chromecast",
+        "protocol_domain": "chromecast",
+        "is_native": true,
+        "priority": 0,
+        "available": true,
+        "derived_from": null
+      },
+      {
+        "output_protocol_id": "spb_aabbccddeeff",
+        "name": "Sendspin",
+        "protocol_domain": "sendspin",
+        "is_native": false,
+        "priority": 40,
+        "available": true,
+        "derived_from": "native"
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": false,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Google Nest Display",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "when_unavailable",
+      "when_synced",
+      "when_group_active"
+    ]
+  },
+  {
+    "player_id": "ma_companion_00000000-0000-0000-0000-000000000006",
+    "provider": "sendspin",
+    "type": "player",
+    "name": "Example Web Player",
+    "available": true,
+    "device_info": {
+      "model": "example-laptop.local",
+      "manufacturer": "Music Assistant",
+      "software_version": "0.7.1",
+      "model_id": null,
+      "manufacturer_id": null,
+      "identifiers": {},
+      "mac_address": null,
+      "ip_address": null
+    },
+    "supported_features": [
+      "volume_set",
+      "multi_device_dsp",
+      "volume_mute",
+      "set_members",
+      "play_media"
+    ],
+    "playback_state": "idle",
+    "elapsed_time": 0.0,
+    "elapsed_time_last_updated": 1794406219.347325,
+    "powered": true,
+    "volume_level": 18,
+    "volume_muted": false,
+    "group_members": [],
+    "static_group_members": [],
+    "can_group_with": [
+      "up00000003",
+      "00000000-0000-0000-0000-000000000005",
+      "aabbccddeeff",
+      "up00000002"
+    ],
+    "synced_to": null,
+    "active_sound_mode": null,
+    "sound_mode_list": [],
+    "options": [],
+    "active_source": "ma_companion_00000000-0000-0000-0000-000000000006",
+    "source_list": [
+      {
+        "id": "ma_companion_00000000-0000-0000-0000-000000000006",
+        "name": "Music Assistant Queue",
+        "passive": false,
+        "can_play_pause": true,
+        "can_seek": true,
+        "can_next_previous": true,
+        "can_shuffle": false,
+        "can_repeat": false,
+        "shuffle_enabled": null,
+        "repeat_mode": null,
+        "account_id": null
+      }
+    ],
+    "active_group": null,
+    "current_media": {
+      "uri": "library://track/264",
+      "media_type": "track",
+      "title": "Black Velvet",
+      "artist": "Alannah Myles",
+      "album": "Alannah Myles",
+      "album_artist": "Alannah Myles",
+      "image_url": "http://192.168.1.67:8095/imageproxy/587ecbbec1c6d998d80cb62570d41585dd7513151d6fb0875e97c79eab515d78?size=512&fmt=jpg",
+      "palette": {
+        "background_dark": [
+          56,
+          49,
+          38
+        ],
+        "background_light": [
+          224,
+          196,
+          150
+        ],
+        "primary": [
+          224,
+          196,
+          150
+        ],
+        "accent": [
+          45,
+          41,
+          23
+        ],
+        "on_dark": [
+          224,
+          196,
+          150
+        ],
+        "on_light": [
+          45,
+          41,
+          23
+        ]
+      },
+      "duration": 289,
+      "stream_duration": null,
+      "source_id": "ma_companion_00000000-0000-0000-0000-000000000006",
+      "queue_item_id": "6c68fb9508a348a7827ed7dd054e0207",
+      "custom_data": null,
+      "elapsed_time": 7,
+      "elapsed_time_last_updated": 1794406081.812384
+    },
+    "enabled": true,
+    "hide_in_ui": true,
+    "private": true,
+    "expose_to_ha": false,
+    "icon": "speaker",
+    "group_volume": 18,
+    "group_volume_muted": false,
+    "extra_attributes": {},
+    "power_control": "none",
+    "volume_control": "native",
+    "mute_control": "native",
+    "output_protocols": [
+      {
+        "output_protocol_id": "native",
+        "name": "Sendspin",
+        "protocol_domain": "sendspin",
+        "is_native": true,
+        "priority": 0,
+        "available": true,
+        "derived_from": null
+      }
+    ],
+    "active_output_protocol": null,
+    "needs_setup": false,
+    "setup_reason": null,
+    "has_setup_flow": false,
+    "sleep_timer_expires_at": null,
+    "active_source_audio": null,
+    "display_name": "Example Web Player",
+    "state": "idle",
+    "group_childs": [],
+    "extra_data": {},
+    "hide_player_in_ui": [
+      "always"
+    ]
+  }
+]
