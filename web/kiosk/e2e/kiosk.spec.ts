@@ -40,25 +40,30 @@ test('playing with queue', async ({ page }) => {
   expect(loaded).toBe(true)
 
   await expect(page.getByRole('progressbar')).toBeVisible()
-  await expect(page.getByText('Qobuz', { exact: true })).toBeVisible()
-  await expect(page.getByText('16 bit / 44.1 kHz')).toBeVisible()
-  await expect(page.getByTestId('sound-box')).toContainText('untouched')
-  const upNext = page.getByRole('list', { name: 'Up next' }).getByRole('listitem')
-  // Four entries in landscape; in portrait the fourth is hidden.
-  await expect(upNext).toHaveCount(portrait() ? 3 : 4)
+  await expect(page.getByRole('img', { name: 'Qobuz to Example Player' })).toBeVisible()
+  await expect(page.locator('[data-part="streamer-main"]')).toHaveText('16 bit / 44.1 kHz')
+  await expect(page.locator('[data-part="streamer-codec"]')).toContainText('untouched')
+  // Four entries in landscape; in portrait as many as fit above the footer.
+  const shown = await page.getByRole('list', { name: 'Up next' }).evaluate((list) => {
+    const bounds = list.getBoundingClientRect()
+    return [...list.children]
+      .map((entry) => entry.getBoundingClientRect())
+      .filter((entry) => entry.height > 0 && entry.left < bounds.right && entry.bottom <= bounds.bottom + 1)
+      .map((entry) => entry.bottom)
+  })
+  if (!portrait()) expect(shown.length).toBe(4)
+  else expect(shown.length).toBeGreaterThanOrEqual(3)
   // The player's signature sits below everything, overlapping nothing.
   const signature = await box(page, ['contentinfo'])
-  const lastEntry = await upNext.nth(portrait() ? 2 : 3).boundingBox()
-  if (!lastEntry) throw new Error('the last "Up next" entry has no box')
-  if (portrait()) expect(lastEntry.y + lastEntry.height).toBeLessThanOrEqual(signature.y)
+  expect(Math.max(...shown)).toBeLessThanOrEqual(signature.y)
   await screenshot(page, 'playing-with-queue')
 })
 
 test('cast session without queue', async ({ page }) => {
   await open(page, 'cast-without-queue')
   await expect(page.getByRole('heading', { name: 'Cast Song' })).toBeVisible()
-  await expect(page.getByText('Spotify', { exact: true })).toBeVisible()
-  await expect(page.getByTestId('sound-box').getByText('160 kbps')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Spotify to Example Player' })).toBeVisible()
+  await expect(page.locator('[data-part="streamer-main"]')).toHaveText('160 kbps')
   await expect(page.getByRole('list', { name: 'Up next' })).toHaveCount(0)
   await screenshot(page, 'cast-without-queue')
 })
@@ -81,11 +86,11 @@ test('missing artwork shows initials', async ({ page }) => {
   await screenshot(page, 'no-artwork')
 })
 
-test('hi-res track shows the HI-RES tag in the sound box', async ({ page }) => {
+test('hi-res track shows the HI-RES tag on the streamer', async ({ page }) => {
   await open(page, 'hi-res')
-  const sound = page.getByTestId('sound-box')
-  await expect(sound.getByText('HI-RES')).toBeVisible()
-  await expect(sound.getByText('24 bit / 96 kHz')).toBeVisible()
+  const streamer = page.locator('[data-part="streamer"]')
+  await expect(streamer.getByText('HI-RES')).toBeVisible()
+  await expect(streamer.getByText('24 bit / 96 kHz')).toBeVisible()
   await screenshot(page, 'hi-res')
 })
 
@@ -280,172 +285,160 @@ test.describe('steady portrait layout', () => {
   })
 })
 
-// Spec: kiosk-display, "Signal path", "Sound box", "Wave motion" and
-// "Signal path fits".
-test.describe('signal path', () => {
-  /** The row, its labels and the sound box's lines. */
-  async function row(page: Page) {
-    const path = page.getByTestId('signal-path')
-    await expect(path).toBeVisible()
-    // Let the labels and the box settle after measuring.
-    await page.waitForTimeout(300)
-    return path.evaluate((element) => {
-      const lineHeight = parseFloat(getComputedStyle(element).fontSize) * 1.6
-      const box = element.querySelector('[data-testid="sound-box"]')
-      const lines = [...(box?.querySelectorAll('span') ?? [])]
-        .filter((span) => !span.closest('img') && span.textContent !== 'HI-RES')
-        .map((span) => ({
-          text: span.textContent ?? '',
-          clipped: span.scrollWidth > span.clientWidth + 1,
-          height: span.getBoundingClientRect().height,
-        }))
-      const labels = [...element.querySelectorAll('[data-testid="wave-label"]')].map((label) => ({
-        text: label.textContent ?? '',
-        shown: getComputedStyle(label).visibility !== 'hidden',
-      }))
-      const nodes = [...element.querySelectorAll('[data-testid="signal-node"] > div')].map(
-        (node) => node.getBoundingClientRect().height,
-      )
-      return {
-        overflows: element.scrollWidth > element.clientWidth + 1,
-        lineHeight,
-        lines,
-        labels,
-        nodes,
+// Spec: kiosk-display, "Signal diagram", "Diagram fits" and "Pulse along the
+// diagram".
+test.describe('signal diagram', () => {
+  /**
+   * What leaves its place in the diagram: anything past the screen, under the
+   * footer or into the queue's column, and text over a logo or the streamer.
+   */
+  async function problems(page: Page) {
+    await expect(page.getByTestId('signal-diagram')).toBeVisible()
+    // Let the layout settle after measuring its box and loading its logos.
+    await page.waitForTimeout(400)
+    return page.evaluate(() => {
+      const diagram = document.querySelector('[data-testid="signal-diagram"]') as Element
+      const screen = document.documentElement.getBoundingClientRect()
+      const footer = document.querySelector('[data-testid="device-signature"]')?.getBoundingClientRect()
+      const queue = document.querySelector('[aria-labelledby="up-next"]')?.closest('section')?.getBoundingClientRect()
+      const found: string[] = []
+      const name = (element: Element) => (element.textContent || element.getAttribute('data-part') || element.tagName).slice(0, 30)
+      for (const element of diagram.querySelectorAll('text, image, rect, path, circle')) {
+        if (element.closest('[data-testid="pulse"]')) continue
+        const r = element.getBoundingClientRect()
+        if (r.width === 0 && r.height === 0) continue
+        if (r.right > screen.right || r.left < screen.left) found.push(`past the screen: ${name(element)}`)
+        if (footer && r.bottom > footer.top) found.push(`under the footer: ${name(element)}`)
+        if (queue && r.right > queue.left) found.push(`into the queue: ${name(element)}`)
       }
+      const logos = [...diagram.querySelectorAll('image')].map((image) => image.getBoundingClientRect())
+      for (const text of diagram.querySelectorAll('text')) {
+        if (text.closest('[data-part="streamer"]')) continue
+        const r = text.getBoundingClientRect()
+        if (logos.some((l) => r.left < l.right - 1 && r.right > l.left + 1 && r.top < l.bottom - 1 && r.bottom > l.top + 1)) {
+          found.push(`over a logo: ${name(text)}`)
+        }
+      }
+      // Inside the streamer, text stays inside its card.
+      const card = diagram.querySelector('[data-part="streamer"] rect')?.getBoundingClientRect()
+      for (const text of diagram.querySelectorAll('[data-part="streamer"] text')) {
+        const r = text.getBoundingClientRect()
+        if (card && r.right > card.right - 2) found.push(`out of the streamer: ${name(text)}`)
+      }
+      return found
     })
   }
 
-  test('landscape: everything shows in full', async ({ page }) => {
-    test.skip(portrait(), 'landscape only')
-    await open(page, 'music-assistant')
-    const path = page.getByTestId('signal-path')
-    await expect(path.getByRole('img', { name: 'Qobuz' })).toBeVisible()
-    await expect(path.getByRole('img', { name: 'Music Assistant' })).toBeVisible()
-    await expect(path.getByRole('img', { name: 'Hi-Res' })).toBeVisible()
-    await expect(page.getByTestId('sound-box')).toContainText('normalised (−6.2 dB)')
-    const result = await row(page)
-    expect(result.overflows).toBe(false)
-    expect(result.labels.filter((label) => !label.shown)).toEqual([])
-    expect(result.lines.filter((line) => line.clipped)).toEqual([])
-    await screenshot(page, 'music-assistant')
-  })
-
-  for (const scenario of ['long-signal', 'upsampled', 'music-assistant'] as const) {
-    test(`${scenario}: one row, nothing wraps or overflows`, async ({ page }) => {
+  const scenarios = [
+    'group',
+    'group-dropped',
+    'group-many',
+    'group-long-names',
+    'music-assistant',
+    'music-assistant-unavailable',
+    'upsampled',
+    'long-signal',
+    'unknown-quality',
+    'cast-without-queue',
+    'airplay',
+    'bluetooth',
+    'radio',
+    'hi-res',
+  ] as const
+  for (const scenario of scenarios) {
+    test(`${scenario}: everything in its place`, async ({ page }) => {
       await open(page, scenario)
-      const result = await row(page)
-      expect(result.overflows).toBe(false)
-      for (const height of result.nodes) expect(height).toBeLessThanOrEqual(result.lineHeight * 1.6)
-      // The format and the codec are never cut; only the last line may be.
-      const [numbers, codec] = result.lines
-      expect(numbers?.clipped).toBe(false)
-      expect(codec?.clipped).toBe(false)
-      for (const line of result.lines) expect(line.height, line.text).toBeLessThanOrEqual(result.lineHeight)
-      // Without logos, the route keeps at least its icon.
-      if (scenario === 'long-signal') {
-        await expect(page.getByTestId('signal-node').nth(1).locator('svg')).toBeVisible()
-      }
+      expect(await problems(page)).toEqual([])
       await screenshot(page, scenario)
     })
   }
 
-  test('upsampled CD quality: teal, no Hi-Res mark', async ({ page }) => {
-    await open(page, 'upsampled')
-    const sound = page.getByTestId('sound-box')
-    await expect(sound).toContainText('24 bit / 96 kHz')
-    await expect(sound).toContainText('resampled from 16 / 44.1')
-    await expect(sound.getByText('HI-RES')).toHaveCount(0)
-    const colour = await page
-      .getByTestId('signal-path')
-      .evaluate((element) => (element as HTMLElement).style.getPropertyValue('--signal'))
-    expect(colour).toBe('var(--color-signal-lossless)')
+  test('a group: every speaker, the streamer and its outputs', async ({ page }) => {
+    await open(page, 'group')
+    const diagram = page.getByTestId('signal-diagram')
+    await expect(diagram).toHaveAttribute('data-direction', 'down')
+    await expect(diagram.locator('[data-part="speaker-name"]')).toHaveText(['Kitchen', 'Office'])
+    await expect(diagram.locator('[data-part="output"]')).toHaveText(['Example Speaker', 'Subwoofer'])
   })
 
-  test('quality not reported', async ({ page }) => {
-    await open(page, 'unknown-quality')
-    await expect(page.getByTestId('sound-box')).toHaveText('quality not reported')
-    await screenshot(page, 'unknown-quality')
+  test('many speakers fold into "+ N more"', async ({ page }) => {
+    await open(page, 'group-many')
+    await expect(page.locator('[data-part="more"]')).toHaveText(/^\+ \d more$/)
   })
 
-  test('Music Assistant unavailable', async ({ page }) => {
-    await open(page, 'music-assistant-unavailable')
-    await expect(page.getByTestId('signal-node')).toContainText('unavailable')
-    await expect(page.getByTestId('pulse')).toHaveCount(0)
-    await screenshot(page, 'music-assistant-unavailable')
+  test('no queue: across the width when it fits', async ({ page }) => {
+    await open(page, 'airplay')
+    // The landscape column is too narrow for the outputs' names beside the streamer.
+    await expect(page.getByTestId('signal-diagram')).toHaveAttribute('data-direction', portrait() ? 'across' : 'down')
   })
 
-  /** The CSS properties the signal path's running animations change. */
-  async function animated(page: Page) {
-    if (!page.url().includes(String(portFor('music-assistant')))) await open(page, 'music-assistant')
-    await expect(page.getByTestId('signal-path')).toBeVisible()
+  test('the diagram and "Up next" are top-aligned', async ({ page }) => {
+    await open(page, 'group')
+    const diagram = await page.getByTestId('signal-diagram').boundingBox()
+    const heading = await page.getByRole('heading', { name: 'Up next' }).boundingBox()
+    expect(Math.abs((diagram?.y ?? 0) - (heading?.y ?? 0))).toBeLessThan(4)
+  })
+
+  /** The CSS properties the diagram's running animations change. */
+  async function running(page: Page) {
     return page.evaluate(() =>
       document
         .getAnimations()
         .filter((animation) => {
           if (animation.playState !== 'running') return false
           const target = (animation.effect as KeyframeEffect | null)?.target
-          return target instanceof Element && target.closest('[data-testid="signal-path"]') !== null
+          return target instanceof Element && target.closest('[data-testid="signal-diagram"]') !== null
         })
         .flatMap((animation) =>
           (animation.effect as KeyframeEffect)
             .getKeyframes()
-            .flatMap((frame) =>
-              Object.keys(frame).filter((key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key)),
-            ),
+            .flatMap((frame) => Object.keys(frame).filter((key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key))),
         ),
     )
   }
 
-  test('reduced motion: the waves stand still', async ({ page }) => {
-    expect(await animated(page)).toEqual([])
+  test('reduced motion: nothing moves', async ({ page }) => {
+    await open(page, 'group')
+    await page.waitForTimeout(300)
+    expect(await running(page)).toEqual([])
   })
 
   test.describe('without reduced motion', () => {
     test.use({ reducedMotion: 'no-preference' })
 
-    test('pulses run, animating only transform and opacity', async ({ page }) => {
+    test('the pulse runs, animating only transform and opacity, in steps', async ({ page }) => {
+      await open(page, 'group')
       let properties: string[] = []
-      await expect
-        .poll(async () => (properties = await animated(page)).length, { timeout: 10_000 })
-        .toBeGreaterThan(0)
+      await expect.poll(async () => (properties = await running(page)).length, { timeout: 5_000 }).toBeGreaterThan(0)
       expect([...new Set(properties)].sort()).toEqual(['opacity', 'transform'])
+      const timing = await page.evaluate(() =>
+        [...document.querySelectorAll('[data-part="spark"]')].map((spark) => getComputedStyle(spark).animationTimingFunction),
+      )
+      expect(timing.every((value) => value.startsWith('steps('))).toBe(true)
     })
 
-    test('the pulse travels from one end to the other', async ({ page }) => {
-      await open(page, 'music-assistant')
-      await expect(page.getByTestId('pulse')).toHaveCount(2)
-      // Both run together only while the first wave's pulse is under way.
-      const delays = () =>
-        page.evaluate(() =>
-          [...document.querySelectorAll('[data-testid="pulse"]')].map((pulse) =>
-            pulse.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getTiming().delay),
-          ),
-        )
-      await expect.poll(delays, { timeout: 10_000, intervals: [50] }).toEqual([[0], [2000]])
-    })
-
-    test('the pulse moves in steps, about 15 a second', async ({ page }) => {
-      await open(page, 'music-assistant')
-      await expect(page.getByTestId('pulse')).toHaveCount(2)
-      const easings = () =>
-        page.evaluate(() =>
-          [...document.querySelectorAll('[data-pulse]')].flatMap((part) =>
-            // A CSS animation's timing function sits on its keyframes.
-            part.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getKeyframes()[0]?.easing),
-          ),
-        )
-      // Two waves, each with its pulse and its arrival port.
-      await expect.poll(easings, { timeout: 10_000, intervals: [50] }).toEqual(Array(4).fill('steps(33)'))
+    test('the pulse runs from the source to the outputs', async ({ page }) => {
+      await open(page, 'group')
+      await expect(page.locator('[data-part="spark"]').first()).toBeAttached()
+      const delays = await page.evaluate(() =>
+        [...document.querySelectorAll('[data-part="spark"]')].map((spark) => (spark as HTMLElement).style.animationDelay),
+      )
+      // From the source on: the outputs light up after every spark has set off.
+      const arrivals = await page.evaluate(() =>
+        [...document.querySelectorAll('[data-part="arrive"]')].map((port) => parseInt((port as HTMLElement).style.animationDelay, 10)),
+      )
+      expect(delays[0]).toBe('0ms')
+      expect(Math.max(...arrivals)).toBeGreaterThan(Math.max(...delays.map((delay) => parseInt(delay, 10))))
     })
 
     test('between pulses: after the first pulse nothing animates while nothing changes', async ({ page }) => {
       test.setTimeout(30_000)
-      await expect.poll(async () => (await animated(page)).length, { timeout: 10_000 }).toBe(0)
-      // No timer starts another one.
-      for (let second = 0; second < 10; second++) {
+      await open(page, 'group')
+      await expect.poll(async () => (await running(page)).length, { timeout: 5_000 }).toBeGreaterThan(0)
+      await expect.poll(async () => (await running(page)).length, { timeout: 15_000 }).toBe(0)
+      for (let second = 0; second < 5; second++) {
         await page.waitForTimeout(1_000)
-        expect(await animated(page)).toEqual([])
+        expect(await running(page)).toEqual([])
       }
     })
   })
