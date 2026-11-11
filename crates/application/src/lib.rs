@@ -4,12 +4,14 @@
 mod arbiter;
 mod display;
 mod monitor;
+mod names;
 mod ports;
 pub mod testing;
 
 pub use arbiter::arbitrate;
 pub use display::{DisplayController, DisplayHandle};
 pub use monitor::{PlayerHandle, PlayerMonitor};
+pub use names::SpeakerNames;
 pub use ports::{
     ArtworkError, ArtworkId, ArtworkSize, ArtworkSource, BrandLogos, Clock, DeviceMonitor, Image,
     SessionProvider, SystemClock,

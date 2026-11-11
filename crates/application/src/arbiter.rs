@@ -93,6 +93,7 @@ pub fn arbitrate(
         },
         source,
         maker: device.maker.clone(),
+        outputs: device.outputs.clone(),
     }
 }
 
@@ -139,5 +140,6 @@ fn unreachable(label: &str) -> Content {
         queue: QueueView::NotApplicable,
         service: None,
         palette: None,
+        speakers: Vec::new(),
     }
 }

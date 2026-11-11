@@ -170,5 +170,6 @@ fn placeholder() -> Content {
         queue: jukelight_domain::QueueView::NotApplicable,
         service: None,
         palette: None,
+        speakers: Vec::new(),
     }
 }

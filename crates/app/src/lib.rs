@@ -11,7 +11,8 @@ use jukelight_adapter_fake::FakeDevice;
 use jukelight_adapter_http::{HttpConfig, router_with_shutdown};
 use jukelight_adapter_music_assistant::{MusicAssistantProvider, UrlError};
 use jukelight_application::{
-    Clock, DeviceMonitor, DisplayController, PlayerMonitor, SessionProvider, SystemClock,
+    Clock, DeviceMonitor, DisplayController, PlayerMonitor, SessionProvider, SpeakerNames,
+    SystemClock,
 };
 use jukelight_domain::DisplayPolicy;
 
@@ -29,6 +30,9 @@ pub enum RunError {
 
 /// Runs Jukelight until the process receives Ctrl-C or SIGTERM.
 pub async fn run(config: Config) -> Result<(), RunError> {
+    for warning in &config.warnings {
+        tracing::warn!("{warning}");
+    }
     let clock: Arc<dyn Clock> = Arc::new(SystemClock);
 
     // The fake device's controls must live as long as the device.
@@ -64,7 +68,13 @@ pub async fn run(config: Config) -> Result<(), RunError> {
         providers.push(Arc::new(provider));
     }
 
-    let monitor = PlayerMonitor::new(providers);
+    let monitor = PlayerMonitor::with_names(
+        providers,
+        SpeakerNames::new(
+            config.speaker_names.clone(),
+            config.player_output_name.clone(),
+        ),
+    );
     let player = monitor.handle();
     let display = DisplayController::new(
         DisplayPolicy::new(config.display_grace).with_input_limit(config.input_display_limit),

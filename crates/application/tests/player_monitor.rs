@@ -43,7 +43,9 @@ fn device(title: &str, elapsed_s: u64, at_ms: u64) -> DeviceSnapshot {
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }),
+        outputs: Vec::new(),
     }
 }
 
@@ -173,6 +175,7 @@ mod provider_updates {
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }
     }
 
@@ -187,6 +190,7 @@ mod provider_updates {
                 url: "http://192.168.1.50:8097/flow/s/aabbccddeeff/x.flac".into(),
             },
             content: Some(content("Music Assistant")),
+            outputs: Vec::new(),
         }
     }
 

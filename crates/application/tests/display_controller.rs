@@ -41,7 +41,9 @@ fn device(title: &str, online: bool, state: PlaybackState) -> DeviceSnapshot {
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }),
+        outputs: Vec::new(),
     }
 }
 
