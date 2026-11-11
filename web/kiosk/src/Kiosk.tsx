@@ -7,7 +7,7 @@ import { IdleScreen } from './components/IdleScreen'
 import { InputScreen } from './components/InputScreen'
 import { Dim, PauseSymbol } from './components/PauseOverlay'
 import { Progress, ProgressSlot } from './components/Progress'
-import { SignalPath } from './components/SignalPath'
+import { SignalDiagram } from './components/SignalDiagram'
 import { TextSwap } from './components/TextSwap'
 import { TrackInfo } from './components/TrackInfo'
 import { UpNext } from './components/UpNext'
@@ -61,6 +61,7 @@ function pictureOf(player: Player, track: NonNullable<Player['track']>): string 
 function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
   const paused = player.state === 'paused'
   const picture = pictureOf(player, track)
+  const hasQueue = Boolean(player.queue && player.queue.length > 0)
   return (
     <>
       <Backdrop url={player.backdropUrl} picture={picture} />
@@ -77,7 +78,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
           />
           {paused && <PauseSymbol />}
         </div>
-        <section className="flex min-w-0 flex-col portrait:h-full portrait:w-[min(86vw,42vh)]">
+        <section className="flex min-w-0 flex-col portrait:h-full portrait:min-h-0 portrait:w-[min(86vw,42vh)]">
           {/* Only the track text changes for a new track: the old fades out, the new fades in. */}
           <TextSwap name={`${track.title}|${track.artists.join(', ')}|${track.album ?? ''}`}>
             <TrackInfo track={track} />
@@ -87,8 +88,16 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
           ) : (
             <ProgressSlot />
           )}
-          <SignalPath player={player} />
-          {player.queue && <UpNext queue={player.queue} />}
+          {/* The diagram, and "Up next" beside it when there is a queue; both
+              top-aligned, in the room down to the footer. */}
+          <div
+            className={`mt-[1.5vmin] grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] items-start text-signal ${
+              hasQueue ? 'grid-cols-[19em_minmax(0,1fr)] gap-x-[2.9em]' : 'grid-cols-1'
+            }`}
+          >
+            <SignalDiagram player={player} queue={hasQueue} />
+            {hasQueue && player.queue && <UpNext queue={player.queue} />}
+          </div>
         </section>
         {paused && <Dim />}
       </main>

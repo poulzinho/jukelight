@@ -1,4 +1,5 @@
-// Spec: kiosk-display, "Playing screen" (the signal path) and "Up next".
+// Spec: kiosk-display, "Playing screen" (the signal diagram beside "Up
+// next") and "Up next".
 import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import type { Player } from '../api'
@@ -16,28 +17,44 @@ const upNext = (count: number) =>
     artUrl: null,
   }))
 
-test('track with all data: a signal path from Qobuz to the sound box', () => {
+test('track with all data: a diagram from Qobuz to the streamer', () => {
   show()
-  const path = screen.getByTestId('signal-path')
-  expect(within(path).getByTestId('signal-node')).toHaveTextContent('Qobuz')
-  const box = screen.getByTestId('sound-box')
-  expect(within(box).getByText('16 bit / 44.1 kHz')).toBeInTheDocument()
-  expect(within(box).getByText('FLAC')).toBeInTheDocument()
+  expect(screen.getByRole('img', { name: 'Qobuz to Example Player' })).toBeInTheDocument()
+  const main = screen.getByTestId('signal-diagram').querySelector('[data-part="streamer-main"]')
+  expect(main).toHaveTextContent('16 bit / 44.1 kHz')
 })
 
-test('no signal, no signal path', () => {
+test('no signal, no diagram', () => {
   show({ signal: null })
-  expect(screen.queryByTestId('signal-path')).not.toBeInTheDocument()
+  expect(screen.queryByTestId('signal-diagram')).not.toBeInTheDocument()
 })
 
-test('up next shows four entries; the fourth is hidden in portrait', () => {
-  show({ queue: upNext(5) })
+test('queue beside the diagram: two columns, the diagram first', () => {
+  show({ queue: upNext(3) })
+  const columns = screen.getByTestId('signal-diagram').parentElement as HTMLElement
+  expect(columns.className).toMatch(/grid-cols-\[19em/)
+  expect(columns.children[1]).toContainElement(screen.getByRole('list', { name: 'Up next' }))
+})
+
+test('without a queue the diagram takes the full width', () => {
+  show({ queue: null })
+  const columns = screen.getByTestId('signal-diagram').parentElement as HTMLElement
+  expect(columns.className).toMatch(/grid-cols-1/)
+})
+
+test('up next shows five entries; the fifth is hidden in landscape', () => {
+  show({ queue: upNext(6) })
   const list = screen.getByRole('list', { name: 'Up next' })
   const items = within(list).getAllByRole('listitem')
-  expect(items).toHaveLength(4)
-  expect(items[3]).toHaveClass('portrait:hidden')
-  expect(items[2]).not.toHaveClass('portrait:hidden')
+  expect(items).toHaveLength(5)
+  expect(items[4]).toHaveClass('landscape:hidden')
+  expect(items[3]).not.toHaveClass('landscape:hidden')
   expect(within(list).getByText('Next 1')).toBeInTheDocument()
+})
+
+test('long title: one line, ending with "…"', () => {
+  show({ queue: [{ title: 'A Remarkably Long Song Title That Keeps Going', artists: ['Example Artist'], artUrl: null }] })
+  expect(screen.getByText('A Remarkably Long Song Title That Keeps Going')).toHaveClass('truncate')
 })
 
 test('no queue, no up next', () => {
