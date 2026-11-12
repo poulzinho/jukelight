@@ -394,8 +394,10 @@ test.describe('signal diagram', () => {
       .poll(async () => {
         const diagram = await page.getByTestId('signal-diagram').boundingBox()
         const heading = await page.getByRole('heading', { name: 'Up next' }).boundingBox()
-        return Math.abs((diagram?.y ?? 0) - (heading?.y ?? 0))
-      })
+        // Not measurable yet: never aligned.
+        if (!diagram || !heading) return Number.POSITIVE_INFINITY
+        return Math.abs(diagram.y - heading.y)
+      }, { timeout: 5_000 })
       .toBeLessThan(4)
   })
 
