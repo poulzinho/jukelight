@@ -14,7 +14,8 @@ use crate::SessionProvider;
 ///   ("<label> · <service>" when the content names a music service).
 /// - A claiming provider without content gives "Playing from <label>".
 /// - Otherwise the device's own content is shown, labelled by its origin; an
-///   audio input is labelled by its kind and carried on the snapshot.
+///   audio input is labelled by its kind and carried on the snapshot. A
+///   service playing without content gives "Playing from <service>".
 ///
 /// The source names the music service and the route it takes: a claiming
 /// provider's service via the provider (the provider alone when it names no
@@ -61,7 +62,7 @@ pub fn arbitrate(
                         label: provider.label().into(),
                         available: false,
                     },
-                    Some(unreachable(provider.label())),
+                    Some(playing_from(provider.label())),
                     Some(Source {
                         service: itself.clone(),
                         via: Some(Route {
@@ -77,7 +78,13 @@ pub fn arbitrate(
                 label: origin_label(&device.origin),
                 available: true,
             },
-            device.content.clone(),
+            match (&device.origin, &device.content) {
+                // A sender without a title (YouTube by AirPlay): it still plays.
+                (Origin::Service { name, .. }, None) if device.state != PlaybackState::Stopped => {
+                    Some(playing_from(name))
+                }
+                _ => device.content.clone(),
+            },
             origin_source(&device.origin),
         ),
     };
@@ -132,8 +139,9 @@ fn input_label(kind: InputKind) -> &'static str {
     }
 }
 
-/// What to show while the provider driving the device cannot be reached.
-fn unreachable(label: &str) -> Content {
+/// "Playing from <label>": what to show while the provider driving the
+/// device cannot be reached, or while a service plays without a title.
+fn playing_from(label: &str) -> Content {
     Content {
         track: Track {
             title: format!("Playing from {label}"),

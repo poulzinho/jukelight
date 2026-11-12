@@ -116,6 +116,42 @@ fn provider_down() {
     assert_eq!(shown.queue, QueueView::NotApplicable);
 }
 
+fn airplay_without_a_title(state: PlaybackState) -> DeviceSnapshot {
+    DeviceSnapshot {
+        content: None,
+        ..device(
+            Origin::Service {
+                brand: Brand::new("airplay"),
+                id: "AirPlay".into(),
+                name: "AirPlay".into(),
+                cast: true,
+            },
+            state,
+            "",
+        )
+    }
+}
+
+/// Spec: session-arbitration, "Service without a title".
+#[test]
+fn service_without_a_title() {
+    let snapshot = arbitrate(&airplay_without_a_title(PlaybackState::Playing), &[]);
+
+    let shown = snapshot.content.unwrap();
+    assert_eq!(shown.track.title, "Playing from AirPlay");
+    assert_eq!(shown.position, None);
+    assert_eq!(shown.queue, QueueView::NotApplicable);
+    assert_eq!(snapshot.session.label, "AirPlay");
+}
+
+/// Spec: session-arbitration, "Stopped service without a title".
+#[test]
+fn stopped_service_without_a_title() {
+    let snapshot = arbitrate(&airplay_without_a_title(PlaybackState::Stopped), &[]);
+
+    assert_eq!(snapshot.content, None);
+}
+
 #[test]
 fn native_service() {
     let origin = Origin::Service {
