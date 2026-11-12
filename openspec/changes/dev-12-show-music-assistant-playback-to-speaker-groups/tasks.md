@@ -31,9 +31,9 @@
 
 ## 4. A paused group, and fixes from the acceptance (stack layer 4, DEV-46: Music Assistant adapter, arbitration, BluOS)
 
-- [ ] 4.1 Write failing fixture tests "Group paused", "Group resumed", "Something else plays" and "Queue cleared" (the scrubbed paused recording), then hold a paused group session; verify with `cargo test -p jukelight-adapter-music-assistant`
-- [ ] 4.2 Write a failing provider test for polling while held, then poll while held; verify with the provider tests
-- [ ] 4.3 Write the failing arbiter test "Held content is paused", then add `Content.held` and report held content as paused; verify with `cargo test -p jukelight-application`
+- [x] 4.1 Write failing fixture tests "Group paused", "Group resumed", "Something else plays" and "Queue cleared" (the scrubbed paused recording), then hold a paused group session; verify with `cargo test -p jukelight-adapter-music-assistant`
+- [x] 4.2 Write a failing provider test for polling while held, then poll while held; verify with the provider tests
+- [x] 4.3 Write the failing arbiter test "Held content is paused", then add `Content.held` and report held content as paused; verify with `cargo test -p jukelight-application`
 - [ ] 4.4 From the acceptance, with new recordings: a speaker switched off still showed as playing; a phone's AirPlay after a group showed the group's track; switching the subwoofer off wasn't noticed. Record each (`bose-on`/`bose-off`, `airplay-stale`, `sub-on`/`sub-off`), write the spec change and a failing fixture test for each, then fix it
 - [ ] 4.5 Verify the layer (as 1.6); open the pull request and verify CI is green
 - [ ] 4.6 Acceptance on the reference host: pause and resume a group, play something else after a pause, and repeat the situations from 4.4
