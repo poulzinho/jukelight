@@ -40,6 +40,7 @@ fn playing(title: &str, elapsed_s: u64, at: Timestamp) -> PlayerSnapshot {
             service: None,
             palette: None,
             speakers: Vec::new(),
+            held: false,
         }),
         input: None,
         outputs: Vec::new(),

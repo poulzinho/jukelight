@@ -26,6 +26,7 @@ fn content(title: &str) -> Content {
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }
 
@@ -78,6 +79,23 @@ fn state_comes_from_the_device() {
     assert_eq!(snapshot.state, PlaybackState::Paused);
     assert!(snapshot.online);
     assert_eq!(snapshot.player_name, "Example Player");
+}
+
+/// Spec: session-arbitration, "Held content is paused".
+#[test]
+fn held_content_is_paused() {
+    let held = Content {
+        held: true,
+        ..content("Provider Song")
+    };
+    let provider = FakeProvider::claiming("Example Provider", Some(held));
+    let snapshot = arbitrate(
+        &device(stream(), PlaybackState::Stopped, "x"),
+        &providers(vec![provider]),
+    );
+
+    assert_eq!(snapshot.state, PlaybackState::Paused);
+    assert_eq!(snapshot.content.unwrap().track.title, "Provider Song");
 }
 
 #[test]

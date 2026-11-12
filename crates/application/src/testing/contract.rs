@@ -171,5 +171,6 @@ fn placeholder() -> Content {
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }

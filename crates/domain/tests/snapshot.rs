@@ -28,6 +28,7 @@ fn content(track: Track, position: Option<Position>, queue: QueueView) -> Conten
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }
 

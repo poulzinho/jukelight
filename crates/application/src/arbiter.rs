@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use jukelight_domain::{
-    Content, DeviceSnapshot, InputKind, Origin, PlayerSnapshot, QueueView, Route, Service, Session,
-    Source, Track,
+    Content, DeviceSnapshot, InputKind, Origin, PlaybackState, PlayerSnapshot, QueueView, Route,
+    Service, Session, Source, Track,
 };
 
 use crate::SessionProvider;
@@ -21,8 +21,9 @@ use crate::SessionProvider;
 /// service; marked unavailable when it can't be reached), or the device's own
 /// service or input without a route.
 ///
-/// Playback state, connectivity and the player's maker always come from the
-/// device.
+/// Playback state, connectivity and the player's maker come from the device;
+/// only a held group session (paused, while the device reports stopped) is
+/// shown as paused.
 pub fn arbitrate(
     device: &DeviceSnapshot,
     providers: &[Arc<dyn SessionProvider>],
@@ -81,10 +82,16 @@ pub fn arbitrate(
         ),
     };
 
+    // A held group session is paused, though the device reports stopped.
+    let held = content.as_ref().is_some_and(|content| content.held);
     PlayerSnapshot {
         player_name: device.name.clone(),
         online: device.online,
-        state: device.state,
+        state: if held && device.state == PlaybackState::Stopped {
+            PlaybackState::Paused
+        } else {
+            device.state
+        },
         session,
         content,
         input: match &device.origin {
@@ -141,5 +148,6 @@ fn unreachable(label: &str) -> Content {
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }

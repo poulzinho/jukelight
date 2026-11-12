@@ -37,6 +37,7 @@ fn group(speakers: Vec<Speaker>, subwoofer: bool) -> jukelight_domain::PlayerSna
         service: None,
         palette: None,
         speakers,
+        held: false,
     };
     let device = DeviceSnapshot {
         maker: None,
