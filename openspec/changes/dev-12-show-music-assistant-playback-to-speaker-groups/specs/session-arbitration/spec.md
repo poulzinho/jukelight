@@ -41,6 +41,37 @@ Connectivity SHALL always come from the device.
 - **WHEN** a provider labelled "Example Provider" claims the origin and its content names the music service "Example Service"
 - **THEN** the session label is "Example Provider · Example Service"
 
+### Requirement: Unclaimed origin uses the device's content
+When no session provider claims the origin, the snapshot SHALL use the
+content the device reports. When the device plays a service origin but
+reports no content (an AirPlay sender that sends no title, as YouTube
+does), the snapshot SHALL show the title "Playing from <service name>",
+with no position or queue; while the device is stopped it SHALL show no
+content. The session label SHALL be the service name for a service origin,
+"Stream" for a stream origin, the input's kind for an input origin
+("Optical input", "Analogue input", "HDMI ARC", "Input"), and empty when
+there is no origin. For an input origin the snapshot SHALL carry the input.
+
+#### Scenario: Native service
+- **WHEN** no provider is registered and the device reports the service origin "Qobuz" with the title "Example Song"
+- **THEN** the snapshot shows "Example Song" with the session label "Qobuz"
+
+#### Scenario: Service without a title
+- **WHEN** no provider claims the origin and the device plays the service origin "AirPlay" without content
+- **THEN** the snapshot shows the title "Playing from AirPlay" with the session label "AirPlay", without position or queue
+
+#### Scenario: Stopped service without a title
+- **WHEN** the device reports the service origin "AirPlay" without content and is stopped
+- **THEN** the snapshot has no content
+
+#### Scenario: Unclaimed stream
+- **WHEN** no provider is registered and the device reports a stream origin with the title "Music Assistant"
+- **THEN** the snapshot shows the title "Music Assistant" with the session label "Stream"
+
+#### Scenario: Optical input
+- **WHEN** the device reports an optical input named "Example Input"
+- **THEN** the snapshot has the session label "Optical input", the input named "Example Input" and no track
+
 ## ADDED Requirements
 
 ### Requirement: Speakers and outputs on the snapshot

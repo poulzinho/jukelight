@@ -34,10 +34,11 @@
 - [x] 4.1 Write failing fixture tests "Group paused", "Group resumed", "Something else plays" and "Queue cleared" (the scrubbed paused recording), then hold a paused group session; verify with `cargo test -p jukelight-adapter-music-assistant`
 - [x] 4.2 Write a failing provider test for polling while held, then poll while held; verify with the provider tests
 - [x] 4.3 Write the failing arbiter test "Held content is paused", then add `Content.held` and report held content as paused; verify with `cargo test -p jukelight-application`
-- [ ] 4.4 From the acceptance, with new recordings: a speaker switched off still showed as playing; a phone's AirPlay after a group showed the group's track; switching the subwoofer off wasn't noticed. Record each (`bose-on`/`bose-off`, `airplay-stale`, `sub-on`/`sub-off`), write the spec change and a failing fixture test for each, then fix it
+- [x] 4.4 From the acceptance, with new recordings: a speaker switched off still showed as playing; a phone's AirPlay after a group showed the group's track; switching the subwoofer off wasn't noticed. Record each (`bose-on`/`bose-off`, `airplay-stale`, `sub-on`/`sub-off`), write the spec change and a failing fixture test for each, then fix it
   - [x] 4.4a Subwoofer: the Node reports it at once (`syncStat` 640 to 641, `hasSubwoofer`), but after noticing the changed `syncStat` the monitor long-polled again with the old etag, waiting up to 100 s. It now asks `/Status` at once (test "subwoofer switched off during a long-poll")
   - [x] 4.4b Speaker switched off: Music Assistant itself still reports the speaker as available, powered and playing (`bose-off` is identical to `bose-on`), so there is nothing to show; recorded in the design's risks
-  - [ ] 4.4c A phone's AirPlay after a group
+  - [x] 4.4c A phone's AirPlay after a group showed the group's track: not reproduced. In four recordings (`airplay-stale`, `stale-1` to `stale-3`) Music Assistant, the player and the API agreed and were right; at most the accepted 5 s window of Music Assistant's cached answer remains
+  - [x] 4.4d Found in 4.4c: YouTube by AirPlay sends no title at first, so the kiosk showed "nothing playing" while music played. A service session without content now shows "Playing from <service>" (arbiter tests "Service without a title" and "Stopped service without a title")
 - [ ] 4.5 Verify the layer (as 1.6); open the pull request and verify CI is green (found: on CI, the e2e check that the diagram and "Up next" are top-aligned read the layout before it settled; it now waits for it)
 - [ ] 4.6 Acceptance on the reference host: pause and resume a group, play something else after a pause, and repeat the situations from 4.4
 
