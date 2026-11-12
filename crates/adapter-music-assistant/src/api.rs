@@ -64,6 +64,8 @@ pub struct Palette {
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
 #[serde(default)]
 pub struct Queue {
+    /// `playing`, `paused` or `idle`; a paused group's queue is `idle`.
+    pub state: Option<String>,
     pub current_index: Option<u32>,
     pub current_item: Option<QueueItem>,
     /// Number of items in the queue.

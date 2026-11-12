@@ -6,7 +6,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, SessionProvider};
-use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio::sync::watch;
@@ -63,13 +63,24 @@ impl Default for Timing {
 }
 
 /// Why the provider polls Music Assistant.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Mode {
     /// Music Assistant's own stream: claimed from configuration alone.
     Claimed,
     /// An AirPlay session: claimed only while Music Assistant says it drives
     /// the player (it plays to a group of speakers).
     Checking,
+    /// The player stopped after a group session: claimed while Music
+    /// Assistant's queue still holds the group's item, shown as paused.
+    Held(Group),
+}
+
+/// The last group session the provider claimed: the queue it played from
+/// and its current item.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Group {
+    queue: String,
+    item: String,
 }
 
 /// Music Assistant's latest answer about an AirPlay session: the queue it
@@ -99,6 +110,9 @@ struct Inner {
     /// Music Assistant's latest answer during an AirPlay session; it ticks
     /// `updates` when the queue changes, so the claim is decided again.
     answer: watch::Sender<Option<Answer>>,
+    /// The last group session claimed, kept while the player stays stopped
+    /// after it, so a paused group can be held.
+    group: std::sync::Mutex<Option<Group>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -144,6 +158,7 @@ impl MusicAssistantProvider {
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
                 answer: watch::Sender::new(None),
+                group: std::sync::Mutex::new(None),
             }),
         })
     }
@@ -176,6 +191,7 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
             };
             key.clone().unwrap_or((String::new(), Mode::Claimed))
         };
+        let held = matches!(mode, Mode::Held(_));
         let Some(provider) = inner.upgrade() else {
             return;
         };
@@ -186,6 +202,10 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
                     tracing::info!("Music Assistant reachable again");
                 }
                 reachable = true;
+                if held && content.is_none() {
+                    // Music Assistant let go of the group's item: stop following.
+                    provider.release();
+                }
                 provider.publish(content);
             }
             Err(error) => {
@@ -238,6 +258,31 @@ impl Inner {
         });
     }
 
+    fn group(&self) -> Option<Group> {
+        self.group.lock().ok().and_then(|group| group.clone())
+    }
+
+    fn remember_group(&self, group: Option<Group>) {
+        if let Ok(mut current) = self.group.lock() {
+            *current = group;
+        }
+    }
+
+    /// Ends a hold: forgets the group and stops following the player.
+    fn release(&self) {
+        self.remember_group(None);
+        self.followed
+            .send_if_modified(|current| current.take().is_some());
+    }
+
+    /// Whether the provider holds a paused group session.
+    fn holds(&self) -> bool {
+        self.content
+            .borrow()
+            .as_ref()
+            .is_some_and(|content| content.held)
+    }
+
     fn forget_answer(&self) {
         self.answer
             .send_if_modified(|current| current.take().is_some());
@@ -261,7 +306,7 @@ impl Inner {
             .call("players/get", json!({ "player_id": player_key }))
             .await?;
         let group_queue = mapping::music_assistant_queue(&player, player_key);
-        let queue_id = match mode {
+        let queue_id = match &mode {
             Mode::Claimed => group_queue.unwrap_or_else(|| player_key.to_owned()),
             Mode::Checking => {
                 self.remember_answer(group_queue.clone());
@@ -271,10 +316,30 @@ impl Inner {
                 };
                 queue_id
             }
+            Mode::Held(group) => group.queue.clone(),
         };
         let queue: api::Queue = self
             .call("player_queues/get", json!({ "queue_id": queue_id }))
             .await?;
+        let item = queue
+            .current_item
+            .as_ref()
+            .map(|item| item.queue_item_id.clone());
+        match &mode {
+            Mode::Held(group) => {
+                // Held only while the queue still holds the group's item and
+                // doesn't play it.
+                let playing = queue.state.as_deref() == Some("playing");
+                if playing || item.as_ref() != Some(&group.item) {
+                    return Ok(None);
+                }
+            }
+            Mode::Checking => self.remember_group(item.map(|item| Group {
+                queue: queue_id.clone(),
+                item,
+            })),
+            Mode::Claimed => {}
+        }
 
         // Upcoming entries only change with the current item, index or count.
         let queue_key = queue
@@ -315,7 +380,11 @@ impl Inner {
             responses.providers = self.call("providers", json!({})).await?;
         }
 
-        let content = mapping::to_content(&responses, &self.base_url, player_key, self.clock.now());
+        let content = mapping::to_content(&responses, &self.base_url, player_key, self.clock.now())
+            .map(|content| Content {
+                held: matches!(mode, Mode::Held(_)),
+                ..content
+            });
         cache.upcoming = responses.upcoming;
         cache.providers = Some(responses.providers);
         Ok(content)
@@ -347,7 +416,9 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn claims(&self, device: &DeviceSnapshot) -> bool {
-        self.inner.rule.claims(device) || (is_airplay(device) && self.inner.drives_player())
+        self.inner.rule.claims(device)
+            || (is_airplay(device) && self.inner.drives_player())
+            || (device.state == PlaybackState::Stopped && self.inner.holds())
     }
 
     fn content(&self) -> Option<Content> {
@@ -355,11 +426,29 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn follow(&self, device: &DeviceSnapshot) {
+        let stopped = device.state == PlaybackState::Stopped;
         let mode = if self.inner.rule.claims(device) {
             Some(Mode::Claimed)
+        } else if let Some(group) = self.inner.group().filter(|_| stopped) {
+            // The group stopped (paused): hold it, showing what was playing
+            // as paused until the first poll confirms it.
+            self.inner
+                .content
+                .send_if_modified(|content| match content {
+                    Some(content) if !content.held => {
+                        content.held = true;
+                        true
+                    }
+                    _ => false,
+                });
+            Some(Mode::Held(group))
         } else if is_airplay(device) && !device.player_key.is_empty() {
             Some(Mode::Checking)
         } else {
+            // Anything else plays: no group to hold any more.
+            if !stopped {
+                self.inner.remember_group(None);
+            }
             None
         };
         let key = mode.map(|mode| (device.player_key.clone(), mode));
