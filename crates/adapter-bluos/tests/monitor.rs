@@ -293,3 +293,43 @@ async fn subwoofer_switched_off() {
         assert!(Instant::now() < deadline, "the subwoofer never went away");
     }
 }
+
+// Spec: device-bluos, "Subwoofer switched off while playing": the player
+// holds a long-poll open until its timeout, as the real one does, so the
+// change must be read without another long-poll.
+#[tokio::test]
+async fn subwoofer_switched_off_during_a_long_poll() {
+    let hold = Duration::from_secs(3);
+    let (player, port) = TestPlayer::start("sub-on", hold).await;
+    let timing = Timing {
+        long_poll: Duration::from_secs(10),
+        ..fast_timing()
+    };
+    let monitor = monitor(port, timing);
+    let mut snapshots = monitor.snapshots();
+    let first = tokio::time::timeout(Duration::from_secs(3), snapshots.next())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(first.outputs.len(), 1);
+
+    // Switched while a long-poll is held open; once a `/Status` shows the
+    // new `syncStat`, the subwoofer must be gone without another hold.
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    player.set_fixture("sub-off");
+    let switched = Instant::now();
+    loop {
+        let next = tokio::time::timeout(Duration::from_secs(8), snapshots.next())
+            .await
+            .unwrap()
+            .unwrap();
+        if next.outputs.is_empty() {
+            break;
+        }
+    }
+    assert!(
+        switched.elapsed() < hold + Duration::from_secs(1),
+        "noticed after {:?}, a long-poll too late",
+        switched.elapsed()
+    );
+}
