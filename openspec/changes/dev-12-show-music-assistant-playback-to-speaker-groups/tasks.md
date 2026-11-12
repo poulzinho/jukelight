@@ -35,6 +35,6 @@
 - [x] 4.2 Write a failing provider test for polling while held, then poll while held; verify with the provider tests
 - [x] 4.3 Write the failing arbiter test "Held content is paused", then add `Content.held` and report held content as paused; verify with `cargo test -p jukelight-application`
 - [ ] 4.4 From the acceptance, with new recordings: a speaker switched off still showed as playing; a phone's AirPlay after a group showed the group's track; switching the subwoofer off wasn't noticed. Record each (`bose-on`/`bose-off`, `airplay-stale`, `sub-on`/`sub-off`), write the spec change and a failing fixture test for each, then fix it
-- [ ] 4.5 Verify the layer (as 1.6); open the pull request and verify CI is green
+- [ ] 4.5 Verify the layer (as 1.6); open the pull request and verify CI is green (found: on CI, the e2e check that the diagram and "Up next" are top-aligned read the layout before it settled; it now waits for it)
 - [ ] 4.6 Acceptance on the reference host: pause and resume a group, play something else after a pause, and repeat the situations from 4.4
 
