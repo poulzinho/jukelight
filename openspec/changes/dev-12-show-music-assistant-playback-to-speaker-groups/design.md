@@ -167,6 +167,9 @@ other session takes over) or when the queue's item changes or clears.
   group] → the answer is refreshed every 2 s; at most one or two polls.
 - [More lines, more pulse frames] → the pulse runs only on a change
   (DEV-43); all branches move in the same frames; measured on the host.
+- [A speaker switched off during a group still shows as playing] →
+  Music Assistant itself still reports it available, powered and playing
+  (recorded); the diagram can only show what Music Assistant knows.
 - [Names in `.env` are personal] → only example names in the repository,
   fixtures and docs.
 
