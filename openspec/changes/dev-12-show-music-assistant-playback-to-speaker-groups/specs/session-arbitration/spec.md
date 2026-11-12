@@ -17,6 +17,30 @@ device's.
 - **WHEN** the device reports an AirPlay origin and the provider has had no answer for 5 seconds
 - **THEN** the origin is not claimed and the snapshot shows the device's AirPlay session
 
+### Requirement: Claimed origin uses the provider's content
+When a session provider claims the device's origin and has content, the
+snapshot SHALL use that provider's content, and the session label SHALL be
+the provider's label, followed by " · " and the music service when the
+content names one. The playback state SHALL come from the device, except
+that held content (a paused group the provider holds) SHALL be paused.
+Connectivity SHALL always come from the device.
+
+#### Scenario: Provider drives the device
+- **WHEN** a provider labelled "Example Provider" claims the device's origin and reports the title "Provider Song", while the device reports the title "Example Provider"
+- **THEN** the snapshot shows the title "Provider Song" with the session label "Example Provider"
+
+#### Scenario: State comes from the device
+- **WHEN** a provider claims the origin and reports playing, while the device reports paused
+- **THEN** the snapshot's playback state is paused
+
+#### Scenario: Held content is paused
+- **WHEN** a provider claims the origin with held content, while the device reports stopped
+- **THEN** the snapshot's playback state is paused, with the provider's content
+
+#### Scenario: Provider names the music service
+- **WHEN** a provider labelled "Example Provider" claims the origin and its content names the music service "Example Service"
+- **THEN** the session label is "Example Provider · Example Service"
+
 ## ADDED Requirements
 
 ### Requirement: Speakers and outputs on the snapshot

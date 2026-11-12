@@ -112,6 +112,31 @@ pulse reaches the streamer. (The rows branch off one vertical line, so a
 pulse that reached them all at once would have to jump ahead of itself.) Ports light up with
 `opacity` at their arrival time.
 
+### 8. A paused group: the provider holds the session
+
+Recordings show that when Music Assistant pauses a group, the player
+reports `stop` with its own previous queue (a Qobuz track, not AirPlay),
+and Music Assistant's queue for the player turns `idle` but keeps
+`current_item` and `elapsed_time`. Music Assistant's stop looks the same.
+
+The provider remembers the item of the last group session it claimed.
+When the device then reports stopped, it enters a third mode, *held*: it
+keeps polling `players/get` and `player_queues/get` every 2 s and claims
+the device while the queue is not playing and its current item is still
+that item. Its content is then the group's (track, position at the
+queue's `elapsed_time`, queue, speakers) with `Content.held` set. The
+arbiter reports a held content's state as paused; otherwise the state
+still comes from the device. The hold ends when the device reports
+anything but stopped (a resumed group is claimed again as before, any
+other session takes over) or when the queue's item changes or clears.
+
+- *Alternative:* keep the paused screen for a fixed time, then idle.
+  Rejected: a pause on the player itself has no such limit; the display
+  grace period already turns the screen off, the same for both.
+- *Alternative:* tell a pause from a stop. Not possible: Music Assistant
+  reports both as `idle` with the item kept. A stopped group shows as
+  paused until the screen goes off.
+
 ### Tests per layer
 
 - **Domain unit:** `Speaker`, `Output`, the class of a speaker's quality.
@@ -130,6 +155,9 @@ pulse that reached them all at once would have to jump ahead of itself.) Ports l
   overflow check (nothing past the screen, under the footer, into the
   queue's column, or over a logo) and a screenshot.
 - **Reference host:** the recorded situations live, and an hour's CPU.
+- **Held group (layer 4):** fixture tests with the paused recording
+  (held, resumed, another session, item cleared), provider tests for the
+  polling while held, and an arbiter test for the paused state.
 
 ## Risks / Trade-offs
 

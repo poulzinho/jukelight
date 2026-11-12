@@ -28,3 +28,13 @@
 - [ ] 3.7 Acceptance on the reference host: a Music Assistant group (playing, a member dropping out, paused), a phone's AirPlay, Qobuz Connect, Spotify, the optical input, the subwoofer off and on, your names in `.env`; portrait from across the room; an hour's CPU against about 62 s per hour; record the results on DEV-12 and DEV-13
 - [x] 3.8 Findings while verifying: the spec said the pulse reaches every branch at the same moment, but the rows branch off one line, so each branch now starts as the pulse passes its junction (spec and design reworded; the layout test checks the rows light up in turn, before the outputs); a long output name had no test (layout test "Long names" for the output)
 - [x] 3.9 Findings in the acceptance (a group on the reference host): the diagram came within a few pixels of the footer, so it now keeps 3vmin clear of it; it started further right than the progress bar, so the source's logo now starts level with it; in portrait the title's reserved second line left a wide gap above the artist, so the title's lines and the gaps under it are a little tighter (a two-line title still never moves the rest)
+
+## 4. A paused group, and fixes from the acceptance (stack layer 4, DEV-46: Music Assistant adapter, arbitration, BluOS)
+
+- [ ] 4.1 Write failing fixture tests "Group paused", "Group resumed", "Something else plays" and "Queue cleared" (the scrubbed paused recording), then hold a paused group session; verify with `cargo test -p jukelight-adapter-music-assistant`
+- [ ] 4.2 Write a failing provider test for polling while held, then poll while held; verify with the provider tests
+- [ ] 4.3 Write the failing arbiter test "Held content is paused", then add `Content.held` and report held content as paused; verify with `cargo test -p jukelight-application`
+- [ ] 4.4 From the acceptance, with new recordings: a speaker switched off still showed as playing; a phone's AirPlay after a group showed the group's track; switching the subwoofer off wasn't noticed. Record each (`bose-on`/`bose-off`, `airplay-stale`, `sub-on`/`sub-off`), write the spec change and a failing fixture test for each, then fix it
+- [ ] 4.5 Verify the layer (as 1.6); open the pull request and verify CI is green
+- [ ] 4.6 Acceptance on the reference host: pause and resume a group, play something else after a pause, and repeat the situations from 4.4
+

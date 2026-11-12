@@ -47,10 +47,11 @@ is how Music Assistant plays to a group of speakers.
 While it claims the device's origin, the provider SHALL fetch the player's
 state from Music Assistant (`players/get`, and `player_queues/get` for the
 queue the player plays from) at least every 2 seconds and publish an update
-whenever the resulting content changes. While the device reports an AirPlay
-origin that it does not claim, it SHALL fetch only `players/get`, at least
-every 2 seconds, to learn whether Music Assistant drives the player. Otherwise
-it SHALL make no requests.
+whenever the resulting content changes; it SHALL do the same while it holds
+a paused group session. While the device reports an AirPlay origin that it
+does not claim, it SHALL fetch only `players/get`, at least every 2
+seconds, to learn whether Music Assistant drives the player. Otherwise it
+SHALL make no requests.
 
 #### Scenario: Claimed
 - **WHEN** the provider claims the origin for 5 seconds
@@ -109,3 +110,28 @@ contain it, as a quality. Without a group, the list SHALL be empty.
 #### Scenario: Playing alone
 - **WHEN** this player has no `group_members` and no `synced_to`
 - **THEN** the list of speakers is empty
+
+### Requirement: A paused group
+After the provider claimed a group session, when the device reports
+stopped and Music Assistant's queue for the player is not playing but
+still holds the same current item, the provider SHALL hold the session:
+it SHALL keep claiming the device and report that item with its position,
+"Up next" and the speakers, marked as held. The hold SHALL end when the
+device reports anything other than stopped, or when the queue's current
+item changes or clears.
+
+#### Scenario: Group paused
+- **WHEN** a group session was claimed with "Example Song", then the device reports stopped with its own previous queue and Music Assistant's queue is idle with "Example Song" at 121 s
+- **THEN** the provider claims the device and reports "Example Song" at 121 s, held
+
+#### Scenario: Group resumed
+- **WHEN** the provider holds a paused group session and the device reports an AirPlay session that Music Assistant drives
+- **THEN** the provider claims it as a group session, not held
+
+#### Scenario: Something else plays
+- **WHEN** the provider holds a paused group session and the device reports playing its own Qobuz queue
+- **THEN** the provider no longer claims the device
+
+#### Scenario: Queue cleared
+- **WHEN** the provider holds a paused group session and Music Assistant's queue no longer has a current item
+- **THEN** the provider no longer claims the device
