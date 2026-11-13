@@ -53,7 +53,13 @@ or sends its current track's title, while a phone sends no title (YouTube)
 or its own (recorded). So the AirPlay claim also needs the player's title
 to be one of those: the sender's name, or Music Assistant's current,
 previous or next track (the player's title and Music Assistant's answer
-may be a track apart for up to one poll around a track change).
+may be a track apart for up to one poll around a track change). Found
+next: when a group takes over from a phone, the player keeps the phone's
+title (or none) at first. So whichever changed last decides: Music
+Assistant starting to name its queue after the player's title changed to
+another sender's means the group took over; the title changing away from
+Music Assistant's while Music Assistant already named its queue means a
+phone took over.
 
 - *Alternative:* a shorter answer lifetime. Rejected: Music Assistant's
   own answer is what lags.
