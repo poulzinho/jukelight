@@ -45,6 +45,19 @@ applying: this needs no `players/all` lookup. A change of the answer ticks
 - *Alternative:* claim every AirPlay session while Music Assistant runs.
   Rejected: a phone's AirPlay would show Music Assistant's last queue.
 
+Found in the acceptance: after a phone took the player over by AirPlay,
+Music Assistant kept reporting its queue for longer than 5 s, so the
+phone's session showed the group's track, playing. The player tells the
+senders apart: Music Assistant's AirPlay sender names itself `cliairplay`
+or sends its current track's title, while a phone sends no title (YouTube)
+or its own (recorded). So the AirPlay claim also needs the player's title
+to be one of those: the sender's name, or Music Assistant's current,
+previous or next track (the player's title and Music Assistant's answer
+may be a track apart for up to one poll around a track change).
+
+- *Alternative:* a shorter answer lifetime. Rejected: Music Assistant's
+  own answer is what lags.
+
 `active_source` of a group member names the leader's queue, so the content
 comes from `player_queues/get` for that id.
 
