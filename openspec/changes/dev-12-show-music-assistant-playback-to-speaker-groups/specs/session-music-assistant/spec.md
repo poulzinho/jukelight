@@ -9,16 +9,7 @@ Bluesound players). That claim SHALL be decided without contacting Music
 Assistant. The provider SHALL also claim an AirPlay origin when Music
 Assistant's latest answer for this player (`players/get`, at most 5 seconds
 old) has an `active_source` that is one of Music Assistant's queues, which
-is how Music Assistant plays to a group of speakers, and either Music
-Assistant started naming its queue after the player's AirPlay title last
-changed to another sender's, or the player's AirPlay title shows that
-Music Assistant sends it: the title is
-`cliairplay` (Music Assistant's AirPlay sender) or the title of Music
-Assistant's current track, the track before it or the next one (around a
-track change, the player and Music Assistant's answer may differ by a
-track for a moment). Music Assistant can take longer than 5 seconds
-to notice that another sender, such as a phone, took the player over; the
-title tells them apart at once.
+is how Music Assistant plays to a group of speakers.
 
 #### Scenario: Stream from Music Assistant for this player
 - **WHEN** Music Assistant is configured at `http://192.168.1.50:8095` and the device with player key `aabbccddeeff` reports the stream origin `http://192.168.1.50:8097/flow/session1/aabbccddeeff/00000000000000000000000000000001/aabbccddeeff.flac`
@@ -37,27 +28,11 @@ title tells them apart at once.
 - **THEN** the provider does not claim the origin
 
 #### Scenario: Music Assistant plays to a group
-- **WHEN** the device reports an AirPlay origin titled `cliairplay` and Music Assistant reports this player's `active_source` as the queue `aabbccddeeff`
+- **WHEN** the device reports an AirPlay origin and Music Assistant reports this player's `active_source` as the queue `aabbccddeeff`
 - **THEN** the provider claims the origin
-
-#### Scenario: Music Assistant sends its track's title
-- **WHEN** the device reports an AirPlay origin titled with Music Assistant's current track, and Music Assistant reports the queue `aabbccddeeff`
-- **THEN** the provider claims the origin
-
-#### Scenario: Around a track change
-- **WHEN** Music Assistant reports the queue `aabbccddeeff` and the device's AirPlay origin is titled with the next track in that queue, or with the track that played before
-- **THEN** the provider claims the origin
-
-#### Scenario: A group takes over from a phone
-- **WHEN** the device's AirPlay origin has the title "Phone Song" and Music Assistant then starts reporting the queue `aabbccddeeff`, while the title stays "Phone Song"
-- **THEN** the provider claims the origin
-
-#### Scenario: A phone takes over from a group
-- **WHEN** Music Assistant still reports the queue `aabbccddeeff`, but the device's AirPlay origin has no title, or the title "Phone Song"
-- **THEN** the provider does not claim the origin
 
 #### Scenario: A member of another player's group
-- **WHEN** the device reports an AirPlay origin titled `cliairplay` and Music Assistant reports this player's `active_source` as the queue of the group leader `112233445566`
+- **WHEN** the device reports an AirPlay origin and Music Assistant reports this player's `active_source` as the queue of the group leader `112233445566`
 - **THEN** the provider claims the origin
 
 #### Scenario: AirPlay from a phone

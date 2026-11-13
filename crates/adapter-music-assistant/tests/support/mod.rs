@@ -18,9 +18,7 @@ use jukelight_adapter_music_assistant::{
 };
 use jukelight_application::SessionProvider;
 use jukelight_application::testing::FixedClock;
-use jukelight_domain::{
-    Brand, Content, DeviceSnapshot, Origin, PlaybackState, QueueView, Timestamp, Track,
-};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState, Timestamp};
 use serde_json::Value;
 
 pub const TOKEN: &str = "test-token-0123456789";
@@ -40,8 +38,6 @@ pub struct Server {
     queue_patch: Option<Value>,
     /// Replaces fields of the recorded player.
     player_patch: Option<Value>,
-    /// Replaces the fixture's upcoming entries.
-    items: Option<Value>,
     reachable: bool,
     requests: Vec<(String, Value)>,
 }
@@ -58,7 +54,6 @@ impl TestServer {
             fixture: fixture.into(),
             queue_patch: None,
             player_patch: None,
-            items: None,
             reachable: true,
             requests: Vec::new(),
         }));
@@ -80,10 +75,6 @@ impl TestServer {
 
     pub fn patch_queue(&self, patch: Value) {
         self.state.lock().unwrap().queue_patch = Some(patch);
-    }
-
-    pub fn set_items(&self, items: Value) {
-        self.state.lock().unwrap().items = Some(items);
     }
 
     pub fn patch_player(&self, patch: Value) {
@@ -155,8 +146,6 @@ pub async fn api(
     };
     let mut value = if file == "players.json" && !fixture_path(&server.fixture, file).exists() {
         Value::Array(Vec::new())
-    } else if let (Some(items), "items.json") = (&server.items, file) {
-        items.clone()
     } else {
         fixture(&server.fixture, file)
     };
@@ -222,34 +211,6 @@ pub fn airplay_device() -> DeviceSnapshot {
         name: "AirPlay".into(),
         cast: true,
     })
-}
-
-/// An AirPlay session titled `title` by its sender, as the player reports it.
-pub fn airplay_titled(title: &str) -> DeviceSnapshot {
-    DeviceSnapshot {
-        content: Some(Content {
-            track: Track {
-                title: title.into(),
-                artists: Vec::new(),
-                album: None,
-            },
-            artwork: None,
-            position: None,
-            quality: None,
-            delivery: None,
-            queue: QueueView::NotApplicable,
-            service: None,
-            palette: None,
-            speakers: Vec::new(),
-            held: false,
-        }),
-        ..airplay_device()
-    }
-}
-
-/// Music Assistant's group playback: its AirPlay sender names itself.
-pub fn group_airplay() -> DeviceSnapshot {
-    airplay_titled("cliairplay")
 }
 
 /// Polls `provider.claims(device)` until it is `expected`, for at most `WAIT`.

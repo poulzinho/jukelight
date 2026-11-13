@@ -45,24 +45,12 @@ applying: this needs no `players/all` lookup. A change of the answer ticks
 - *Alternative:* claim every AirPlay session while Music Assistant runs.
   Rejected: a phone's AirPlay would show Music Assistant's last queue.
 
-Found in the acceptance: after a phone took the player over by AirPlay,
-Music Assistant kept reporting its queue for longer than 5 s, so the
-phone's session showed the group's track, playing. The player tells the
-senders apart: Music Assistant's AirPlay sender names itself `cliairplay`
-or sends its current track's title, while a phone sends no title (YouTube)
-or its own (recorded). So the AirPlay claim also needs the player's title
-to be one of those: the sender's name, or Music Assistant's current,
-previous or next track (the player's title and Music Assistant's answer
-may be a track apart for up to one poll around a track change). Found
-next: when a group takes over from a phone, the player keeps the phone's
-title (or none) at first. So whichever changed last decides: Music
-Assistant starting to name its queue after the player's title changed to
-another sender's means the group took over; the title changing away from
-Music Assistant's while Music Assistant already named its queue means a
-phone took over.
-
-- *Alternative:* a shorter answer lifetime. Rejected: Music Assistant's
-  own answer is what lags.
+Found in the acceptance: the player's AirPlay title can't tell Music
+Assistant from a phone. Music Assistant sends the song, the artist or
+`cliairplay` as the title, and a phone none or its own. Music Assistant's
+answer was right in every recording, including when it took the player
+back from a phone right after the phone started; a claim decided by the
+title was tried and undone.
 
 `active_source` of a group member names the leader's queue, so the content
 comes from `player_queues/get` for that id.

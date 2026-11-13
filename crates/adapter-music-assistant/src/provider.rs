@@ -6,7 +6,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, SessionProvider};
-use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState, QueueView};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio::sync::watch;
@@ -17,9 +17,6 @@ use crate::claim::{ClaimRule, UrlError, http_url};
 use crate::mapping::{self, Responses, UP_NEXT};
 
 const LABEL: &str = "Music Assistant";
-
-/// The name Music Assistant's AirPlay sender gives itself as the title.
-const AIRPLAY_SENDER: &str = "cliairplay";
 
 /// A Music Assistant token. Never printed.
 #[derive(Clone, PartialEq, Eq)]
@@ -92,17 +89,6 @@ struct Group {
 struct Answer {
     queue: Option<String>,
     at: Instant,
-    /// When Music Assistant started naming this queue.
-    since: Instant,
-}
-
-/// The player's AirPlay title as last seen, and when it last changed to a
-/// title another sender gave it.
-#[derive(Debug, Default)]
-struct AirplayTitle {
-    seen: bool,
-    last: Option<String>,
-    foreign_since: Option<Instant>,
 }
 
 /// Follows Music Assistant's view of the player while Music Assistant drives
@@ -124,12 +110,6 @@ struct Inner {
     /// Music Assistant's latest answer during an AirPlay session; it ticks
     /// `updates` when the queue changes, so the claim is decided again.
     answer: watch::Sender<Option<Answer>>,
-    /// The player's AirPlay title, to tell which changed last: the sender or
-    /// Music Assistant's answer.
-    airplay_title: std::sync::Mutex<AirplayTitle>,
-    /// The title of the track before the current one, so a claim holds
-    /// while the player's title still shows it around a track change.
-    previous_title: std::sync::Mutex<Option<String>>,
     /// The last group session claimed, kept while the player stays stopped
     /// after it, so a paused group can be held.
     group: std::sync::Mutex<Option<Group>>,
@@ -178,8 +158,6 @@ impl MusicAssistantProvider {
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
                 answer: watch::Sender::new(None),
-                airplay_title: std::sync::Mutex::new(AirplayTitle::default()),
-                previous_title: std::sync::Mutex::new(None),
                 group: std::sync::Mutex::new(None),
             }),
         })
@@ -262,15 +240,6 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
 
 impl Inner {
     fn publish(&self, content: Option<Content>) {
-        let title =
-            |content: &Option<Content>| content.as_ref().map(|content| content.track.title.clone());
-        let before = title(&self.content.borrow());
-        if before.is_some()
-            && before != title(&content)
-            && let Ok(mut previous) = self.previous_title.lock()
-        {
-            *previous = before;
-        }
         self.content.send_if_modified(|current| {
             let changed = *current != content;
             *current = content;
@@ -284,11 +253,7 @@ impl Inner {
         let at = Instant::now();
         self.answer.send_if_modified(|current| {
             let changed = current.as_ref().map(|answer| &answer.queue) != Some(&queue);
-            let since = match current {
-                Some(answer) if !changed => answer.since,
-                _ => at,
-            };
-            *current = Some(Answer { queue, at, since });
+            *current = Some(Answer { queue, at });
             changed
         });
     }
@@ -308,66 +273,6 @@ impl Inner {
         self.remember_group(None);
         self.followed
             .send_if_modified(|current| current.take().is_some());
-    }
-
-    /// Notes the player's AirPlay title, and when it changed to a title
-    /// another sender gave it.
-    fn note_airplay_title(&self, device: &DeviceSnapshot) {
-        let title = device
-            .content
-            .as_ref()
-            .map(|content| content.track.title.clone());
-        let foreign = !self.sends(device);
-        if let Ok(mut seen) = self.airplay_title.lock()
-            && (!seen.seen || seen.last != title)
-        {
-            seen.seen = true;
-            seen.last = title;
-            if foreign {
-                seen.foreign_since = Some(Instant::now());
-            }
-        }
-    }
-
-    /// Whether Music Assistant started naming its queue after the player's
-    /// AirPlay title last changed to another sender's: then Music Assistant
-    /// took the player over, whatever the title still shows.
-    fn took_over(&self) -> bool {
-        let foreign_since = self
-            .airplay_title
-            .lock()
-            .ok()
-            .and_then(|seen| seen.foreign_since);
-        self.answer.borrow().as_ref().is_some_and(|answer| {
-            foreign_since.is_none_or(|foreign_since| answer.since > foreign_since)
-        })
-    }
-
-    /// Whether the player's AirPlay title shows that Music Assistant sends
-    /// it: its sender's name, or its current track's title. A phone sends no
-    /// title or its own, while Music Assistant may still name its queue.
-    fn sends(&self, device: &DeviceSnapshot) -> bool {
-        let Some(title) = device.content.as_ref().map(|content| &content.track.title) else {
-            return false;
-        };
-        if title == AIRPLAY_SENDER {
-            return true;
-        }
-        let previous = self
-            .previous_title
-            .lock()
-            .ok()
-            .and_then(|previous| previous.clone());
-        if previous.as_ref() == Some(title) {
-            return true;
-        }
-        self.content.borrow().as_ref().is_some_and(|content| {
-            let next = match &content.queue {
-                QueueView::Available(entries) => entries.first().map(|entry| &entry.title),
-                QueueView::NotApplicable => None,
-            };
-            &content.track.title == title || next == Some(title)
-        })
     }
 
     /// Whether the provider holds a paused group session.
@@ -512,9 +417,7 @@ impl SessionProvider for MusicAssistantProvider {
 
     fn claims(&self, device: &DeviceSnapshot) -> bool {
         self.inner.rule.claims(device)
-            || (is_airplay(device)
-                && self.inner.drives_player()
-                && (self.inner.sends(device) || self.inner.took_over()))
+            || (is_airplay(device) && self.inner.drives_player())
             || (device.state == PlaybackState::Stopped && self.inner.holds())
     }
 
@@ -523,9 +426,6 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn follow(&self, device: &DeviceSnapshot) {
-        if is_airplay(device) {
-            self.inner.note_airplay_title(device);
-        }
         let stopped = device.state == PlaybackState::Stopped;
         let mode = if self.inner.rule.claims(device) {
             Some(Mode::Claimed)
