@@ -422,6 +422,21 @@ mod group_sessions {
     }
 
     #[tokio::test]
+    async fn a_group_takes_over_from_a_phone() {
+        let server = TestServer::start("airplay-phone").await;
+        let provider = server.provider(TOKEN, FAST);
+        let phone = airplay_titled("Phone Song");
+        provider.follow(&phone);
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert!(!provider.claims(&phone));
+
+        // Music Assistant starts the group; the player still shows the
+        // phone's title.
+        server.set_fixture("group-playing");
+        wait_for_claim(&provider, &phone, true).await;
+    }
+
+    #[tokio::test]
     async fn a_phone_takes_over_from_a_group() {
         // Music Assistant still names its queue, but the phone sends no title,
         // or its own.
