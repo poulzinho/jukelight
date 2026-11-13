@@ -6,7 +6,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, SessionProvider};
-use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState, QueueView};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio::sync::watch;
@@ -17,6 +17,9 @@ use crate::claim::{ClaimRule, UrlError, http_url};
 use crate::mapping::{self, Responses, UP_NEXT};
 
 const LABEL: &str = "Music Assistant";
+
+/// The name Music Assistant's AirPlay sender gives itself as the title.
+const AIRPLAY_SENDER: &str = "cliairplay";
 
 /// A Music Assistant token. Never printed.
 #[derive(Clone, PartialEq, Eq)]
@@ -110,6 +113,9 @@ struct Inner {
     /// Music Assistant's latest answer during an AirPlay session; it ticks
     /// `updates` when the queue changes, so the claim is decided again.
     answer: watch::Sender<Option<Answer>>,
+    /// The title of the track before the current one, so a claim holds
+    /// while the player's title still shows it around a track change.
+    previous_title: std::sync::Mutex<Option<String>>,
     /// The last group session claimed, kept while the player stays stopped
     /// after it, so a paused group can be held.
     group: std::sync::Mutex<Option<Group>>,
@@ -158,6 +164,7 @@ impl MusicAssistantProvider {
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
                 answer: watch::Sender::new(None),
+                previous_title: std::sync::Mutex::new(None),
                 group: std::sync::Mutex::new(None),
             }),
         })
@@ -240,6 +247,15 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
 
 impl Inner {
     fn publish(&self, content: Option<Content>) {
+        let title =
+            |content: &Option<Content>| content.as_ref().map(|content| content.track.title.clone());
+        let before = title(&self.content.borrow());
+        if before.is_some()
+            && before != title(&content)
+            && let Ok(mut previous) = self.previous_title.lock()
+        {
+            *previous = before;
+        }
         self.content.send_if_modified(|current| {
             let changed = *current != content;
             *current = content;
@@ -273,6 +289,33 @@ impl Inner {
         self.remember_group(None);
         self.followed
             .send_if_modified(|current| current.take().is_some());
+    }
+
+    /// Whether the player's AirPlay title shows that Music Assistant sends
+    /// it: its sender's name, or its current track's title. A phone sends no
+    /// title or its own, while Music Assistant may still name its queue.
+    fn sends(&self, device: &DeviceSnapshot) -> bool {
+        let Some(title) = device.content.as_ref().map(|content| &content.track.title) else {
+            return false;
+        };
+        if title == AIRPLAY_SENDER {
+            return true;
+        }
+        let previous = self
+            .previous_title
+            .lock()
+            .ok()
+            .and_then(|previous| previous.clone());
+        if previous.as_ref() == Some(title) {
+            return true;
+        }
+        self.content.borrow().as_ref().is_some_and(|content| {
+            let next = match &content.queue {
+                QueueView::Available(entries) => entries.first().map(|entry| &entry.title),
+                QueueView::NotApplicable => None,
+            };
+            &content.track.title == title || next == Some(title)
+        })
     }
 
     /// Whether the provider holds a paused group session.
@@ -417,7 +460,7 @@ impl SessionProvider for MusicAssistantProvider {
 
     fn claims(&self, device: &DeviceSnapshot) -> bool {
         self.inner.rule.claims(device)
-            || (is_airplay(device) && self.inner.drives_player())
+            || (is_airplay(device) && self.inner.drives_player() && self.inner.sends(device))
             || (device.state == PlaybackState::Stopped && self.inner.holds())
     }
 

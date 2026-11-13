@@ -221,7 +221,7 @@ mod paused_groups {
         server: &TestServer,
     ) -> std::sync::Arc<jukelight_adapter_music_assistant::MusicAssistantProvider> {
         let provider = server.provider(TOKEN, FAST);
-        provider.follow(&airplay_device());
+        provider.follow(&group_airplay());
         wait_for(&provider, |content| {
             content.as_ref().is_some_and(|content| !content.held)
         })
@@ -257,7 +257,7 @@ mod paused_groups {
         let server = TestServer::start("group-playing").await;
         let provider = held(&server).await;
         server.set_fixture("group-playing");
-        let device = airplay_device();
+        let device = group_airplay();
         provider.follow(&device);
         wait_for_claim(&provider, &device, true).await;
         wait_for(&provider, |content| {
@@ -335,7 +335,7 @@ mod group_sessions {
     async fn music_assistant_plays_to_a_group() {
         let server = TestServer::start("group-playing").await;
         let provider = server.provider(TOKEN, FAST);
-        let device = airplay_device();
+        let device = group_airplay();
         provider.follow(&device);
         wait_for_claim(&provider, &device, true).await;
     }
@@ -344,7 +344,7 @@ mod group_sessions {
     async fn the_player_leads_the_group() {
         let server = TestServer::start("group-playing").await;
         let provider = server.provider(TOKEN, FAST);
-        provider.follow(&airplay_device());
+        provider.follow(&group_airplay());
         let content = wait_for(&provider, Option::is_some).await;
         assert_eq!(
             title(content.as_ref()),
@@ -365,7 +365,7 @@ mod group_sessions {
         let server = TestServer::start("group-playing").await;
         server.patch_player(json!({"active_source": "112233445566", "synced_to": "112233445566"}));
         let provider = server.provider(TOKEN, FAST);
-        let device = airplay_device();
+        let device = group_airplay();
         provider.follow(&device);
         wait_for_claim(&provider, &device, true).await;
         wait_for(&provider, Option::is_some).await;
@@ -373,6 +373,70 @@ mod group_sessions {
             server.requests("player_queues/get")[0],
             json!({"queue_id": "112233445566"})
         );
+    }
+
+    #[tokio::test]
+    async fn music_assistant_sends_its_tracks_title() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&group_airplay());
+        let content = wait_for(&provider, Option::is_some).await.unwrap();
+        let device = airplay_titled(&content.track.title);
+        provider.follow(&device);
+        wait_for_claim(&provider, &device, true).await;
+    }
+
+    #[tokio::test]
+    async fn around_a_track_change() {
+        let server = TestServer::start("group-playing").await;
+        server.set_items(json!([{"queue_item_id": "n1", "name": "Next Song", "media_item": {"name": "Next Song"}}]));
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&group_airplay());
+        // Once the upcoming entries have loaded.
+        let content = wait_for(&provider, |content| {
+            content
+                .as_ref()
+                .is_some_and(|content| matches!(&content.queue, jukelight_domain::QueueView::Available(entries) if !entries.is_empty()))
+        })
+        .await
+        .unwrap();
+        let jukelight_domain::QueueView::Available(upcoming) = &content.queue else {
+            panic!("the recorded group has a queue");
+        };
+        // The player already shows the next track.
+        let next = airplay_titled(&upcoming[0].title);
+        provider.follow(&next);
+        wait_for_claim(&provider, &next, true).await;
+
+        // Music Assistant moves on first: the player still shows the track before.
+        server.patch_queue(json!({"current_item": {"queue_item_id": "n1", "name": "Next Song", "media_item": {"name": "Next Song"}}}));
+        wait_for(&provider, |content| {
+            content
+                .as_ref()
+                .is_some_and(|content| content.track.title == "Next Song")
+        })
+        .await;
+        let before = airplay_titled(&content.track.title);
+        provider.follow(&before);
+        assert!(provider.claims(&before));
+    }
+
+    #[tokio::test]
+    async fn a_phone_takes_over_from_a_group() {
+        // Music Assistant still names its queue, but the phone sends no title,
+        // or its own.
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let group = group_airplay();
+        provider.follow(&group);
+        wait_for_claim(&provider, &group, true).await;
+        wait_for(&provider, Option::is_some).await;
+
+        for phone in [airplay_device(), airplay_titled("Phone Song")] {
+            provider.follow(&phone);
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            assert!(!provider.claims(&phone), "claimed {:?}", phone.content);
+        }
     }
 
     #[tokio::test]
@@ -394,7 +458,7 @@ mod group_sessions {
     async fn no_answer_yet() {
         let server = TestServer::start("group-playing").await;
         let provider = server.provider(TOKEN, FAST);
-        let device = airplay_device();
+        let device = group_airplay();
         provider.follow(&device);
         wait_for_claim(&provider, &device, true).await;
 
@@ -407,7 +471,7 @@ mod group_sessions {
     async fn a_new_answer_rebuilds_the_snapshot() {
         let server = TestServer::start("airplay-phone").await;
         let provider = server.provider(TOKEN, FAST);
-        let device = airplay_device();
+        let device = group_airplay();
         provider.follow(&device);
         tokio::time::sleep(Duration::from_millis(200)).await;
 
