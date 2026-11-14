@@ -1,5 +1,9 @@
 # DEV-48: Polish the playing screen: full titles, icons, a lighter diagram, Figtree and a softer background
 
+In one stack of five layers, each a sub-issue of DEV-48: DEV-49 (a softer
+background), DEV-50 (Figtree), DEV-51 (the track's text and the page's
+room), DEV-52 (the diagram) and DEV-53 ("Up next" grouped).
+
 ## Why
 
 On the reference host the playing screen cuts long titles after two lines

@@ -189,6 +189,24 @@ offline screens; on the playing screen its space goes to the diagram and
 "Up next", which now run to the page's bottom margin instead of the
 footer's top.
 
+### Stack layers
+
+Five pull requests, bottom-up, each building and passing CI on its own:
+1. **DEV-49, the background** (artwork adapter only).
+2. **DEV-50, Figtree:** every later layer is measured and screenshotted in
+   the final font.
+3. **DEV-51, the track's text and the page's room:** the title, artists,
+   icons, no footer, margins and the gap under the progress; it settles
+   the vertical room the diagram depends on.
+4. **DEV-52, the diagram:** lighter drawing, the streamer's lid, the rows'
+   spacing, the wave and its flash; two speakers fit only with layer 3's
+   room.
+5. **DEV-53, "Up next" grouped:** fits to layer 3's bottom margin; the
+   top layer carries the acceptance, the sync and the archive.
+
+Each layer runs the e2e overflow checks for every fake scenario in both
+orientations, so a layer that breaks the fit fails on its own.
+
 ### Tests per layer
 
 - **Artwork adapter (fixtures):** backdrop size, blur (the half-black,
