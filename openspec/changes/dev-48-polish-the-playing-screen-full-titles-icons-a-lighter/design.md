@@ -21,14 +21,14 @@ draft code is the starting point; it is not committed.
 
 **Goals:**
 - Show long titles in full without moving the steady portrait layout.
+- Make a classical queue readable in "Up next" without moving text.
 - Make the diagram calmer and the streamer card less crowded, with the
   maker's mark always visible when supplied.
 - Bundle a font whose licence allows redistribution.
 - Remove the backdrop's blocks without adding work to the kiosk.
 
 **Non-Goals:**
-- Two-line "Up next" titles; landscape-only layout changes; user-chosen
-  fonts.
+- Moving titles; landscape-only layout changes; user-chosen fonts.
 
 ## Decisions
 
@@ -96,10 +96,31 @@ the PNG grows from about 2 KB to about 30 KB, fetched once per album.
 - *Alternative:* a larger thumbnail without blur. Rejected: still blocky
   when stretched by 30×, and dark gradients band.
 
+### 6. "Up next" groups entries in the kiosk, from the titles
+
+Grouping is a pure function in the kiosk over the queue's entries and the
+current track: split each title at its last ": " or " - "; a beginning is a
+work only when a neighbour (or, for the first entry, the current track)
+shares it, so a lone "Interlude: …" or "Song - Remastered 2011" stays
+whole; then consecutive entries of one work, or else with the same main
+(first) artist, form a group. The list renders headings and entries;
+fitting in portrait counts a heading together with its first entry, so a
+heading is never left alone above the footer. The API is unchanged: the
+queue already carries titles and artists.
+
+- *Alternative:* moving (scrolling) titles. Rejected for now: continuous
+  movement costs CPU on the reference host and is harder to read from
+  across the room; grouping shows the differing part at rest.
+- *Alternative:* omit an entry's artist when it repeats the current
+  track's. Rejected: the entry looked anonymous; a heading names it.
+- *Alternative:* group in the backend. Rejected: grouping is presentation;
+  the kiosk has the titles, and the rules are easier to test there.
+
 ### Tests per layer
 
 - **Artwork adapter (fixtures):** backdrop size, blur (the half-black,
   half-white scenario), grain (flat colour), determinism, not an image.
+- **Kiosk unit (grouping function):** one test per "Up next" scenario.
 - **Kiosk components:** title steps (short, long classical, too long),
   icons, the lid (mark and room, no mark, long room), lighter lines; the
   layout's two-speaker fit and the room's fitting in the layout tests; the

@@ -26,6 +26,12 @@ was reviewed and approved. Part of roadmap step 4 (finished kiosk).
 - **More space between the speaker rows and the streamer,** taken back
   from the source's line, so a group of two speakers still shows both rows
   in portrait.
+- **"Up next" grouped:** consecutive movements of one work share the work
+  as a heading and show only the movement; consecutive tracks by one artist
+  share the artist as a heading; single entries stay as today. Titles wrap
+  to two lines before "…". A classical queue becomes readable ("II.
+  Andante", "III. Allegro assai") and no entry hides its artist without a
+  heading naming it.
 - **Figtree instead of Inter:** an open-source variable font (SIL Open Font
   License 1.1), bundled with the kiosk like Inter today; nothing is loaded
   from the internet. Satoshi was considered and rejected: its licence (ITF
@@ -36,7 +42,8 @@ was reviewed and approved. Part of roadmap step 4 (finished kiosk).
 
 ### Non-goals
 
-- Two-line "Up next" titles (a possible follow-up).
+- Moving (scrolling) text for titles that still don't fit (a possible
+  follow-up; it would need a CPU measurement).
 - Changes to the landscape layout beyond the shared parts above.
 - A font chosen by the user (any bundled font must allow redistribution).
 
@@ -50,19 +57,22 @@ None.
 
 - `kiosk-display`: the playing screen fits long titles and shows icons by
   the artists and the album; the streamer card's lid holds the mark and
-  the room; diagram lines are lighter; the mark no longer gives way in
+  the room; "Up next" groups entries by work or artist; diagram lines are
+  lighter; the mark no longer gives way in
   "Diagram fits"; a new requirement names the bundled typeface.
 - `artwork`: the backdrop image is larger and blurred with grain instead
   of a 32-pixel thumbnail.
 
 ## Impact
 
-- `web/kiosk`: `TrackInfo` (title fitting, icons), `SignalDiagram` (lines,
+- `web/kiosk`: `TrackInfo` (title fitting, icons), `UpNext` (grouping,
+  two-line titles, fitting whole groups), `SignalDiagram` (lines,
   ports, streamer card), `diagram/layout.ts` (gap, source line, room in the
   lid), `index.css` and `package.json` (Figtree replaces
   `@fontsource-variable/inter`), the diagram's text measuring after the
   font has loaded; unit and e2e tests.
 - `crates/adapter-artwork`: the backdrop's size, blur and grain; its tests.
+- `crates/adapter-fake`: a scenario with a classical queue, for the e2e checks.
 - `openspec/config.yaml` (project context names the bundled font), `README.md`
   if it mentions the font; `brand-assets/` stays user-supplied (the mark).
 - No API change.

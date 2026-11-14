@@ -57,6 +57,78 @@ even then SHALL end with an ellipsis.
 - **WHEN** the snapshot names the artist "Example Artist" and the album "Example Album"
 - **THEN** a microphone icon precedes "Example Artist" and a disc icon precedes "Example Album"
 
+### Requirement: Up next
+The kiosk SHALL show an "Up next" list only when the queue is available and
+not empty, in the right column beside the diagram: as many entries as fit
+above the footer, at most 5. Entries SHALL be grouped:
+- **By work:** the part of a title before its last ": " or " - " is a work
+  when two or more consecutive entries share it, or the first entry shares
+  it with the current track. Consecutive entries of one work SHALL share
+  the work as a heading and show only the rest of their titles; the first
+  entry of the group SHALL show its artists, later ones only when the
+  artists change.
+- **By artist:** otherwise, two or more consecutive entries with the same
+  main (first) artist SHALL share that artist as a heading and show only
+  their titles, with any other artists as "with …".
+- **Single entries** SHALL show their title and artists.
+
+A group SHALL start again after any entry in between. Headings and
+artists SHALL stay on one line and titles on at most two, ending with "…"
+when too long. A heading SHALL never be shown without its first entry
+below it.
+
+#### Scenario: Queue available
+- **WHEN** the queue holds 5 upcoming entries by five different artists and the screen is landscape
+- **THEN** "Up next" shows the first 4 entries
+
+#### Scenario: No queue
+- **WHEN** the queue is not applicable
+- **THEN** no "Up next" list is shown
+
+#### Scenario: Movements of one work
+- **WHEN** the current track is "Example Composer: Example Concerto, Op. 1: I. Allegro" by "Example Violinist" and the next entries are its "II. Andante" and "III. Presto" by the same violinist
+- **THEN** "Up next" shows the heading "Example Composer: Example Concerto, Op. 1", then "II. Andante" with "Example Violinist", then "III. Presto" without an artist
+
+#### Scenario: Performer changes within a work
+- **WHEN** consecutive entries of one work are by "Example Pianist", "Another Example Pianist" and "Another Example Pianist"
+- **THEN** the artist shows on the first and second entries only
+
+#### Scenario: A work without the composer in the title
+- **WHEN** the next entries are "Symphony No. 5 in C Minor, Op. 67: II. Andante con moto" and "Symphony No. 5 in C Minor, Op. 67: III. Allegro"
+- **THEN** they share the heading "Symphony No. 5 in C Minor, Op. 67"
+
+#### Scenario: Dash as the separator
+- **WHEN** the next entries are "Piano Sonata No. 14 - II. Allegretto" and "Piano Sonata No. 14 - III. Presto agitato"
+- **THEN** they share the heading "Piano Sonata No. 14"
+
+#### Scenario: A lone title with a separator
+- **WHEN** an entry titled "Interlude: The Long Way Home" shares its beginning with no neighbour and not with the current track
+- **THEN** it is shown whole, as a single entry with its artist
+
+#### Scenario: Album by one artist
+- **WHEN** the next entries are "Example Song A", "Example Song B" and "Example Song C", all by "Example Singer"
+- **THEN** "Up next" shows the heading "Example Singer" and the three titles without an artist line
+
+#### Scenario: Featured artist
+- **WHEN** consecutive entries by "Example Singer" include one by "Example Singer" and "Guest Artist"
+- **THEN** that entry stays in the group and shows "with Guest Artist"
+
+#### Scenario: An artist interrupted
+- **WHEN** two entries by "Example Singer" are followed by one by "Example Band" and then two by "Example Singer"
+- **THEN** the "Example Singer" heading is shown before both pairs, and the "Example Band" entry shows its title and artist
+
+#### Scenario: No artist
+- **WHEN** two consecutive entries have no artists
+- **THEN** they are not grouped and show only their titles
+
+#### Scenario: Long title
+- **WHEN** an entry's title is wider than two lines of the column
+- **THEN** it ends with "…" on its second line
+
+#### Scenario: Heading at the bottom
+- **WHEN** in portrait a group's heading would fit above the footer but its first entry would not
+- **THEN** neither is shown
+
 ### Requirement: Steady portrait layout
 In portrait, the cover, the title (room for two lines at the largest
 size, whatever size the title takes), the artists (one line), the album
