@@ -42,11 +42,11 @@
 
 - [x] 6.1 Write failing application tests "A group resumes", "The provider doesn't answer in time" and "Nothing settling" (a fake provider that settles, with a paused clock); then `SessionProvider::settling`, and the monitor holding the snapshot for at most 2 seconds with a timer; verify with `cargo test -p jukelight-application`
 - [x] 6.2 Write failing provider tests "AirPlay, no answer yet", "AirPlay, answered", "Claimed, no content yet" and "Unreachable"; then the Music Assistant provider's `settling`; verify with `cargo test -p jukelight-adapter-music-assistant`
-- [ ] 6.3 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [x] 6.3 Verify the layer (as 1.2); open the pull request and verify CI is green
 
 ## 7. Every paused group is held (stack layer 7, DEV-55: Music Assistant adapter)
 
 - [x] 7.1 Record the failing pause on the reference host (Music Assistant's players and queues, the player's status, and the live feed) at each step; copy into the git-ignored `fixtures/raw/`, commit only scrubbed fixtures
 - [x] 7.2 From the recording: the spec change ("A paused group" in session-music-assistant) and the design (decision 11), then a failing fixture test for the recorded sequence, then the fix; verify with `cargo test -p jukelight-adapter-music-assistant`
-- [ ] 7.3 Verify the layer (as 1.2); open the pull request and verify CI is green
-- [ ] 7.4 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing, resuming a group without a jump, pausing a group (held); an hour's CPU against about 64 s; record the results on DEV-48
+- [x] 7.3 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [x] 7.4 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing, resuming a group without a jump, pausing a group (held); an hour's CPU against about 64 s; record the results on DEV-48
