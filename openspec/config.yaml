@@ -10,7 +10,7 @@ context: |
     domain -> application (ports + services) -> adapters -> app (composition root).
     axum for REST and SSE, SQLite via sqlx (settings and encrypted secrets).
   - Frontend: React, TypeScript (strict), Vite, Tailwind CSS v4 with
-    Jukelight's own vmin-based theme tokens, Inter bundled. Two apps:
+    Jukelight's own vmin-based theme tokens, Figtree bundled. Two apps:
     kiosk and admin. Nothing is loaded from the internet at runtime.
   - Delivery: one Docker image built from source (multi-stage), a basic
     docker-compose.yml and .env.example. Only the reference host is tested
