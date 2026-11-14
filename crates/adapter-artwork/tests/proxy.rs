@@ -292,11 +292,69 @@ async fn backdrop_of_a_cover() {
     assert_eq!(backdrop.content_type, "image/png");
     let decoded = image::load_from_memory(&backdrop.bytes).unwrap();
     assert!(
-        decoded.width() <= 32 && decoded.height() <= 32,
+        decoded.width() <= 128 && decoded.height() <= 128 && decoded.width() > 32,
         "{}x{}",
         decoded.width(),
         decoded.height()
     );
+}
+
+fn png_of(cover: &image::RgbImage) -> Vec<u8> {
+    let mut png = Vec::new();
+    cover
+        .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
+        .unwrap();
+    png
+}
+
+async fn backdrop_of(cover: &image::RgbImage) -> image::RgbImage {
+    let url = serve_once("image/png", png_of(cover)).await;
+    let proxy = ArtworkProxy::new();
+    let id = proxy.issue(&ArtworkRef::new(url));
+    let backdrop = proxy.fetch(&id, ArtworkSize::Backdrop).await.unwrap();
+    image::load_from_memory(&backdrop.bytes).unwrap().to_rgb8()
+}
+
+/// Spec: artwork, "Blurred": no sharp edge where the cover has one.
+#[tokio::test]
+async fn blurred() {
+    let cover = image::RgbImage::from_fn(600, 600, |x, _| {
+        if x < 300 {
+            image::Rgb([0, 0, 0])
+        } else {
+            image::Rgb([255, 255, 255])
+        }
+    });
+    let backdrop = backdrop_of(&cover).await;
+    let y = backdrop.height() / 2;
+    let row: Vec<i32> = (0..backdrop.width())
+        .map(|x| i32::from(backdrop.get_pixel(x, y)[0]))
+        .collect();
+    let steepest = row.windows(2).map(|w| (w[1] - w[0]).abs()).max().unwrap();
+    assert!(
+        steepest <= 40,
+        "a sharp edge: {steepest} levels between neighbours"
+    );
+    // Still dark on the left and light on the right.
+    assert!(row[2] < 80 && row[row.len() - 3] > 175, "{row:?}");
+}
+
+/// Spec: artwork, "Grain against banding": a flat colour gets a faint grain.
+#[tokio::test]
+async fn grain_against_banding() {
+    let cover = image::RgbImage::from_pixel(600, 600, image::Rgb([60, 70, 80]));
+    let backdrop = backdrop_of(&cover).await;
+    let values: Vec<i32> = backdrop.pixels().map(|p| i32::from(p[0])).collect();
+    let (min, max) = (values.iter().min().unwrap(), values.iter().max().unwrap());
+    assert!(max > min, "no grain at all");
+    assert!(max - min <= 8, "grain too strong: {min}..{max}");
+}
+
+/// The same cover always gives the same backdrop.
+#[tokio::test]
+async fn the_same_cover_gives_the_same_backdrop() {
+    let cover = image::RgbImage::from_pixel(600, 600, image::Rgb([60, 70, 80]));
+    assert_eq!(backdrop_of(&cover).await, backdrop_of(&cover).await);
 }
 
 #[tokio::test]
