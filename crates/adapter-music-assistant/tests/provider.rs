@@ -403,7 +403,7 @@ mod settling {
     }
 
     #[tokio::test]
-    async fn not_followed_never_settling() {
+    async fn a_service_origin_never_settles() {
         let server = TestServer::start("group-playing").await;
         let provider = server.provider(TOKEN, FAST);
         let device = service_device();

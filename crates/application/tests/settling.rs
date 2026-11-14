@@ -200,3 +200,27 @@ async fn nothing_settling() {
     settle().await;
     assert_eq!(*seen.lock().unwrap(), ["idle", "Another Song"]);
 }
+
+#[test]
+fn the_current_snapshot_and_events_arent_held_back() {
+    let provider = AnsweringProvider::new();
+    let monitor = PlayerMonitor::new(vec![provider as Arc<dyn SessionProvider>]);
+    let handle = monitor.handle();
+    let mut events = handle.subscribe_events();
+    monitor.apply(&device(PlaybackState::Stopped, qobuz(), "Example Song"));
+    let published = handle.subscribe_published();
+    while events.try_recv().is_ok() {}
+
+    monitor.apply(&device(PlaybackState::Playing, airplay(), "AirPlay"));
+    assert_eq!(handle.current().state, PlaybackState::Playing);
+    assert!(
+        std::iter::from_fn(|| events.try_recv().ok()).any(|event| matches!(
+            event,
+            jukelight_domain::PlayerEvent::PlaybackStateChanged {
+                to: PlaybackState::Playing,
+                ..
+            }
+        ))
+    );
+    assert_eq!(published.borrow().state, PlaybackState::Stopped);
+}

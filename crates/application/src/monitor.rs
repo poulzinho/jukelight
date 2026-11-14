@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
@@ -31,6 +32,8 @@ pub struct PlayerMonitor {
     settling_since: Mutex<Option<Instant>>,
     /// When to rebuild anyway, while a provider is still settling.
     deadline: watch::Sender<Option<Instant>>,
+    /// A change was held back from `published` while a provider settled.
+    held_back: AtomicBool,
 }
 
 /// Read access to a running monitor, for the HTTP layer and other consumers.
@@ -61,6 +64,7 @@ impl PlayerMonitor {
             events,
             settling_since: Mutex::new(None),
             deadline: watch::channel(None).0,
+            held_back: AtomicBool::new(false),
         }
     }
 
@@ -99,13 +103,17 @@ impl PlayerMonitor {
     }
 
     fn rebuild(&self, device: &DeviceSnapshot) {
-        if self.waits_for_settling(device) {
-            return;
-        }
+        let settling = self.waits_for_settling(device);
         let next = self.names.apply(arbitrate(device, &self.providers));
         let changes = detect_changes(&self.current.borrow(), &next);
 
-        if changes.material {
+        // While a provider settles, live clients keep what they had; the
+        // current snapshot and the events follow the device as usual.
+        if settling {
+            if changes.material {
+                self.held_back.store(true, Ordering::Relaxed);
+            }
+        } else if changes.material || self.held_back.swap(false, Ordering::Relaxed) {
             self.published.send_replace(next.clone());
         }
         self.current.send_replace(next);
