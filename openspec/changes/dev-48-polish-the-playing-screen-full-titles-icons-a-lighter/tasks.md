@@ -1,6 +1,6 @@
 ## 1. A softer background (stack layer 1, DEV-49: artwork adapter)
 
-- [ ] 1.1 Write failing artwork tests "Backdrop of a cover" (at most 128 px), "Blurred" (half black, half white: a gradual change, no sharp edge), "Grain against banding" (flat colour: neighbours differ by a few levels at most) and the same cover giving the same bytes; then scale to 128 px, blur and add a fixed-seed grain; verify with `cargo test -p jukelight-adapter-artwork`
+- [x] 1.1 Write failing artwork tests "Backdrop of a cover" (at most 128 px), "Blurred" (half black, half white: a gradual change, no sharp edge), "Grain against banding" (flat colour: neighbours differ by a few levels at most) and the same cover giving the same bytes; then scale to 128 px, blur and add a fixed-seed grain; verify with `cargo test -p jukelight-adapter-artwork`
 - [ ] 1.2 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck, tests and e2e; open the pull request and verify CI is green
 
 ## 2. Figtree (stack layer 2, DEV-50: kiosk)
