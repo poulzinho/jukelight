@@ -16,7 +16,7 @@ use jukelight_domain::{
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 23] = [
+pub const SCENARIOS: [&str; 24] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
@@ -40,6 +40,7 @@ pub const SCENARIOS: [&str; 23] = [
     "airplay",
     "bluetooth",
     "radio",
+    "long-artists",
 ];
 
 /// Scenarios that a fake Music Assistant drives: it claims the stream.
@@ -200,12 +201,16 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
         ("long-title", Some(content)) => {
             content.track.title =
                 "A Remarkably Long Song Title That Keeps Going Well Past Two Lines On Any Reasonable Screen (Extended Live Version)".into();
-            content.track.artists = vec![
-                "An Artist With A Rather Long Name".into(),
-                "Featured Guest".into(),
-            ];
+            content.track.artists = vec!["Example Artist".into()];
             content.track.album =
                 Some("An Album Title That Is Also Far Too Long To Fit On One Line".into());
+        }
+        ("long-artists", Some(content)) => {
+            content.track.title = "Example Concerto".into();
+            content.track.artists = vec![
+                "Example Violinist".into(),
+                "Example Chamber Orchestra".into(),
+            ];
         }
         ("no-album", Some(content)) => {
             content.track.title = "Single Song".into();

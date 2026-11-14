@@ -322,10 +322,13 @@ function useBoxSize(ref: React.RefObject<HTMLDivElement | null>, queue: boolean)
     if (!element || typeof ResizeObserver === 'undefined') return
     const update = () => {
       const unit = parseFloat(getComputedStyle(element).fontSize) / BASE || 1
-      const footer = document.querySelector('[data-testid="device-signature"]')
-      // Clear of the footer by 3vmin.
-      const clearance = 0.03 * Math.min(window.innerWidth, window.innerHeight)
-      const bottom = footer ? footer.getBoundingClientRect().top - clearance : window.innerHeight
+      // Down to the page's bottom margin: in portrait the area below the
+      // progress ends there; in landscape, the same margin from the screen's
+      // edge (8vmin).
+      const vmin = Math.min(window.innerWidth, window.innerHeight) / 100
+      const area = element.parentElement?.getBoundingClientRect()
+      const portrait = window.innerHeight > window.innerWidth
+      const bottom = portrait && area ? area.bottom : window.innerHeight - 8 * vmin
       const top = element.getBoundingClientRect().top
       const next = { width: element.clientWidth, height: Math.max(0, bottom - top), unit }
       setSize((current) =>
