@@ -97,7 +97,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
             }`}
           >
             <SignalDiagram player={player} queue={hasQueue} />
-            {hasQueue && player.queue && <UpNext queue={player.queue} />}
+            {hasQueue && player.queue && <UpNext queue={player.queue} current={track} />}
           </div>
         </section>
         {paused && <Dim />}

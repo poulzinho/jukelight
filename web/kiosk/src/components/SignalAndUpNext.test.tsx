@@ -13,7 +13,7 @@ function show(overrides: Partial<Player> = {}) {
 const upNext = (count: number) =>
   Array.from({ length: count }, (_, i) => ({
     title: `Next ${i + 1}`,
-    artists: ['Example Artist'],
+    artists: [`Example Artist ${i + 1}`],
     artUrl: null,
   }))
 
@@ -52,9 +52,38 @@ test('up next shows five entries; the fifth is hidden in landscape', () => {
   expect(within(list).getByText('Next 1')).toBeInTheDocument()
 })
 
-test('long title: one line, ending with "…"', () => {
+test('long title: two lines, then "…"', () => {
   show({ queue: [{ title: 'A Remarkably Long Song Title That Keeps Going', artists: ['Example Artist'], artUrl: null }] })
-  expect(screen.getByText('A Remarkably Long Song Title That Keeps Going')).toHaveClass('truncate')
+  expect(screen.getByText('A Remarkably Long Song Title That Keeps Going')).toHaveClass('line-clamp-2')
+})
+
+test('grouped: the movements of the current work under its heading', () => {
+  show({
+    track: { title: 'Example Composer: Example Concerto, Op. 1: I. Allegro', artists: ['Example Violinist'], album: null },
+    queue: [
+      { title: 'Example Composer: Example Concerto, Op. 1: II. Andante', artists: ['Example Violinist'], artUrl: null },
+      { title: 'Example Composer: Example Concerto, Op. 1: III. Presto', artists: ['Example Violinist'], artUrl: null },
+    ],
+  })
+  const list = screen.getByRole('list', { name: 'Up next' })
+  expect(within(list).getByText('Example Composer: Example Concerto, Op. 1')).toBeInTheDocument()
+  expect(within(list).getByText('II. Andante')).toBeInTheDocument()
+  expect(within(list).getAllByText('Example Violinist')).toHaveLength(1)
+})
+
+test('heading at the bottom: a heading leaves together with its first entry', () => {
+  show({
+    queue: [
+      { title: 'Example Song A', artists: ['Example Singer'], artUrl: null },
+      { title: 'Example Song B', artists: ['Example Singer'], artUrl: null },
+    ],
+  })
+  const list = screen.getByRole('list', { name: 'Up next' })
+  // One list item holds the heading and its first entry, so they wrap, and
+  // leave the clipped column, as one.
+  const first = within(list).getAllByRole('listitem')[0] as HTMLElement
+  expect(within(first).getByText('Example Singer')).toHaveAttribute('data-part', 'group-heading')
+  expect(within(first).getByText('Example Song A')).toBeInTheDocument()
 })
 
 test('no queue, no up next', () => {
