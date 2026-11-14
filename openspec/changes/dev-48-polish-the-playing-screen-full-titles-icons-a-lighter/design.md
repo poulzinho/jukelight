@@ -184,8 +184,8 @@ leaves the logo down the line as before.
 ### 9. No footer on the playing screen
 
 The streamer card's lid now shows the maker's mark and the room, so the
-device signature only repeated it. It stays on the idle, input and
-offline screens; on the playing screen its space goes to the diagram and
+device signature only repeated it. It stays on the idle and input
+screens (an offline player keeps its playing screen, with its indicator); on the playing screen its space goes to the diagram and
 "Up next", which now run to the page's bottom margin instead of the
 footer's top.
 

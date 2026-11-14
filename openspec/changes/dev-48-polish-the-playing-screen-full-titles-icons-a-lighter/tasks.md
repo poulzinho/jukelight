@@ -11,10 +11,10 @@
 
 ## 3. The track's text and the page's room (stack layer 3, DEV-51: kiosk)
 
-- [ ] 3.1 Write failing component tests "Short title", "Medium title", "Long classical title" and "Title too long for any size"; then the stepped title (7.2 and 6.2 vmin on one line, 5.4 and 4.6 on two, 3.6 on three, in an 11.2 vmin box); verify with the kiosk tests
-- [ ] 3.2 Write failing component tests "Two artists on two lines", "Artists and album with icons", "Several artists", "A group's name" and "A name without a group word"; then artists wrapping to two lines and the icons (one person by default, a group for several artists or a group word); verify with the kiosk tests
-- [ ] 3.3 Write failing tests for "Device signature" (no footer on the playing screen; the footer on the idle and input screens) and the steady portrait layout ("Title stepped down to two lines" and the artists' exception); then remove the footer from the playing screen, set the margins (5vh top, 4.5vh bottom) and 5vmin under the progress, and let the diagram and "Up next" run to the bottom margin; verify with the kiosk tests
-- [ ] 3.4 Write failing e2e checks: a long classical title in full, "Aligned with the cover in portrait" (the edges of the title, progress, diagram and "Up next" against the cover), no footer on the playing screen, overflow checks against the bottom margin for every fake scenario in both orientations; review the screenshots
+- [x] 3.1 Write failing component tests "Short title", "Medium title", "Long classical title" and "Title too long for any size"; then the stepped title (7.2 and 6.2 vmin on one line, 5.4 and 4.6 on two, 3.6 on three, in an 11.2 vmin box); verify with the kiosk tests
+- [x] 3.2 Write failing component tests "Two artists on two lines", "Artists and album with icons", "Several artists", "A group's name" and "A name without a group word"; then artists wrapping to two lines and the icons (one person by default, a group for several artists or a group word); verify with the kiosk tests
+- [x] 3.3 Write failing tests for "Device signature" (no footer on the playing screen; the footer on the idle and input screens) and the steady portrait layout ("Title stepped down to two lines" and the artists' exception); then remove the footer from the playing screen, set the margins (5vh top, 4.5vh bottom) and 5vmin under the progress, and let the diagram and "Up next" run to the bottom margin; verify with the kiosk tests
+- [x] 3.4 Write failing e2e checks: a long classical title in full, "Aligned with the cover in portrait" (the edges of the title, progress, diagram and "Up next" against the cover), no footer on the playing screen, overflow checks against the bottom margin for every fake scenario in both orientations; review the screenshots
 - [ ] 3.5 Verify the layer (as 1.2); open the pull request and verify CI is green
 
 ## 4. The diagram (stack layer 4, DEV-52: kiosk)
