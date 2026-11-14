@@ -37,6 +37,15 @@ was reviewed and approved. Part of roadmap step 4 (finished kiosk).
   License 1.1), bundled with the kiosk like Inter today; nothing is loaded
   from the internet. Satoshi was considered and rejected: its licence (ITF
   Free Font License) forbids redistributing it in a repository or an image.
+- **The track's block aligned with the cover:** in portrait the title,
+  artists, album and progress bar share the cover's edges; the diagram and
+  "Up next" take a wider column below, with more space under the progress
+  bar. Long titles step down through one, two and three lines in a
+  smaller title area; artists wrap to a second line when needed.
+- **What the source streams as a wave:** a gentle wave joins the source's
+  logo to its format; it lights up when a pulse starts.
+- **No footer on the playing screen:** the streamer card already shows the
+  maker's mark and the room; the space goes to the diagram and "Up next".
 - **A softer background:** the artwork proxy makes the backdrop at a larger
   size, blurs it and adds a faint grain against banding; the kiosk still
   stretches one image without CSS filters, so its CPU use doesn't change.
@@ -60,7 +69,9 @@ None.
   the artists and the album; the streamer card's lid holds the mark and
   the room; "Up next" groups entries by work or artist; diagram lines are
   lighter; the mark no longer gives way in
-  "Diagram fits"; a new requirement names the bundled typeface.
+  "Diagram fits"; the source's wave and its flash in "Signal diagram" and
+  "Pulse along the diagram"; no footer on the playing screen in "Device
+  signature"; a new requirement names the bundled typeface.
 - `artwork`: the backdrop image is larger and blurred with grain instead
   of a 32-pixel thumbnail.
 

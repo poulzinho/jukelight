@@ -20,28 +20,33 @@ measured again once the font has loaded.
 ### Requirement: Signal diagram
 The playing screen SHALL show how the music reaches every speaker as a
 diagram of nodes joined by lines: the source (its logo, or its icon and
-name) with what it streams as a row like a speaker's (a waveform icon
-where the speakers' icons are, "streams" where their names start, set like
-them, and the format in its short form
-with the codec, "24/44.1 FLAC", aligned with and set like the speakers'
-formats; nothing when the quality is not reported); Music Assistant's
+name) with what it streams on the same line: a gentle wave from the
+logo's right edge to the format in its short form with the codec ("24/44.1
+FLAC"), aligned with and set like the speakers' formats, in the source's
+class colour (nothing when the quality is not reported; a logo too wide to
+leave at least a short wave is shown smaller); Music Assistant's
 logo when it is the route; one row per other speaker of the session
 (`speakers`: an icon by kind, the name, and the format it receives with
 its codec, or "not playing", dimmed, when it doesn't play); the player as
 a streamer card; and the player's outputs (`outputs`: an icon by kind and
 the name) hanging from the streamer. Lines SHALL run straight with right
 angles and rounded corners, branch at junction dots, and end in a port.
-The diagram SHALL start at the left edge of the progress bar. With a queue
+In portrait the diagram SHALL start at the left edge of the column below
+the progress bar (wider than the cover). With a queue
 the diagram SHALL run top to bottom; without a queue it SHALL run left to
 right, the source on the left and the outputs on the right.
 
 #### Scenario: A group with a queue
 - **WHEN** Qobuz plays through Music Assistant to the player and the speakers "Kitchen" and "Office", the player has the outputs "Example Speaker" and a subwoofer, and the queue has entries
-- **THEN** the diagram runs top to bottom: the Qobuz logo with "streams …", Music Assistant's logo, the rows "Kitchen" and "Office" with their formats, the streamer, and under it "Example Speaker" and "Subwoofer"
+- **THEN** the diagram runs top to bottom: the Qobuz logo with its wave to the format, Music Assistant's logo, the rows "Kitchen" and "Office" with their formats, the streamer, and under it "Example Speaker" and "Subwoofer"
 
-#### Scenario: What the source streams, as a row
+#### Scenario: What the source streams, as a wave
 - **WHEN** Qobuz streams FLAC 24/44.1 through Music Assistant to the speaker "Office", which receives FLAC 24/44.1
-- **THEN** a waveform icon sits where Office's icon is, "streams" starts where "Office" starts, with the same size, weight and colour, and "24/44.1 FLAC" on the same line ends where Office's "24/44.1 FLAC" ends, set the same way
+- **THEN** a wave runs from the Qobuz logo to "24/44.1 FLAC" on the logo's line, and that format ends where Office's "24/44.1 FLAC" ends, set the same way
+
+#### Scenario: A wide logo
+- **WHEN** the source's logo is a wordmark so wide that less than a short wave would remain
+- **THEN** the logo is shown smaller, and the wave keeps its minimum length
 
 #### Scenario: Native service without a queue
 - **WHEN** Spotify Connect plays at 320 kbps with no queue
@@ -68,16 +73,17 @@ artists or its one artist's name contains a word for a group (orchestra,
 philharmonic, ensemble, quartet, trio, choir or band, also in Spanish,
 French, German and Italian: orquesta, orchestre, orchester, orchestra,
 coro, chœur, chor, cuarteto, quatuor, quartett, quartetto); the album SHALL
-follow a dimmed disc icon. In portrait the title, artists and album SHALL
-line up with the cover's edges, and the progress bar, the diagram and "Up
-next" below them SHALL take a wider column, so the progress bar separates
-the track from what plays it. With a queue, the area below the
+follow a dimmed disc icon. In portrait the title, artists, album and
+progress bar SHALL line up with the cover's edges, and the diagram and "Up
+next" below them SHALL take a wider column; the progress bar, with space
+below it, separates the track from what plays it. Artists too long for one
+line SHALL wrap to a second line, then end with "…". With a queue, the area below the
 progress SHALL have two columns, the diagram on the left and "Up next" on
 the right, both aligned at the top; without a queue the diagram SHALL take
-the full width. A title too long for two lines at the largest size SHALL
-step down in size until it fits the same room: two lines at smaller
-sizes, then three lines at the smallest; only a title that doesn't fit
-even then SHALL end with an ellipsis.
+the full width. The title SHALL take the largest size that fits its room
+(one line at the largest size): one line at the two largest sizes, then
+two lines at smaller sizes, then three lines at the smallest; only a title
+that doesn't fit even then SHALL end with an ellipsis.
 
 #### Scenario: Track with all data
 - **WHEN** the snapshot is playing "Example Song" by "Example Artist" with artwork, position, the source "Qobuz" and the quality FLAC at 16 bits and 44 100 Hz
@@ -93,11 +99,19 @@ even then SHALL end with an ellipsis.
 
 #### Scenario: Aligned with the cover in portrait
 - **WHEN** the screen is in portrait
-- **THEN** the title, artists and album start and end at the cover's left and right edges, and the progress bar extends beyond both
+- **THEN** the title, artists, album and progress bar start and end at the cover's left and right edges, and the diagram starts left of them
 
 #### Scenario: Short title
 - **WHEN** the title is "Example Song"
-- **THEN** it is shown at the largest size, in full
+- **THEN** it is shown at the largest size, on one line
+
+#### Scenario: Medium title
+- **WHEN** the title is "Example Song Title (Remastered 2024)" in portrait and doesn't fit one line at the two largest sizes
+- **THEN** it is shown on two lines at a smaller size
+
+#### Scenario: Two artists on two lines
+- **WHEN** the artists "Example Violinist" and "Example Chamber Orchestra" don't fit one line
+- **THEN** they are shown in full on two lines, and the album and progress move down by one artist line
 
 #### Scenario: Long classical title
 - **WHEN** the title is "J.S. Bach: Violin Concerto No. 1 in A Minor, BWV 1041: I. Allegro moderato" in portrait
@@ -126,7 +140,7 @@ even then SHALL end with an ellipsis.
 ### Requirement: Up next
 The kiosk SHALL show an "Up next" list only when the queue is available and
 not empty, in the right column beside the diagram: as many entries as fit
-above the footer, at most 5. Entries SHALL be grouped:
+above the page's bottom margin, at most 5. Entries SHALL be grouped:
 - **By work:** the part of a title before its last ": " or " - " is a work
   when two or more consecutive entries share it, or the first entry shares
   it with the current track. Consecutive entries of one work SHALL share
@@ -192,15 +206,17 @@ below it.
 - **THEN** it ends with "…" on its second line
 
 #### Scenario: Heading at the bottom
-- **WHEN** in portrait a group's heading would fit above the footer but its first entry would not
+- **WHEN** in portrait a group's heading would fit above the page's bottom margin but its first entry would not
 - **THEN** neither is shown
 
 ### Requirement: Steady portrait layout
-In portrait, the cover, the title (room for two lines at the largest
-size, whatever size the title takes), the artists (one line), the album
-(one line), the progress, and the area below it (the diagram and "Up
-next") SHALL each keep a fixed place on the screen, so changing content
-never moves the other parts.
+In portrait, the cover, the title (room for one line at the largest size,
+whatever size the title takes), the artists (one line), the album (one
+line), the progress, and the area below it (the diagram and "Up next")
+SHALL each keep a fixed place on the screen, so changing content never
+moves the other parts. The one exception: artists that need a second line
+move the album, the progress and the area below down by that line, for
+that track only.
 
 #### Scenario: No queue
 - **WHEN** the screen is in portrait and one track has three "Up next" entries and another has none
@@ -210,8 +226,8 @@ never moves the other parts.
 - **WHEN** the screen is in portrait and one track's title fits on one line and another's needs two
 - **THEN** the cover, the artists and "Up next" are in the same place for both
 
-#### Scenario: Title stepped down to three lines
-- **WHEN** the screen is in portrait and one track's title fits on one line and another's is shown on three smaller lines
+#### Scenario: Title stepped down to two lines
+- **WHEN** the screen is in portrait and one track's title fits on one line and another's is shown on two smaller lines
 - **THEN** the artists, the progress and "Up next" are in the same place for both
 
 #### Scenario: Missing album
@@ -274,21 +290,70 @@ SHALL NOT change them.
 - **WHEN** the diagram is drawn
 - **THEN** its lines, ports and junction dots are partly transparent and thinner than the streamer card's border, and the card's border is as thick as the speakers' icons
 
+### Requirement: Pulse along the diagram
+A pulse of light SHALL run once along the diagram when something changes:
+when a track starts (also when the screen first shows it), when the source,
+the route or the speakers change, when the quality changes, and when
+playback resumes after a pause. As it starts, the source's wave and its
+format SHALL light up at once and settle back; the wave itself carries no
+moving light. The pulse SHALL run from the source to Music Assistant, then
+down the line to the streamer, each speaker's branch starting as the pulse
+passes its junction, then on from the streamer to its outputs; each port
+SHALL light up as the pulse arrives. The pulse SHALL move in about 15
+steps a second, using only transform and opacity. Between pulses, with
+reduced motion, while paused and while the route is unavailable, no
+animation SHALL run in the diagram.
+
+#### Scenario: Track starts in a group
+- **WHEN** a track starts playing to a group of three speakers
+- **THEN** the wave and its format light up at once, and one pulse runs from the source, reaches Music Assistant, then each of the three branches in turn as it passes their junctions, then the streamer and its outputs
+
+#### Scenario: Nothing changes
+- **WHEN** a track keeps playing and nothing about it changes for a minute after its pulse
+- **THEN** no further pulse runs and no animation runs in the diagram
+
+#### Scenario: Reduced motion
+- **WHEN** the browser prefers reduced motion
+- **THEN** no pulse moves and the wave doesn't light up
+
+### Requirement: Device signature
+Every screen except the playing screen with its signal diagram SHALL show
+the player's maker and name in a quiet footer: the maker's logo when
+`device.logoUrl` is present, otherwise a streamer icon and the maker's
+name when the maker is a known brand; then the player's name. With an
+unknown maker, only the player's name SHALL show. On the playing screen
+the streamer card names the player (its mark and room), so the footer
+SHALL NOT show, and its space goes to the page. The footer SHALL sit
+centred at the bottom in portrait and in the bottom-right corner in
+landscape.
+
+#### Scenario: Bluesound player with its logo
+- **WHEN** the device has a `logoUrl` and the name "Example Player"
+- **THEN** the footer shows the logo and "Example Player" on the input and idle screens, and no footer shows on the playing screen
+
+#### Scenario: No logo
+- **WHEN** the device's brand is bluesound, without a `logoUrl`
+- **THEN** the footer shows a streamer icon, "Bluesound" and "Example Player"
+
+#### Scenario: Unknown maker
+- **WHEN** the device has no brand
+- **THEN** the footer shows only "Example Player"
+
 ### Requirement: Diagram fits
-No part of the diagram SHALL leave its area, come within 3vmin of the
-footer, run into the queue's column, or run over a logo. Names, the codec
+No part of the diagram SHALL leave its area, run past the page's bottom
+margin, run into the queue's column, or run over a logo. Names, the codec
 line and the room SHALL be shortened with "…" to the room they have; the
 format on the streamer SHALL never be shortened. When the diagram runs top
-to bottom and is too tall for the space above the footer, it SHALL give
-way in this order: speakers fold into a "+ N more" row, from the last; the
-source's line gets shorter and its label drops "streams"; the outputs move
+to bottom and is too tall for the space above the bottom margin, it SHALL
+give way in this order: speakers fold into a "+ N more" row, from the
+last; the source's line gets shorter; the outputs move
 onto one line as icons; last, the outputs are left out. Without a queue the
 diagram SHALL run left to right only when every part fits in full, the
 outputs' names included; otherwise it SHALL run top to bottom.
 
 #### Scenario: Many speakers in portrait
 - **WHEN** the session plays to five other speakers in portrait
-- **THEN** as many rows as fit show, followed by "+ N more" for the rest, and nothing comes within 3vmin of the footer
+- **THEN** as many rows as fit show, followed by "+ N more" for the rest, and nothing runs past the bottom margin
 
 #### Scenario: Two speakers in portrait
 - **WHEN** the session plays to two other speakers in portrait, with a queue

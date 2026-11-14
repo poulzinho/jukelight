@@ -34,19 +34,26 @@ draft code is the starting point; it is not committed.
 
 ### 1. The title steps through fixed sizes, measured in the browser
 
-The title tries four steps, largest first: 7.2, 6.1 and 5.2 vmin on two
-lines, then 4.6 vmin on three; it takes the first at which the text isn't
-clamped (`scrollHeight` within a fifth of a line of `clientHeight`, since
-letters overhang their line box). In portrait the title's box keeps the
-height of two lines at 7.2 vmin (14.4 vmin at line height 1.0), and three
-lines at 4.6 vmin fit in it, so nothing below moves. The step is chosen in
-a layout effect before paint, again when the title changes, when the
-viewport changes and once the font has loaded.
+The title tries five steps, largest first: 7.2 and 6.2 vmin on one line,
+5.4 and 4.6 vmin on two, then 3.6 vmin on three; it takes the first at
+which the text isn't clamped (`scrollHeight` within a fifth of a line of
+`clientHeight`, since letters overhang their line box). In portrait the
+title's box is one line at 7.2 vmin high (11.2 vmin): a short title leaves
+no empty line under it, and two lines at 5.4 or 4.6 and three at 3.6 fit
+in the same box, so nothing below moves. The step is chosen in a layout
+effect before paint, again when the title changes, when the viewport
+changes and once the font has loaded.
+
+Artists may wrap to a second line (then "…"): two credits such as a
+soloist and an orchestra are more useful in full than a steady album line.
+That is the one place the portrait layout moves, and only for that track.
 
 - *Alternative:* CSS `clamp()` or container-query font sizes. Rejected:
   they size by the box, not by the text, so a short title would shrink too.
 - *Alternative:* a measured continuous size. Rejected: fixed steps keep
   the typographic scale and make tests deterministic.
+- *Alternative:* always reserve two artist lines. Rejected: it costs a line
+  on every track for the few that need it.
 
 ### 2. Lid with mark and room; the mark no longer gives way
 
@@ -58,44 +65,38 @@ The card grows from 56 to 58 units. The
 mark leaves the body, so "the maker's mark gives way first" is dropped from
 "Diagram fits": the format never competes with it any more.
 
-### 3. Lighter lines, and more air between the rows
+### 3. Lighter lines, more air, and the page's proportions
 
 Lines go from 1.6 to 1.0 units at 0.6 opacity; ports from radius 4.2 to
 3.3 with a 1.1 stroke at 0.75 opacity; junction dots from 2.6 to 1.9 at
-0.75. The card's border goes to 1.05, as thick as the icons' strokes appear, and stays stronger than the lines. The diagram's icons (speakers, computers, outputs) go from a 1.9 to a 1.4 stroke on lucide's 24-unit grid (about 1.05 as drawn), as light as the text beside them and the maker's mark. The
-gap between the last speaker row and the streamer grows from 14 to 24
-units; the source's line shrinks from 52 to 40: its label is now one row
-(see "What the source streams"), so it needs less height.
+0.75. The diagram's icons (speakers, computers, outputs) go from a 1.9 to
+a 1.4 stroke on lucide's 24-unit grid (about 1.05 as drawn); the card's
+border goes to 1.05, as heavy as the icons, and stays stronger than the
+lines.
 
-Seen from across the room, the rows were too close. Speaker rows go from
-26 to 31 units apart, the gap above the streamer to 24 and the output rows
-from 22 to 25. The space comes from the page's top margin in portrait
-(5vh to 3vh), which moves everything up and gives the diagram more room
-above the footer; a two-speaker group with two outputs still fits in
-portrait (checked in the rendered proposal; an e2e scenario guards it).
+Seen from across the room, the rows were too close: speaker rows go from
+26 to 32 units apart, the gap above the streamer from 14 to 26 and the
+output rows from 22 to 26. The source's line shrinks from 52 to 34, since
+what the source streams now sits on the logo's line (decision 8). The gap
+between the progress bar and the diagram and "Up next" grows from 1.5 to
+5 vmin, so the progress bar reads as a divider. Removing the footer
+(decision 9) and a bottom margin of 4.5vh pay for it; a two-speaker group
+with two outputs still fits in portrait (measured: about 267 units of
+room; an e2e scenario guards it).
 
-- *Alternative:* a smaller cover. Rejected: the cover is the screen's
-  main element; the top margin had room to spare.
+In portrait, for gestalt, the title, artists, album and progress bar line
+up with the cover (42vh wide); the diagram and "Up next" take a wider
+column below (47vh, at most 92vw), so the side margins shrink from about
+13% to 8% and "Up next" gains most of the width. The track's block is
+inset by `calc((min(92vw,47vh) - min(86vw,42vh)) / 2)` on each side; the
+diagram starts at the wider column's left edge.
 
-The gap between the progress bar and the diagram and "Up next" grows from
-1.5 to 5 vmin, so the progress bar reads as a divider; the shorter
-source line and a bottom margin of 4.5vh pay for it.
-
-In portrait the column below the cover (title, progress, diagram, "Up
-next") widens from 42vh to 47vh (at most 92vw), so the side margins shrink
-from about 13% to 8% of the width and the page breathes; the cover keeps
-its 42vh, so the vertical budget is unchanged. A long title fits on two
-lines at a larger size, and "Up next" gains most of the width.
-
+- *Alternative:* a smaller cover. Rejected: the cover is the screen's main
+  element.
 - *Alternative:* widen the cover with the column. Rejected: a taller cover
   takes back the room the diagram needs (two speakers would fold).
-
-For gestalt, the title, artists and album stay with the cover: in portrait
-they are inset by half the difference between the column and the cover
-(`calc((min(92vw,47vh) - min(86vw,42vh)) / 2)` on each side), so their
-edges line up with the cover's. The progress bar starts the wider band and
-separates the track from what plays it (the diagram and "Up next"). The
-title's size steps fit the inset width.
+- *Alternative:* align the diagram and "Up next" with the cover too.
+  Rejected: "Up next" needs the width.
 
 ### 4. Figtree, bundled like Inter
 
@@ -164,6 +165,32 @@ size it read as a pen.
   catches ensembles that are named as such, and a band without such a
   word keeps the person icon.
 
+### 8. What the source streams: a wave from the logo
+
+The source's format sits on the logo's line, right-aligned with and set
+like the speakers' formats, and a gentle wave (a series of quadratic
+curves, amplitude 1.8, half-wavelength 9 units) joins the logo's right
+edge to it, in the source's class colour. A logo too wide to leave at
+least 40 units of wave is drawn smaller. The wave carries no spark: it
+describes the stream rather than leading anywhere, so a direction would
+be misleading. Instead, when a pulse starts, a bright copy of the wave and
+the format fades in and out (opacity only, in steps), while the spark
+leaves the logo down the line as before.
+
+- *Alternative:* a "streams" row with an icon under the logo. Rejected
+  after rendering: it repeated the speakers' rows without adding meaning.
+- *Alternative:* a spark along the wave. Rejected: the stream has no
+  destination there, and a curved path would need motion paths, which the
+  compositor doesn't run.
+
+### 9. No footer on the playing screen
+
+The streamer card's lid now shows the maker's mark and the room, so the
+device signature only repeated it. It stays on the idle, input and
+offline screens; on the playing screen its space goes to the diagram and
+"Up next", which now run to the page's bottom margin instead of the
+footer's top.
+
 ### Tests per layer
 
 - **Artwork adapter (fixtures):** backdrop size, blur (the half-black,
@@ -182,8 +209,13 @@ size it read as a pen.
 
 ## Risks / Trade-offs
 
-- [A title at 4.6 vmin is smaller than the artists line] → only titles
-  that can't fit otherwise get there; the artists stay on one line below.
+- [A long title at 4.6 or 3.6 vmin is about the size of the artists
+  line] → only titles that can't fit otherwise get there; they stay bold.
+- [Artists on two lines move the rest of the screen] → only for that
+  track; the diagram gives way by its usual rules if it no longer fits.
+- [Without a footer, the player's name shows only in the streamer card] →
+  the card's lid carries the mark and the room; the footer returns on
+  every other screen.
 - [Figtree is narrower than Inter] → texts fit more, not less; the e2e
   overflow checks run in the new font.
 - [The font loads after the first layout] → the diagram and the title are
