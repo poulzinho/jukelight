@@ -235,6 +235,10 @@ that track only.
 - **WHEN** the screen is in portrait and one track's title fits on one line and another's is shown on two smaller lines
 - **THEN** the artists, the progress and "Up next" are in the same place for both
 
+#### Scenario: Back from the idle screen
+- **WHEN** playback stops, the idle screen shows, and then the same track plays again
+- **THEN** from its first frame the playing screen shows the diagram and "Up next" at their final size and place, without a jump
+
 #### Scenario: Missing album
 - **WHEN** the screen is in portrait and one track has an album and another has none
 - **THEN** the progress and "Up next" are in the same place for both
