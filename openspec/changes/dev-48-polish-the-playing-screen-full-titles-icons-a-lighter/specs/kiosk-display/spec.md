@@ -31,8 +31,7 @@ its codec, or "not playing", dimmed, when it doesn't play); the player as
 a streamer card; and the player's outputs (`outputs`: an icon by kind and
 the name) hanging from the streamer. Lines SHALL run straight with right
 angles and rounded corners, branch at junction dots, and end in a port.
-In portrait the diagram SHALL start at the left edge of the column below
-the progress bar (wider than the cover). With a queue
+The diagram SHALL start at the left edge of the progress bar. With a queue
 the diagram SHALL run top to bottom; without a queue it SHALL run left to
 right, the source on the left and the outputs on the right.
 
@@ -73,10 +72,10 @@ artists or its one artist's name contains a word for a group (orchestra,
 philharmonic, ensemble, quartet, trio, choir or band, also in Spanish,
 French, German and Italian: orquesta, orchestre, orchester, orchestra,
 coro, chœur, chor, cuarteto, quatuor, quartett, quartetto); the album SHALL
-follow a dimmed disc icon. In portrait the title, artists, album and
-progress bar SHALL line up with the cover's edges, and the diagram and "Up
-next" below them SHALL take a wider column; the progress bar, with space
-below it, separates the track from what plays it. Artists too long for one
+follow a dimmed disc icon. In portrait everything below the cover (the
+title, artists, album, progress bar, the diagram and "Up next") SHALL line
+up with the cover's edges; the progress bar, with space below it,
+separates the track from what plays it. Artists too long for one
 line SHALL wrap to a second line, then end with "…". With a queue, the area below the
 progress SHALL have two columns, the diagram on the left and "Up next" on
 the right, both aligned at the top; without a queue the diagram SHALL take
@@ -99,7 +98,7 @@ that doesn't fit even then SHALL end with an ellipsis.
 
 #### Scenario: Aligned with the cover in portrait
 - **WHEN** the screen is in portrait
-- **THEN** the title, artists, album and progress bar start and end at the cover's left and right edges, and the diagram starts left of them
+- **THEN** the title, artists, album, progress bar, the diagram and "Up next" start and end at the cover's left and right edges
 
 #### Scenario: Short title
 - **WHEN** the title is "Example Song"

@@ -84,19 +84,17 @@ between the progress bar and the diagram and "Up next" grows from 1.5 to
 with two outputs still fits in portrait (measured: about 267 units of
 room; an e2e scenario guards it).
 
-In portrait, for gestalt, the title, artists, album and progress bar line
-up with the cover (42vh wide); the diagram and "Up next" take a wider
-column below (47vh, at most 92vw), so the side margins shrink from about
-13% to 8% and "Up next" gains most of the width. The track's block is
-inset by `calc((min(92vw,47vh) - min(86vw,42vh)) / 2)` on each side; the
-diagram starts at the wider column's left edge.
+In portrait, for gestalt, everything below the cover (the title, artists,
+album, progress bar, the diagram and "Up next") lines up with the cover's
+edges, as before this change; the page keeps its side margins. A wider
+column below the cover was tried (47vh): it gave "Up next" more width but
+broke the single pair of edges, and was undone after review. "Up next"
+relies on grouping for its titles instead.
 
 - *Alternative:* a smaller cover. Rejected: the cover is the screen's main
   element.
-- *Alternative:* widen the cover with the column. Rejected: a taller cover
-  takes back the room the diagram needs (two speakers would fold).
-- *Alternative:* align the diagram and "Up next" with the cover too.
-  Rejected: "Up next" needs the width.
+- *Alternative:* a wider column for the diagram and "Up next". Rejected
+  after rendering: two different edges under one cover looked unsettled.
 
 ### 4. Figtree, bundled like Inter
 
