@@ -15,7 +15,7 @@
   --text-album: 3.2vmin;
   --text-time: 2.4vmin;
   --text-badge: 2.2vmin;
-  /* The signal path: its nodes, wave labels and sound box scale from it. */
+  /* The signal diagram: its nodes, labels and streamer scale from it. */
   --text-signal: 2.1vmin;
   --text-next-title: 2.6vmin;
   --text-next-artist: 2.2vmin;
@@ -41,33 +41,6 @@
   --animate-backdrop-in: fade-in 1500ms ease-in-out;
   /* One turn every 24 s: calm, not a loading spinner. */
   --animate-disc: disc-turn 24s linear infinite;
-  /* A pulse of light runs once along a wave to the end; the arrival port
-     lights up as it arrives (92 % of the run). The signal path runs a
-     pulse when something changes, and relays it to the second wave; in
-     between nothing animates. Both move in 33 steps (about 15 a second), so the browser
-     draws about 15 frames a second while a pulse runs instead of 60. */
-  --animate-signal-pulse: signal-pulse 2.2s steps(33);
-  --animate-signal-arrive: signal-arrive 2.2s steps(33);
-
-  @keyframes signal-pulse {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(500%);
-    }
-  }
-
-  @keyframes signal-arrive {
-    0%,
-    80% {
-      opacity: 0.5;
-    }
-    92% {
-      opacity: 1;
-    }
-  }
-
   @keyframes disc-turn {
     to {
       transform: rotate(360deg);
@@ -136,13 +109,47 @@ body {
 }
 
 /*
- * A calm sine wave (a repeating mask, its period set by the height), faded
- * out at both ends where it meets its ports.
+ * The signal diagram's pulse: a bright piece runs once along each straight
+ * line (transform, stepped at about 15 a second; its distance, delay and
+ * duration are set on the element), and each port's core lights up as it
+ * arrives (opacity). Nothing runs between pulses, and nothing with reduced
+ * motion.
  */
-.signal-wave {
-  --sine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 3 20 8 T40 8' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
-  mask-image: var(--sine), linear-gradient(90deg, transparent, black 1vmin, black calc(100% - 0.6vmin), transparent);
-  mask-size: auto 100%, 100% 100%;
-  mask-repeat: repeat-x, no-repeat;
-  mask-composite: intersect;
+.signal-spark {
+  opacity: 0;
+  animation-name: signal-spark;
+  animation-fill-mode: none;
+}
+
+.signal-arrive {
+  opacity: 0;
+  animation: signal-arrive 600ms steps(9) none;
+}
+
+@keyframes signal-spark {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+
+@keyframes signal-arrive {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-spark,
+  .signal-arrive {
+    display: none;
+    animation: none;
+  }
 }
