@@ -117,8 +117,9 @@ again (today a remeasure happens only on resize).
 ### 5. The backdrop is blurred once, in the artwork proxy
 
 The proxy scales the cover to at most 128 pixels, applies a Gaussian blur
-(`image::imageops::blur`, sigma about 6 at that size) on a slightly larger
-canvas so the edges don't darken, then adds a grain of a few levels from a
+(`image::imageops::blur`, sigma 6 at that size; it repeats the edge
+pixels, so the edges don't darken, as the flat-colour test confirms), then
+adds a grain (±2 levels, xorshift) of a few levels from a
 fixed-seed pseudo-random sequence, so the same cover always yields the same
 bytes (the artwork cache and tests rely on it). The kiosk is unchanged: one
 stretched image behind the veil, no CSS filter, so its CPU use is the same;
