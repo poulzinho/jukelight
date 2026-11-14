@@ -35,12 +35,15 @@ draft code is the starting point; it is not committed.
 ### 1. The title steps through fixed sizes, measured in the browser
 
 The title tries five steps, largest first: 7.2 and 6.2 vmin on one line,
-5.4 and 4.6 vmin on two, then 3.6 vmin on three; it takes the first at
+4.8 and 4.2 vmin on two, then 3.2 vmin on three; it takes the first at
 which the text isn't clamped (`scrollHeight` within a fifth of a line of
 `clientHeight`, since letters overhang their line box). In portrait the
 title's box is one line at 7.2 vmin high (11.2 vmin): a short title leaves
-no empty line under it, and two lines at 5.4 or 4.6 and three at 3.6 fit
-in the same box, so nothing below moves. The step is chosen in a layout
+no empty line under it, and two lines at 4.8 or 4.2 and three at 3.2 fit
+in the same box, so nothing below moves. Each line is 1.15 times the
+size: Figtree's letters reach from 0.88 above the baseline to 0.21 below,
+and the title clips what falls outside its lines, so the first steps'
+tighter 1.02 cut off the tails of "g" and "y" (found in the acceptance). The step is chosen in a layout
 effect before paint, again when the title changes, when the viewport
 changes and once the font has loaded.
 
@@ -184,8 +187,8 @@ leaves the logo down the line as before.
 ### 9. No footer on the playing screen
 
 The streamer card's lid now shows the maker's mark and the room, so the
-device signature only repeated it. It stays on the idle, input and
-offline screens; on the playing screen its space goes to the diagram and
+device signature only repeated it. It stays on the idle and input
+screens (an offline player keeps its playing screen, with its indicator); on the playing screen its space goes to the diagram and
 "Up next", which now run to the page's bottom margin instead of the
 footer's top.
 
@@ -225,7 +228,7 @@ orientations, so a layer that breaks the fit fails on its own.
 
 ## Risks / Trade-offs
 
-- [A long title at 4.6 or 3.6 vmin is about the size of the artists
+- [A long title at 4.2 or 3.2 vmin is about the size of the artists
   line] → only titles that can't fit otherwise get there; they stay bold.
 - [Artists on two lines move the rest of the screen] → only for that
   track; the diagram gives way by its usual rules if it no longer fits.

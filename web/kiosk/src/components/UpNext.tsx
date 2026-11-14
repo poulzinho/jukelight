@@ -1,6 +1,6 @@
 import type { Player } from '../api'
 
-/** At most five entries: in portrait as many as fit above the footer, four in landscape. */
+/** At most five entries: in portrait as many as fit above the page's bottom margin, four in landscape. */
 const SHOWN = 5
 
 /**
@@ -21,7 +21,7 @@ export function UpNext({ queue }: { queue: NonNullable<Player['queue']> }) {
   if (queue.length === 0) return null
   return (
     // Beside the signal diagram, its heading level with the diagram's top. In
-    // portrait the list fills the room down to the footer; entries that don't
+    // portrait the list fills the room down to the page's bottom margin; entries that don't
     // fit wrap into a second, clipped column, so none shows cut in half.
     <section className="min-w-0 text-[length:initial] portrait:flex portrait:min-h-0 portrait:flex-col portrait:self-stretch">
       <h2 id="up-next" className="mb-[1.6vmin] text-badge font-semibold tracking-[0.14em] text-kiosk-text/50 uppercase">

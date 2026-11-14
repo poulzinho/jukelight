@@ -23,6 +23,7 @@ export const SCENARIOS = [
   'airplay',
   'bluetooth',
   'radio',
+  'long-artists',
 ] as const
 
 /**

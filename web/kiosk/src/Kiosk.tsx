@@ -37,7 +37,8 @@ export function Kiosk({ player, connection, clockOffsetMs }: Props) {
       ) : (
         <IdleScreen />
       )}
-      {player && <DeviceSignature device={player.device} />}
+      {/* On the playing screen the streamer card names the player; elsewhere the signature does. */}
+      {player && !(player.track && playing && !player.input) && <DeviceSignature device={player.device} />}
       {indicator && <ConnectionIndicator message={indicator} />}
     </>
   )
@@ -68,7 +69,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
       <main
         // In portrait every part has a fixed slot from the top, with "Up
         // next" at the bottom, so changing content never moves the others.
-        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:pt-[5vh] portrait:pb-[7vh]"
+        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:pt-[5vh] portrait:pb-[4.5vh]"
       >
         <div className="relative">
           <Artwork
@@ -89,9 +90,9 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
             <ProgressSlot />
           )}
           {/* The diagram, and "Up next" beside it when there is a queue; both
-              top-aligned, in the room down to the footer. */}
+              top-aligned, in the room down to the page's bottom margin. */}
           <div
-            className={`mt-[1.5vmin] grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] items-start text-signal ${
+            className={`mt-[5vmin] grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] items-start text-signal ${
               hasQueue ? 'grid-cols-[19em_minmax(0,1fr)] gap-x-[2.9em]' : 'grid-cols-1'
             }`}
           >

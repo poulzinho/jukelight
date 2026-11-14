@@ -16,6 +16,15 @@ async function screenshot(page: Page, scenario: Scenario) {
 
 const portrait = () => test.info().project.name === 'portrait'
 
+/** The top of the page's bottom margin: 4.5vh in portrait, 8vmin in landscape. */
+async function bottomMargin(page: Page) {
+  return page.evaluate(() =>
+    window.innerHeight > window.innerWidth
+      ? window.innerHeight * 0.955
+      : window.innerHeight - 0.08 * Math.min(window.innerWidth, window.innerHeight),
+  )
+}
+
 async function box(page: Page, selector: Parameters<Page['getByRole']>) {
   const element = page.getByRole(...selector)
   await expect(element).toBeVisible()
@@ -43,7 +52,7 @@ test('playing with queue', async ({ page }) => {
   await expect(page.getByRole('img', { name: 'Qobuz to Example Player' })).toBeVisible()
   await expect(page.locator('[data-part="streamer-main"]')).toHaveText('16 bit / 44.1 kHz')
   await expect(page.locator('[data-part="streamer-codec"]')).toContainText('untouched')
-  // Four entries in landscape; in portrait as many as fit above the footer.
+  // Four entries in landscape; in portrait as many as fit above the bottom margin.
   const shown = await page.getByRole('list', { name: 'Up next' }).evaluate((list) => {
     const bounds = list.getBoundingClientRect()
     return [...list.children]
@@ -53,9 +62,10 @@ test('playing with queue', async ({ page }) => {
   })
   if (!portrait()) expect(shown.length).toBe(4)
   else expect(shown.length).toBeGreaterThanOrEqual(3)
-  // The player's signature sits below everything, overlapping nothing.
-  const signature = await box(page, ['contentinfo'])
-  expect(Math.max(...shown)).toBeLessThanOrEqual(signature.y)
+  // Nothing runs into the page's bottom margin, and no footer shows: the
+  // streamer card names the player.
+  expect(Math.max(...shown)).toBeLessThanOrEqual((await bottomMargin(page)) + 1)
+  await expect(page.getByTestId('device-signature')).toHaveCount(0)
   await screenshot(page, 'playing-with-queue')
 })
 
@@ -68,16 +78,84 @@ test('cast session without queue', async ({ page }) => {
   await screenshot(page, 'cast-without-queue')
 })
 
-test('long title stays within two lines', async ({ page }) => {
+// Spec: kiosk-display, "Playing screen": the title steps down to fit its room.
+test('long title steps down to fit its room', async ({ page }) => {
   await open(page, 'long-title')
   const heading = page.getByRole('heading', { level: 1 })
   await expect(heading).toBeVisible()
-  const lines = await heading.evaluate((element) => {
+  const fit = await heading.evaluate((element) => {
     const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight)
-    return element.getBoundingClientRect().height / lineHeight
+    const room = (element.parentElement as HTMLElement).getBoundingClientRect()
+    const box = element.getBoundingClientRect()
+    return {
+      lines: box.height / lineHeight,
+      size: Number.parseFloat(element.style.fontSize),
+      inRoom: !portraitScreen() || box.bottom <= room.bottom + 1,
+    }
+    function portraitScreen() {
+      return window.innerHeight > window.innerWidth
+    }
   })
-  expect(lines).toBeLessThanOrEqual(2.05)
+  expect(fit.size).toBeLessThan(7.2)
+  expect(fit.lines).toBeLessThanOrEqual(3.05)
+  expect(fit.inRoom).toBe(true)
   await screenshot(page, 'long-title')
+})
+
+// Spec: kiosk-display, "Playing screen": the title in full, its letters'
+// tails (g, p, y) included.
+for (const scenario of ['playing-with-queue', 'long-title'] as const) {
+  test(`${scenario}: the title's letters are never clipped`, async ({ page }) => {
+    await open(page, scenario)
+    const heading = page.getByRole('heading', { level: 1 })
+    await expect(heading).toBeVisible()
+    // Where the letters' ink sits in each line: the tails of g, p and y
+    // below the baseline, accents above, from the font's own metrics.
+    const ink = await heading.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const size = Number.parseFloat(style.fontSize)
+      const lineHeight = Number.parseFloat(style.lineHeight)
+      const canvas = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
+      canvas.font = `${style.fontWeight} ${size}px ${style.fontFamily}`
+      const metrics = canvas.measureText('gpqyÉÁ')
+      const baseline = (lineHeight - (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent)) / 2 + metrics.fontBoundingBoxAscent
+      return { top: baseline - metrics.actualBoundingBoxAscent, bottom: baseline + metrics.actualBoundingBoxDescent, lineHeight }
+    })
+    expect(ink.top).toBeGreaterThanOrEqual(0)
+    expect(ink.bottom).toBeLessThanOrEqual(ink.lineHeight)
+  })
+}
+
+// Spec: kiosk-display, "Playing screen", "Two artists on two lines".
+test('long artists wrap to a second line, in full', async ({ page }) => {
+  await open(page, 'long-artists')
+  const artists = page.getByText('Example Violinist, Example Chamber Orchestra')
+  await expect(artists).toBeVisible()
+  const lines = await artists.evaluate((element) => {
+    const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight)
+    return Math.round(element.getBoundingClientRect().height / lineHeight)
+  })
+  expect(lines).toBe(2)
+  expect(await artists.evaluate((element) => element.scrollHeight <= element.clientHeight + 1)).toBe(true)
+  await screenshot(page, 'long-artists')
+})
+
+// Spec: kiosk-display, "Playing screen", "Aligned with the cover in portrait".
+test('in portrait everything below the cover lines up with it', async ({ page }) => {
+  test.skip(!portrait(), 'portrait only')
+  await open(page, 'playing-with-queue')
+  const cover = await box(page, ['img', { name: 'Example Album' }])
+  const title = await box(page, ['heading', { name: 'Example Song' }])
+  const progress = await box(page, ['progressbar'])
+  const diagram = await page.getByTestId('signal-diagram').boundingBox()
+  const upNext = await page.getByRole('list', { name: 'Up next' }).boundingBox()
+  const left = cover.x
+  const right = cover.x + cover.width
+  for (const [name, x] of [['title', title.x], ['progress', progress.x], ['diagram', diagram?.x ?? 0]] as const) {
+    expect(Math.abs(x - left), name).toBeLessThan(2)
+  }
+  expect(Math.abs(progress.x + progress.width - right)).toBeLessThan(2)
+  expect((upNext?.x ?? 0) + (upNext?.width ?? 0)).toBeLessThanOrEqual(right + 2)
 })
 
 test('missing artwork shows initials', async ({ page }) => {
@@ -303,8 +381,9 @@ test.describe('steady portrait layout', () => {
 // diagram".
 test.describe('signal diagram', () => {
   /**
-   * What leaves its place in the diagram: anything past the screen, under the
-   * footer or into the queue's column, and text over a logo or the streamer.
+   * What leaves its place in the diagram: anything past the screen, into the
+   * page's bottom margin or the queue's column, and text over a logo or the
+   * streamer.
    */
   async function problems(page: Page) {
     await expect(page.getByTestId('signal-diagram')).toBeVisible()
@@ -313,9 +392,11 @@ test.describe('signal diagram', () => {
     return page.evaluate(() => {
       const diagram = document.querySelector('[data-testid="signal-diagram"]') as Element
       const screen = document.documentElement.getBoundingClientRect()
-      const footer = document.querySelector('[data-testid="device-signature"]')?.getBoundingClientRect()
+      const bottom =
+        window.innerHeight > window.innerWidth
+          ? window.innerHeight * 0.955
+          : window.innerHeight - 0.08 * Math.min(window.innerWidth, window.innerHeight)
       const queue = document.querySelector('[aria-labelledby="up-next"]')?.closest('section')?.getBoundingClientRect()
-      const clearance = 0.03 * Math.min(window.innerWidth, window.innerHeight)
       const found: string[] = []
       const name = (element: Element) => (element.textContent || element.getAttribute('data-part') || element.tagName).slice(0, 30)
       for (const element of diagram.querySelectorAll('text, image, rect, path, circle')) {
@@ -323,8 +404,8 @@ test.describe('signal diagram', () => {
         const r = element.getBoundingClientRect()
         if (r.width === 0 && r.height === 0) continue
         if (r.right > screen.right || r.left < screen.left) found.push(`past the screen: ${name(element)}`)
-        // 3vmin clear of the footer, less a pixel for rounding.
-        if (footer && r.bottom > footer.top - clearance + 1) found.push(`near the footer: ${name(element)}`)
+        // Within the page's bottom margin, less a pixel for rounding.
+        if (r.bottom > bottom + 1) found.push(`into the bottom margin: ${name(element)}`)
         if (queue && r.right > queue.left) found.push(`into the queue: ${name(element)}`)
       }
       const logos = [...diagram.querySelectorAll('image')].map((image) => image.getBoundingClientRect())
@@ -360,6 +441,9 @@ test.describe('signal diagram', () => {
     'bluetooth',
     'radio',
     'hi-res',
+    'playing-with-queue',
+    'long-title',
+    'long-artists',
   ] as const
   for (const scenario of scenarios) {
     test(`${scenario}: everything in its place`, async ({ page }) => {

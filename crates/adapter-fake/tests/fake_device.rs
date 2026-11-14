@@ -68,6 +68,7 @@ fn all_scenarios_exist() {
             "airplay",
             "bluetooth",
             "radio",
+            "long-artists",
         ]
     );
     for scenario in SCENARIOS {
@@ -119,6 +120,14 @@ async fn cast_without_queue() {
 async fn long_title() {
     let content = first("long-title").await.content.unwrap();
     assert!(content.track.title.len() > 80);
+    // One short artist: the title alone is long.
+    assert_eq!(content.track.artists, ["Example Artist"]);
+}
+
+#[tokio::test]
+async fn long_artists() {
+    let content = first("long-artists").await.content.unwrap();
+    assert!(content.track.artists.join(", ").len() > 40);
 }
 
 #[tokio::test]
