@@ -16,7 +16,7 @@ use jukelight_domain::{
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 24] = [
+pub const SCENARIOS: [&str; 25] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
@@ -41,6 +41,7 @@ pub const SCENARIOS: [&str; 24] = [
     "bluetooth",
     "radio",
     "long-artists",
+    "classical",
 ];
 
 /// Scenarios that a fake Music Assistant drives: it claims the stream.
@@ -181,6 +182,33 @@ fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
     }
 }
 
+/// A movement of a concerto, with the next movements, a song in between and
+/// another work in the queue, for grouping "Up next" by work.
+fn classical(content: &mut Content) {
+    let work = "Example Composer: Example Concerto in A Minor, Op. 1";
+    content.track.title = format!("{work}: I. Allegro");
+    content.track.artists = vec!["Example Violinist".into()];
+    content.track.album = Some("Example Concertos".into());
+    let entry = |title: String, artist: &str| QueueEntry {
+        title,
+        artists: vec![artist.into()],
+        artwork: cover(210),
+    };
+    content.queue = QueueView::Available(vec![
+        entry(format!("{work}: II. Andante"), "Example Violinist"),
+        entry(format!("{work}: III. Presto"), "Example Violinist"),
+        entry("Example Song".into(), "Example Singer"),
+        entry(
+            "Example Composer: Example Sonata, Op. 2: I. Adagio".into(),
+            "Example Pianist",
+        ),
+        entry(
+            "Example Composer: Example Sonata, Op. 2: II. Allegro".into(),
+            "Example Pianist",
+        ),
+    ]);
+}
+
 fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
     let mut snapshot = example_snapshot(clock);
     let content = snapshot.content.as_mut();
@@ -205,6 +233,7 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
             content.track.album =
                 Some("An Album Title That Is Also Far Too Long To Fit On One Line".into());
         }
+        ("classical", Some(content)) => classical(content),
         ("long-artists", Some(content)) => {
             content.track.title = "Example Concerto".into();
             content.track.artists = vec![

@@ -24,6 +24,7 @@ export const SCENARIOS = [
   'bluetooth',
   'radio',
   'long-artists',
+  'classical',
 ] as const
 
 /**

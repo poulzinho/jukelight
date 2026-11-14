@@ -69,6 +69,7 @@ fn all_scenarios_exist() {
             "bluetooth",
             "radio",
             "long-artists",
+            "classical",
         ]
     );
     for scenario in SCENARIOS {
@@ -122,6 +123,16 @@ async fn long_title() {
     assert!(content.track.title.len() > 80);
     // One short artist: the title alone is long.
     assert_eq!(content.track.artists, ["Example Artist"]);
+}
+
+#[tokio::test]
+async fn classical() {
+    let content = first("classical").await.content.unwrap();
+    assert!(content.track.title.ends_with(": I. Allegro"));
+    let QueueView::Available(entries) = content.queue else {
+        panic!("a queue");
+    };
+    assert!(entries[0].title.ends_with(": II. Andante"));
 }
 
 #[tokio::test]

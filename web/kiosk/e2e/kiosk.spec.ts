@@ -139,6 +139,33 @@ test('long artists wrap to a second line, in full', async ({ page }) => {
   await screenshot(page, 'long-artists')
 })
 
+// Spec: kiosk-display, "Up next": a classical queue grouped by work.
+test('up next groups a classical queue by work', async ({ page }) => {
+  await open(page, 'classical')
+  const list = page.getByRole('list', { name: 'Up next' })
+  const headings = list.locator('[data-part="group-heading"]')
+  await expect(headings.first()).toHaveText('Example Composer: Example Concerto in A Minor, Op. 1')
+  await expect(list.getByText('II. Andante', { exact: true })).toBeVisible()
+  await expect(list.getByText('III. Presto', { exact: true })).toBeVisible()
+  // The violinist is named once for the two movements.
+  await expect(list.getByText('Example Violinist', { exact: true })).toHaveCount(1)
+  // Nothing in "Up next" runs into the page's bottom margin, and no heading
+  // shows without its first entry.
+  const bottom = await bottomMargin(page)
+  const visible = await list.evaluate((element, limit) => {
+    const box = element.getBoundingClientRect()
+    return [...element.children].filter((item) => {
+      const r = item.getBoundingClientRect()
+      return r.height > 0 && r.left < box.right && r.bottom <= box.bottom + 1
+    }).map((item) => ({ bottom: item.getBoundingClientRect().bottom, entries: item.querySelectorAll('img, div.size-\\[6vmin\\]').length, limit }))
+  }, bottom)
+  for (const item of visible) {
+    expect(item.bottom).toBeLessThanOrEqual(bottom + 1)
+    expect(item.entries).toBeGreaterThan(0)
+  }
+  await screenshot(page, 'classical')
+})
+
 // Spec: kiosk-display, "Playing screen", "Aligned with the cover in portrait".
 test('in portrait everything below the cover lines up with it', async ({ page }) => {
   test.skip(!portrait(), 'portrait only')
@@ -443,6 +470,7 @@ test.describe('signal diagram', () => {
     'playing-with-queue',
     'long-title',
     'long-artists',
+    'classical',
   ] as const
   for (const scenario of scenarios) {
     test(`${scenario}: everything in its place`, async ({ page }) => {
