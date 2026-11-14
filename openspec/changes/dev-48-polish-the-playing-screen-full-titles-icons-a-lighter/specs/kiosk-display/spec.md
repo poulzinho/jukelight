@@ -155,7 +155,9 @@ never moves the other parts.
 ### Requirement: Streamer card
 The player SHALL be drawn as a streamer: a low card with a lid, a status
 light and feet. The lid SHALL hold the maker's mark (`device.markUrl`, the
-icon only), when supplied, followed by the room. The card's body SHALL
+icon only), when supplied, followed by the room, set like a speaker's name
+(the same size, weight and colour): the streamer matters as much as the
+speakers. The card's body SHALL
 show the format the player receives ("24 bit / 96 kHz" or "320 kbps"; or
 what is known, such as "AirPlay", when no quality is reported), then its
 codec with what changed on the way ("FLAC · resampled from 16 / 44.1",
@@ -167,6 +169,10 @@ left.
 #### Scenario: Hi-Res with both logos
 - **WHEN** the class is Hi-Res, the Hi-Res logo and the maker's mark are supplied, and the player receives FLAC 24/96
 - **THEN** the card shows the mark and the room in its lid, and the Hi-Res logo, "24 bit / 96 kHz" and "FLAC" in its body
+
+#### Scenario: Room set like a speaker
+- **WHEN** the diagram shows the speaker "Kitchen" and the room "Living Room"
+- **THEN** "Living Room" has the same size, weight and colour as "Kitchen"
 
 #### Scenario: No mark
 - **WHEN** no maker's mark is supplied

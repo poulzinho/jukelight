@@ -50,10 +50,12 @@ viewport changes and once the font has loaded.
 
 ### 2. Lid with mark and room; the mark no longer gives way
 
-The lid grows from 8 to 16 diagram units and holds the mark (9 units,
-icon only) and the room (8 units, shortened with "…" to the lid); the body
-holds the format and the codec line, moved down to use the space. The
-card keeps its 56-unit height, so the vertical budget is unchanged. The
+The lid grows from 8 to 19 diagram units and holds the mark (12 units,
+icon only) and the room, set like a speaker's name (12.5 units, regular,
+the main text colour), shortened with "…" to the lid: the streamer is as
+important as the speakers. The body holds the format and the codec line.
+The card grows from 56 to 58 units; each output row gives one unit back
+(22 to 21), so a two-speaker group still fits in portrait. The
 mark leaves the body, so "the maker's mark gives way first" is dropped from
 "Diagram fits": the format never competes with it any more.
 
@@ -64,7 +66,7 @@ Lines go from 1.6 to 1.1 units at 0.6 opacity; ports from radius 4.2 to
 0.75. The card's border goes to 1.3, staying stronger than the lines. The
 gap between the last speaker row and the streamer grows from 14 to 20
 units; the source's line shrinks from 52 to 48 (its label still clears the
-logo). Net +2 units: a two-speaker group in portrait still fits (checked
+logo). With the card's +2 and the outputs' −2, net +2 units: a two-speaker group in portrait still fits (checked
 in the rendered proposal; an e2e scenario guards it).
 
 ### 4. Figtree, bundled like Inter
