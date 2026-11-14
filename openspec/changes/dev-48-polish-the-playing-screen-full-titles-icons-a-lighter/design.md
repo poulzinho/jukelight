@@ -54,20 +54,28 @@ The lid grows from 8 to 19 diagram units and holds the mark (12 units,
 icon only) and the room, set like a speaker's name (12.5 units, regular,
 the main text colour), shortened with "…" to the lid: the streamer is as
 important as the speakers. The body holds the format and the codec line.
-The card grows from 56 to 58 units; each output row gives one unit back
-(22 to 21), so a two-speaker group still fits in portrait. The
+The card grows from 56 to 58 units. The
 mark leaves the body, so "the maker's mark gives way first" is dropped from
 "Diagram fits": the format never competes with it any more.
 
-### 3. Lighter lines, and the gap paid for by the source's line
+### 3. Lighter lines, and more air between the rows
 
 Lines go from 1.6 to 1.1 units at 0.6 opacity; ports from radius 4.2 to
 3.3 with a 1.1 stroke at 0.75 opacity; junction dots from 2.6 to 1.9 at
 0.75. The card's border goes to 1.3, staying stronger than the lines. The diagram's icons (speakers, computers, outputs) go from a 1.9 to a 1.4 stroke, as light as the text beside them and the maker's mark. The
-gap between the last speaker row and the streamer grows from 14 to 20
+gap between the last speaker row and the streamer grows from 14 to 24
 units; the source's line shrinks from 52 to 48 (its label still clears the
-logo). With the card's +2 and the outputs' −2, net +2 units: a two-speaker group in portrait still fits (checked
-in the rendered proposal; an e2e scenario guards it).
+logo).
+
+Seen from across the room, the rows were too close. Speaker rows go from
+26 to 31 units apart, the gap above the streamer to 24 and the output rows
+from 22 to 25. The space comes from the page's top margin in portrait
+(5vh to 3vh), which moves everything up and gives the diagram more room
+above the footer; a two-speaker group with two outputs still fits in
+portrait (checked in the rendered proposal; an e2e scenario guards it).
+
+- *Alternative:* a smaller cover. Rejected: the cover is the screen's
+  main element; the top margin had room to spare.
 
 ### 4. Figtree, bundled like Inter
 
