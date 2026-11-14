@@ -20,6 +20,17 @@ test('counts up each time the page has finished loading fonts', () => {
   expect(result.current).toBe(first + 1)
 })
 
+test('counts the fonts that finished loading before it listened', async () => {
+  // Already loaded: no "loadingdone" will come, but "ready" resolves.
+  const fonts = Object.assign(new EventTarget(), { ready: Promise.resolve() })
+  Object.defineProperty(document, 'fonts', { configurable: true, value: fonts })
+  const { result } = renderHook(() => useFontsLoaded())
+  await act(async () => {
+    await fonts.ready
+  })
+  expect(result.current).toBe(1)
+})
+
 test('stays put without a font loading API', () => {
   Object.defineProperty(document, 'fonts', { configurable: true, value: undefined })
   const { result } = renderHook(() => useFontsLoaded())

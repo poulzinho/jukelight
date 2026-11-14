@@ -9,9 +9,18 @@ export function useFontsLoaded(): number {
   useEffect(() => {
     const fonts = document.fonts as FontFaceSet | undefined
     if (!fonts?.addEventListener) return
-    const loaded = () => setLoads((count) => count + 1)
+    let listening = true
+    const loaded = () => {
+      if (listening) setLoads((count) => count + 1)
+    }
     fonts.addEventListener('loadingdone', loaded)
-    return () => fonts.removeEventListener('loadingdone', loaded)
+    // Fonts that finished before this listened send no "loadingdone":
+    // "ready" resolves for them.
+    void fonts.ready?.then(loaded)
+    return () => {
+      listening = false
+      fonts.removeEventListener('loadingdone', loaded)
+    }
   }, [])
   return loads
 }
