@@ -69,7 +69,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
       <main
         // In portrait every part has a fixed slot from the top, with "Up
         // next" at the bottom, so changing content never moves the others.
-        className="relative grid h-full grid-cols-[auto_1fr] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:pt-[5vh] portrait:pb-[4.5vh]"
+        className="relative grid h-full grid-cols-[auto_1fr] grid-rows-[minmax(0,1fr)] items-center gap-x-columns px-page-x py-page-y motion-safe:animate-fade-in portrait:grid-cols-1 portrait:grid-rows-[auto_1fr] portrait:items-start portrait:justify-items-center portrait:gap-y-stack portrait:pt-[5vh] portrait:pb-[4.5vh]"
       >
         <div className="relative">
           <Artwork
@@ -79,7 +79,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
           />
           {paused && <PauseSymbol />}
         </div>
-        <section className="flex min-w-0 flex-col portrait:h-full portrait:min-h-0 portrait:w-[min(86vw,42vh)]">
+        <section className="flex max-h-full min-w-0 flex-col portrait:h-full portrait:min-h-0 portrait:w-[min(86vw,42vh)]">
           {/* Only the track text changes for a new track: the old fades out, the new fades in. */}
           <TextSwap name={`${track.title}|${track.artists.join(', ')}|${track.album ?? ''}`}>
             <TrackInfo track={track} />
@@ -97,7 +97,7 @@ function PlayingScreen({ player, track, clockOffsetMs }: PlayingProps) {
             }`}
           >
             <SignalDiagram player={player} queue={hasQueue} />
-            {hasQueue && player.queue && <UpNext queue={player.queue} />}
+            {hasQueue && player.queue && <UpNext queue={player.queue} current={track} />}
           </div>
         </section>
         {paused && <Dim />}

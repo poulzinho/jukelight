@@ -1,5 +1,5 @@
 import { Airplay, AudioLines, Bluetooth, Cable, Folder, Laptop, Radio, Server, Speaker as SpeakerIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useFontsLoaded } from '../useFontsLoaded'
 import type { Player } from '../api'
 import { type Card, type Icon, type Ink, type Layout, type Measure, layout } from '../diagram/layout'
@@ -332,7 +332,9 @@ interface BoxSize {
 function useBoxSize(ref: React.RefObject<HTMLDivElement | null>, queue: boolean): BoxSize {
   // Until measured (and in tests): a column beside the queue, or the full width.
   const [size, setSize] = useState<BoxSize>({ width: queue ? 236 : 524, height: 10_000, unit: 1 })
-  useEffect(() => {
+  // Measured before the first paint, so a screen that comes back (after the
+  // idle screen) shows the diagram at its size at once, without a jump.
+  useLayoutEffect(() => {
     const element = ref.current
     if (!element || typeof ResizeObserver === 'undefined') return
     const update = () => {
@@ -352,6 +354,7 @@ function useBoxSize(ref: React.RefObject<HTMLDivElement | null>, queue: boolean)
           : next,
       )
     }
+    update()
     const observer = new ResizeObserver(update)
     observer.observe(element)
     observer.observe(document.documentElement)
@@ -402,16 +405,22 @@ function useMeasure(unit: number): Measure {
   }, [unit, fontsLoaded])
 }
 
-/** A logo's width over its height, once it has loaded. */
+/** Logos' proportions, kept across screens: a logo that comes back keeps its size. */
+const aspects = new Map<string, number>()
+
 function useLogoAspect(url: string | null): number | undefined {
   const [aspect, setAspect] = useState<{ url: string; value: number } | null>(null)
   useEffect(() => {
-    if (!url) return
+    if (!url || aspects.has(url)) return
     const image = new Image()
     image.onload = () => {
-      if (image.naturalWidth && image.naturalHeight) setAspect({ url, value: image.naturalWidth / image.naturalHeight })
+      if (!image.naturalWidth || !image.naturalHeight) return
+      const value = image.naturalWidth / image.naturalHeight
+      aspects.set(url, value)
+      setAspect({ url, value })
     }
     image.src = url
   }, [url])
-  return aspect && aspect.url === url ? aspect.value : undefined
+  if (!url) return undefined
+  return aspects.get(url) ?? (aspect && aspect.url === url ? aspect.value : undefined)
 }

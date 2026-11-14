@@ -117,8 +117,9 @@ again (today a remeasure happens only on resize).
 ### 5. The backdrop is blurred once, in the artwork proxy
 
 The proxy scales the cover to at most 128 pixels, applies a Gaussian blur
-(`image::imageops::blur`, sigma about 6 at that size) on a slightly larger
-canvas so the edges don't darken, then adds a grain of a few levels from a
+(`image::imageops::blur`, sigma 6 at that size; it repeats the edge
+pixels, so the edges don't darken, as the flat-colour test confirms), then
+adds a grain (±2 levels, xorshift) of a few levels from a
 fixed-seed pseudo-random sequence, so the same cover always yields the same
 bytes (the artwork cache and tests rely on it). The kiosk is unchanged: one
 stretched image behind the veil, no CSS filter, so its CPU use is the same;
@@ -192,6 +193,33 @@ screens (an offline player keeps its playing screen, with its indicator); on the
 "Up next", which now run to the page's bottom margin instead of the
 footer's top.
 
+### 10. A new session settles before it shows (DEV-54)
+
+The session provider port gains `settling(device)`, false by default. The
+Music Assistant provider is settling while it follows an AirPlay origin
+without an answer since it started following it, and while it claims the
+origin without content fetched for it; a failed poll ends settling (the
+provider is unreachable, shown as before). The player monitor, before
+rebuilding, asks the providers: while one is settling and less than 2
+seconds have passed since it started, it leaves the snapshot as it is and
+sets a timer for the deadline; a provider's update or the timer rebuilds
+as usual. Track changes, pauses and positions of a settled session are not
+delayed: settling only happens around a new origin.
+
+- *Alternative:* the kiosk waits for a settled snapshot. Rejected: the
+  kiosk can't tell a provider still answering from a session that really
+  is AirPlay; the backend knows.
+- *Alternative:* keep the last content until the provider has content.
+  Rejected: it would show a stale track under a new origin.
+
+### 11. Every paused group is held (DEV-55)
+
+To be designed from a recording of the failing pause (the player went from
+"paused" with the group to "stopped" with its own Qobuz queue, and the
+hold of decision 8 in DEV-46 didn't take): what the player and Music
+Assistant report at each step, then the rule that holds the group through
+it.
+
 ### Stack layers
 
 Five pull requests, bottom-up, each building and passing CI on its own:
@@ -204,7 +232,9 @@ Five pull requests, bottom-up, each building and passing CI on its own:
 4. **DEV-52, the diagram:** lighter drawing, the streamer's lid, the rows'
    spacing, the wave and its flash; two speakers fit only with layer 3's
    room.
-5. **DEV-53, "Up next" grouped:** fits to layer 3's bottom margin; the
+5. **DEV-53, "Up next" grouped:** fits to layer 3's bottom margin.
+6. **DEV-54, settling:** application and Music Assistant adapter.
+7. **DEV-55, holding every paused group:** Music Assistant adapter; the
    top layer carries the acceptance, the sync and the archive.
 
 Each layer runs the e2e overflow checks for every fake scenario in both
