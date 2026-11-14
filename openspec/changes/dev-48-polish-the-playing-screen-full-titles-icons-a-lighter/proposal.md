@@ -15,7 +15,8 @@ was reviewed and approved. Part of roadmap step 4 (finished kiosk).
   room it already has (two lines, then three smaller lines); "…" only when
   even the smallest size doesn't fit. Short titles keep the large size, and
   in portrait nothing below the title moves.
-- **Icons before the artists and the album:** a microphone and a disc,
+- **Icons before the artists and the album:** a person (or a group of
+  people, for several artists or a name like "… Orchestra") and a disc,
   dimmed.
 - **A lighter diagram:** thinner, partly transparent lines, with smaller
   ports and junction dots, so the nodes and formats lead.

@@ -20,8 +20,13 @@ measured again once the font has loaded.
 ### Requirement: Playing screen
 While a track is playing, the kiosk SHALL show the artwork, title, artists,
 album, a progress bar with elapsed time and duration, and the signal
-diagram (see "Signal diagram"). The artists SHALL follow a microphone icon
-and the album a disc icon, both dimmed. With a queue, the area below the
+diagram (see "Signal diagram"). The artists SHALL follow a dimmed icon of
+one person, or of a group of people when the track has two or more
+artists or its one artist's name contains a word for a group (orchestra,
+philharmonic, ensemble, quartet, trio, choir or band, also in Spanish,
+French, German and Italian: orquesta, orchestre, orchester, orchestra,
+coro, chœur, chor, cuarteto, quatuor, quartett, quartetto); the album SHALL
+follow a dimmed disc icon. With a queue, the area below the
 progress SHALL have two columns, the diagram on the left and "Up next" on
 the right, both aligned at the top; without a queue the diagram SHALL take
 the full width. A title too long for two lines at the largest size SHALL
@@ -55,7 +60,19 @@ even then SHALL end with an ellipsis.
 
 #### Scenario: Artists and album with icons
 - **WHEN** the snapshot names the artist "Example Artist" and the album "Example Album"
-- **THEN** a microphone icon precedes "Example Artist" and a disc icon precedes "Example Album"
+- **THEN** a one-person icon precedes "Example Artist" and a disc icon precedes "Example Album"
+
+#### Scenario: Several artists
+- **WHEN** the snapshot names the artists "Example Singer" and "Guest Artist"
+- **THEN** a group icon precedes "Example Singer, Guest Artist"
+
+#### Scenario: A group's name
+- **WHEN** the snapshot names the one artist "Example Chamber Orchestra"
+- **THEN** a group icon precedes it
+
+#### Scenario: A name without a group word
+- **WHEN** the snapshot names the one artist "The Example Collective"
+- **THEN** a one-person icon precedes it
 
 ### Requirement: Up next
 The kiosk SHALL show an "Up next" list only when the queue is available and

@@ -126,6 +126,24 @@ queue already carries titles and artists.
 - *Alternative:* group in the backend. Rejected: grouping is presentation;
   the kiosk has the titles, and the rules are easier to test there.
 
+### 7. The artist's icon: one person or a group, from the names
+
+The API gives only the artists' names, so the icon follows two light
+rules in the kiosk: two or more artists show the group icon (lucide
+`Users`); one artist shows it too when the name contains, as a whole word
+and in any case, a word for a group from a short list (orchestra,
+philharmonic, ensemble, quartet, trio, choir, band, and their Spanish,
+French, German and Italian forms); otherwise the one-person icon
+(`UserRound`) is the default. The vocal microphone was replaced: at this
+size it read as a pen.
+
+- *Alternative:* the artist's type from MusicBrainz. Rejected: it would
+  send the listening history to an outside service and add a lookup for
+  one small icon.
+- *Alternative:* the count only. Kept as the main rule; the word list only
+  catches ensembles that are named as such, and a band without such a
+  word keeps the person icon.
+
 ### Tests per layer
 
 - **Artwork adapter (fixtures):** backdrop size, blur (the half-black,
