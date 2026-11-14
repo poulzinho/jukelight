@@ -68,9 +68,12 @@ impl AudioQuality {
 
     pub fn is_lossless(&self) -> bool {
         match &self.measure {
-            QualityMeasure::Format(format) => LOSSLESS_CODECS
-                .iter()
-                .any(|codec| codec.eq_ignore_ascii_case(&format.codec)),
+            QualityMeasure::Format(format) => {
+                is_pcm(&format.codec)
+                    || LOSSLESS_CODECS
+                        .iter()
+                        .any(|codec| codec.eq_ignore_ascii_case(&format.codec))
+            }
             QualityMeasure::Bitrate { .. } => false,
         }
     }
@@ -158,6 +161,22 @@ pub fn signal_class(source: Option<&AudioQuality>, delivery: Option<&Delivery>) 
         Some(delivered) => source_class.min(delivered.class()),
         None => source_class,
     }
+}
+
+/// Raw samples: "PCM", or a sample format such as Music Assistant's
+/// `s16le`, `s24le` or `f32le`.
+pub fn is_pcm(codec: &str) -> bool {
+    let codec = codec.to_ascii_lowercase();
+    if codec == "pcm" {
+        return true;
+    }
+    let bytes = codec.as_bytes();
+    bytes.len() >= 4
+        && matches!(bytes[0], b's' | b'u' | b'f')
+        && codec[1..codec.len() - 2]
+            .chars()
+            .all(|c| c.is_ascii_digit())
+        && (codec.ends_with("le") || codec.ends_with("be"))
 }
 
 /// 96000 -> "96", 44100 -> "44.1", 22050 -> "22.05".

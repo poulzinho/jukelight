@@ -61,6 +61,13 @@ fn all_scenarios_exist() {
             "long-signal",
             "upsampled",
             "unknown-quality",
+            "group",
+            "group-dropped",
+            "group-many",
+            "group-long-names",
+            "airplay",
+            "bluetooth",
+            "radio",
         ]
     );
     for scenario in SCENARIOS {

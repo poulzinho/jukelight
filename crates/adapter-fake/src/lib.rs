@@ -11,12 +11,12 @@ use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, DeviceMonitor, SessionProvider};
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Change, Content, Decibels, Delivery,
-    DeviceSnapshot, InputKind, Origin, Palette, PlaybackState, Position, QueueEntry, QueueView,
-    Rgb, Service, Timestamp, Track,
+    DeviceSnapshot, InputKind, Origin, Output, OutputKind, Palette, PlaybackState, Position,
+    QueueEntry, QueueView, Rgb, Service, Speaker, SpeakerKind, Timestamp, Track,
 };
 use tokio::sync::watch;
 
-pub const SCENARIOS: [&str; 16] = [
+pub const SCENARIOS: [&str; 23] = [
     "playing-with-queue",
     "cast-without-queue",
     "long-title",
@@ -33,14 +33,25 @@ pub const SCENARIOS: [&str; 16] = [
     "long-signal",
     "upsampled",
     "unknown-quality",
+    "group",
+    "group-dropped",
+    "group-many",
+    "group-long-names",
+    "airplay",
+    "bluetooth",
+    "radio",
 ];
 
 /// Scenarios that a fake Music Assistant drives: it claims the stream.
-const MUSIC_ASSISTANT: [&str; 4] = [
+const MUSIC_ASSISTANT: [&str; 8] = [
     "music-assistant",
     "music-assistant-unavailable",
     "long-signal",
     "upsampled",
+    "group",
+    "group-dropped",
+    "group-many",
+    "group-long-names",
 ];
 
 #[derive(Debug, thiserror::Error)]
@@ -109,6 +120,11 @@ impl DeviceMonitor for FakeDevice {
 fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
     DeviceSnapshot {
         maker: Brand::new("bluesound"),
+        // The example player has its subwoofer on.
+        outputs: vec![Output {
+            name: None,
+            kind: OutputKind::Subwoofer,
+        }],
         name: "Example Player".into(),
         player_key: "aabbccddeeff".into(),
         online: true,
@@ -158,6 +174,7 @@ fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
             ),
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }),
     }
 }
@@ -211,6 +228,33 @@ fn scenario_snapshot(scenario: &str, clock: &dyn Clock) -> DeviceSnapshot {
                 sample_rate_hz: 96_000,
             }));
             content.artwork = cover(30);
+        }
+        ("airplay" | "bluetooth", Some(content)) => {
+            let (id, name) = if scenario == "airplay" {
+                ("AirPlay", "AirPlay")
+            } else {
+                ("Bluetooth", "Bluetooth")
+            };
+            snapshot.origin = Origin::Service {
+                brand: Brand::new(&id.to_lowercase()),
+                id: id.into(),
+                name: name.into(),
+                cast: true,
+            };
+            content.track.title = "Phone Song".into();
+            content.quality = None;
+            content.queue = QueueView::NotApplicable;
+        }
+        ("radio", Some(content)) => {
+            snapshot.origin = Origin::Service {
+                brand: None,
+                id: "TuneIn".into(),
+                name: "Example FM".into(),
+                cast: false,
+            };
+            content.track.title = "Radio Show".into();
+            content.quality = Some(AudioQuality::bitrate(128_000));
+            content.queue = QueueView::NotApplicable;
         }
         ("unknown-quality", Some(content)) => {
             content.quality = None;
@@ -343,9 +387,69 @@ pub fn music_assistant(
             changes,
         });
         content.service = Some(service);
+        content.speakers = group_speakers(scenario);
         content
     });
     Some(std::sync::Arc::new(FakeMusicAssistant { content }))
+}
+
+/// The other speakers of a group scenario; example names only.
+fn group_speakers(scenario: &str) -> Vec<Speaker> {
+    let speaker = |name: &str, kind, playing, quality| Speaker {
+        name: name.into(),
+        kind,
+        playing,
+        quality,
+    };
+    let pcm = || {
+        Some(AudioQuality::format(AudioFormat {
+            codec: "s16le".into(),
+            bit_depth: 16,
+            sample_rate_hz: 44_100,
+        }))
+    };
+    match scenario {
+        "group" => vec![
+            speaker("Kitchen", SpeakerKind::Speaker, true, pcm()),
+            speaker(
+                "Office",
+                SpeakerKind::Computer,
+                true,
+                Some(flac(24, 44_100)),
+            ),
+        ],
+        "group-dropped" => vec![
+            speaker("Kitchen", SpeakerKind::Speaker, true, pcm()),
+            speaker("Office", SpeakerKind::Computer, false, None),
+        ],
+        "group-many" => vec![
+            speaker("Kitchen", SpeakerKind::Speaker, true, pcm()),
+            speaker(
+                "Garden",
+                SpeakerKind::Speaker,
+                true,
+                Some(AudioQuality::bitrate(256_000)),
+            ),
+            speaker(
+                "Office",
+                SpeakerKind::Computer,
+                true,
+                Some(flac(24, 44_100)),
+            ),
+            speaker("Bedroom", SpeakerKind::Speaker, true, pcm()),
+            speaker("Hall", SpeakerKind::Speaker, true, pcm()),
+        ],
+        "group-long-names" => vec![
+            speaker(
+                "Upstairs Bathroom Speaker",
+                SpeakerKind::Speaker,
+                true,
+                Some(flac(24, 96_000)),
+            ),
+            speaker("Guest Room Bookshelf", SpeakerKind::Speaker, true, pcm()),
+        ],
+        _ => Vec::new(),
+    }
 }
 
 fn flac(bit_depth: u32, sample_rate_hz: u32) -> AudioQuality {

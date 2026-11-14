@@ -261,3 +261,58 @@ mod input_display_time {
         }
     }
 }
+
+// Spec: session-arbitration, "Your names for speakers".
+mod speaker_names {
+    use jukelight::config::Config;
+
+    fn config(pairs: &[(&str, &str)]) -> Config {
+        let mut all = vec![("BLUOS_HOST", "192.168.1.40")];
+        all.extend_from_slice(pairs);
+        let env: std::collections::HashMap<String, String> = all
+            .iter()
+            .map(|(k, v)| ((*k).to_owned(), (*v).to_owned()))
+            .collect();
+        Config::from_lookup(|key| env.get(key).cloned()).unwrap()
+    }
+
+    #[test]
+    fn renamed_speakers_and_the_output_speaker() {
+        let config = config(&[
+            (
+                "SPEAKER_NAMES",
+                r#"{"Example Portable Speaker": "Kitchen"}"#,
+            ),
+            ("PLAYER_OUTPUT_NAME", "Example Speaker"),
+        ]);
+        assert_eq!(
+            config
+                .speaker_names
+                .get("Example Portable Speaker")
+                .map(String::as_str),
+            Some("Kitchen")
+        );
+        assert_eq!(
+            config.player_output_name.as_deref(),
+            Some("Example Speaker")
+        );
+    }
+
+    #[test]
+    fn nothing_set() {
+        let config = config(&[]);
+        assert!(config.speaker_names.is_empty());
+        assert_eq!(config.player_output_name, None);
+    }
+
+    #[test]
+    fn invalid_names_are_ignored() {
+        // Start-up logs a warning; the kiosk keeps the reported names.
+        for value in ["[1, 2]", r#"{"a": 3}"#, "not json"] {
+            let config = config(&[("SPEAKER_NAMES", value)]);
+            assert!(config.speaker_names.is_empty(), "{value}");
+            assert_eq!(config.warnings.len(), 1, "{value}");
+            assert!(config.warnings[0].starts_with("SPEAKER_NAMES"));
+        }
+    }
+}

@@ -1,6 +1,8 @@
 //! Configuration from environment variables. Invalid configuration stops
-//! the process at start, with a message naming the variable.
+//! the process at start, with a message naming the variable; only an invalid
+//! `SPEAKER_NAMES` is a warning, so a typo in a name never stops the kiosk.
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -35,6 +37,13 @@ pub struct Config {
     pub music_assistant: Option<MusicAssistantConfig>,
     /// The folder with the user's brand logos; without it, no logos.
     pub brand_assets: PathBuf,
+    /// Your names for speakers, by the name Music Assistant shows
+    /// (`SPEAKER_NAMES`, a JSON object); empty when unset or invalid.
+    pub speaker_names: HashMap<String, String>,
+    /// The speaker plugged into the player's output (`PLAYER_OUTPUT_NAME`).
+    pub player_output_name: Option<String>,
+    /// Problems that don't stop the process, logged once logging is set up.
+    pub warnings: Vec<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -100,6 +109,17 @@ impl Config {
             ));
         }
 
+        let mut warnings = Vec::new();
+        let names = get("SPEAKER_NAMES").and_then(|value| match speaker_names(&value) {
+            Ok(names) => Some(names),
+            Err(error) => {
+                warnings.push(format!(
+                    "SPEAKER_NAMES is not a JSON object of names ({error}); the reported names are shown"
+                ));
+                None
+            }
+        });
+
         Ok(Self {
             device,
             http_port: port("HTTP_PORT", get("HTTP_PORT"), 8080)?,
@@ -118,8 +138,18 @@ impl Config {
             brand_assets: PathBuf::from(
                 get("BRAND_ASSETS_DIR").unwrap_or_else(|| DEFAULT_BRAND_ASSETS.into()),
             ),
+            speaker_names: names.unwrap_or_default(),
+            player_output_name: get("PLAYER_OUTPUT_NAME").map(|name| name.trim().to_owned()),
+            warnings,
         })
     }
+}
+
+/// `SPEAKER_NAMES`: a JSON object of names. An invalid value only warns, so
+/// a typo never stops the kiosk; the error names no value from it.
+fn speaker_names(value: &str) -> Result<HashMap<String, String>, String> {
+    serde_json::from_str::<HashMap<String, String>>(value)
+        .map_err(|error| format!("line {}, column {}", error.line(), error.column()))
 }
 
 /// Whole minutes from 0 to one day; `default` when unset.

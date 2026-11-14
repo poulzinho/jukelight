@@ -23,6 +23,8 @@ struct Recording {
     queue: Value,
     items: Value,
     providers: Value,
+    /// `players/all`; empty when the situation has none recorded.
+    players: Value,
 }
 
 impl Recording {
@@ -39,6 +41,16 @@ impl Recording {
             queue: read("queue.json"),
             items: read("items.json"),
             providers: read("providers.json"),
+            players: if PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures")
+                .join(fixture)
+                .join("players.json")
+                .exists()
+            {
+                read("players.json")
+            } else {
+                json!([])
+            },
         }
     }
 
@@ -48,6 +60,7 @@ impl Recording {
             queue: serde_json::from_value(self.queue.clone()).unwrap(),
             upcoming: serde_json::from_value(self.items.clone()).unwrap(),
             providers: serde_json::from_value(self.providers.clone()).unwrap(),
+            players: serde_json::from_value(self.players.clone()).unwrap(),
         }
     }
 
@@ -548,4 +561,106 @@ fn fixture_json(fixture: &str, file: &str) -> Value {
         .join(fixture)
         .join(file);
     serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
+}
+
+// Spec: session-music-assistant, "The group's speakers".
+mod the_groups_speakers {
+    use super::*;
+    use jukelight_domain::{AudioFormat, AudioQuality, Speaker, SpeakerKind};
+
+    fn quality(codec: &str, bit_depth: u32, sample_rate_hz: u32) -> AudioQuality {
+        AudioQuality::format(AudioFormat {
+            codec: codec.into(),
+            bit_depth,
+            sample_rate_hz,
+        })
+    }
+
+    #[test]
+    fn recorded_group() {
+        let speakers = Recording::load("group-playing").content().speakers;
+        assert_eq!(
+            speakers,
+            vec![
+                Speaker {
+                    name: "Example Web Player".into(),
+                    kind: SpeakerKind::Computer,
+                    playing: true,
+                    quality: Some(quality("flac", 24, 44_100)),
+                },
+                Speaker {
+                    name: "Example Portable Speaker".into(),
+                    kind: SpeakerKind::Speaker,
+                    playing: true,
+                    quality: Some(quality("s16le", 16, 44_100)),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn a_speaker_dropped_out() {
+        let mut recording = Recording::load("group-playing");
+        let players = recording.players.as_array_mut().unwrap();
+        let member = players
+            .iter_mut()
+            .find(|p| p["player_id"] == "up00000002")
+            .unwrap();
+        member["playback_state"] = json!("idle");
+        let speakers = recording.content().speakers;
+        assert!(
+            !speakers
+                .iter()
+                .find(|s| s.name == "Example Portable Speaker")
+                .unwrap()
+                .playing
+        );
+    }
+
+    #[test]
+    fn no_format_for_a_speaker() {
+        let mut recording = Recording::load("group-playing");
+        recording.queue["current_item"]["streamdetails"]["audio_processing"]["outputs"] = json!([]);
+        let speakers = recording.content().speakers;
+        assert_eq!(speakers.len(), 2);
+        assert!(speakers.iter().all(|s| s.quality.is_none()));
+    }
+
+    #[test]
+    fn playing_alone() {
+        assert_eq!(Recording::load("qobuz").content().speakers, vec![]);
+    }
+
+    #[test]
+    fn a_member_sees_the_leader_and_the_others() {
+        // This player is a member: the leader and the third player play along.
+        let mut recording = Recording::load("group-playing");
+        let players = recording.players.as_array_mut().unwrap();
+        for p in players.iter_mut() {
+            if p["player_id"] == "aabbccddeeff" {
+                p["synced_to"] = json!("up00000002");
+                p["group_members"] = json!([]);
+            }
+            if p["player_id"] == "up00000002" {
+                p["synced_to"] = Value::Null;
+                p["group_members"] = json!([
+                    "up00000002",
+                    "aabbccddeeff",
+                    "ma_companion_00000000-0000-0000-0000-000000000006"
+                ]);
+            }
+            if p["player_id"] == "ma_companion_00000000-0000-0000-0000-000000000006" {
+                p["synced_to"] = json!("up00000002");
+            }
+        }
+        recording.player["synced_to"] = json!("up00000002");
+        recording.player["group_members"] = json!([]);
+        let names: Vec<String> = recording
+            .content()
+            .speakers
+            .into_iter()
+            .map(|s| s.name)
+            .collect();
+        assert_eq!(names, ["Example Portable Speaker", "Example Web Player"]);
+    }
 }

@@ -55,6 +55,10 @@ impl TestPlayer {
         (player, port)
     }
 
+    fn set_fixture(&self, fixture: &str) {
+        self.0.lock().unwrap().fixture = fixture.into();
+    }
+
     fn set_reachable(&self, reachable: bool) {
         self.0.lock().unwrap().reachable = reachable;
     }
@@ -261,4 +265,31 @@ async fn stale_playlist_while_an_input_plays() {
     assert_eq!(playlist_requests, 0, "no /Playlist request for an input");
     assert!(matches!(first.origin, jukelight_domain::Origin::Input(_)));
     assert_eq!(first.content, None);
+}
+
+// Spec: device-bluos, "Subwoofer": a changed setting is noticed without
+// reconnecting, because `syncStat` in `/Status` changes with it.
+#[tokio::test]
+async fn subwoofer_switched_off() {
+    let (player, port) = TestPlayer::start("sub-on", Duration::from_millis(100)).await;
+    let monitor = monitor(port, fast_timing());
+    let mut snapshots = monitor.snapshots();
+    let first = tokio::time::timeout(Duration::from_secs(3), snapshots.next())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(first.outputs.len(), 1);
+
+    player.set_fixture("sub-off");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        let next = tokio::time::timeout(Duration::from_secs(3), snapshots.next())
+            .await
+            .unwrap()
+            .unwrap();
+        if next.outputs.is_empty() {
+            break;
+        }
+        assert!(Instant::now() < deadline, "the subwoofer never went away");
+    }
 }

@@ -39,8 +39,10 @@ fn playing(title: &str, elapsed_s: u64, at: Timestamp) -> PlayerSnapshot {
             queue: QueueView::NotApplicable,
             service: None,
             palette: None,
+            speakers: Vec::new(),
         }),
         input: None,
+        outputs: Vec::new(),
     }
 }
 

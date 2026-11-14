@@ -174,6 +174,20 @@ see [Troubleshooting](#troubleshooting).
 If you use a port other than 8080, set `HTTP_PORT` in `.env`; the address in
 `/etc/jukelight/host.env` (next section) must match it.
 
+**Your speakers' names (optional).** The signal diagram shows the speakers
+Music Assistant plays to under the names Music Assistant shows, and nothing
+for the speaker on the player's output, which the player can't know. Name
+them in `.env`, then `docker compose up -d`:
+
+```sh
+SPEAKER_NAMES='{"Example Portable Speaker": "Kitchen", "Example Web Player": "Office"}'
+PLAYER_OUTPUT_NAME=Example Speaker
+```
+
+Use the names exactly as Music Assistant shows them on the left. If the
+value isn't valid JSON, `docker compose logs jukelight` shows a warning and
+the reported names stay. The names are your own: they stay in `.env`.
+
 For a private copy of the repository, give the host a read-only deploy key
 (an SSH key added under the repository's Settings, Deploy keys, without
 write access) instead of your own credentials.
@@ -208,6 +222,7 @@ to show where the music comes from, and follow its owner's guidelines.
 | `library.svg` | Local files in Music Assistant | Any folder icon you like | |
 | `music-assistant.svg` | Music Assistant | Music Assistant / Open Home Foundation brand assets | The route in the middle of the signal path |
 | `bluesound.png` | Bluesound (the player's maker) | Bluesound's press or media kit | In the footer, with the player's name |
+| `bluesound-mark.svg` | Bluesound's "B" mark | Bluesound's press or media kit (the white symbol) | In the corner of the player in the signal diagram |
 | `hi-res.png` | Hi-Res Audio | Japan Audio Society | Licensed for certified products; in the sound box; replaces the "HI-RES" tag |
 
 Keep a note of where each file came from (for example in

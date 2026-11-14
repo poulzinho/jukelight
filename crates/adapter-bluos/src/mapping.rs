@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioInput, AudioQuality, Brand, Content, DeviceSnapshot, InputKind,
-    Origin, PlaybackState, Position, QueueEntry, QueueView, Timestamp, Track,
+    Origin, Output, OutputKind, PlaybackState, Position, QueueEntry, QueueView, Timestamp, Track,
 };
 
 use crate::parse::{Identity, PlaylistEntry, Status};
@@ -24,6 +24,14 @@ pub fn to_device_snapshot(
     let origin = origin(status, now);
     DeviceSnapshot {
         maker: identity.maker.clone(),
+        outputs: if identity.has_subwoofer {
+            vec![Output {
+                name: None,
+                kind: OutputKind::Subwoofer,
+            }]
+        } else {
+            Vec::new()
+        },
         name: identity.name.clone(),
         player_key: identity.player_key.clone(),
         online: true,
@@ -158,6 +166,7 @@ fn content(
         queue: queue(status, origin, playlist, base_url),
         service: None,
         palette: None,
+        speakers: Vec::new(),
     })
 }
 

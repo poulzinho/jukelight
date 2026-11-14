@@ -48,7 +48,9 @@ export function player(overrides: Partial<Player> = {}): Player {
       changes: [],
       hiResLogoUrl: null,
     },
-    device: { brand: 'bluesound', name: 'Example Player', logoUrl: null },
+    device: { brand: 'bluesound', name: 'Example Player', logoUrl: null, markUrl: null },
+    speakers: [],
+    outputs: [],
     ...overrides,
   }
 }

@@ -9,12 +9,13 @@
 
 ## 2. Speakers, outputs and names (stack layer 2, DEV-44: domain, adapters, application, API, configuration)
 
-- [ ] 2.1 Write failing domain tests, then add `Speaker`, `SpeakerKind`, `Output`, `OutputKind`, `Content.speakers` and `DeviceSnapshot.outputs`; verify with `cargo test -p jukelight-domain`
-- [ ] 2.2 Write failing fixture tests "Recorded group", "A speaker dropped out", "No format for a speaker" and "Playing alone", then report the group's speakers with their kinds and formats (`players/all`, `audio_processing.outputs`); verify with the mapping tests
-- [ ] 2.3 Write failing BluOS fixture tests "Subwoofer on" and "Subwoofer off" (scrubbed `/SyncStatus` from the recordings), then report the subwoofer; verify with `cargo test -p jukelight-adapter-bluos`
-- [ ] 2.4 Write failing application tests "Group with an output speaker and a subwoofer", "Nothing configured", "Renamed speaker", "Not renamed" and "Invalid names", then merge outputs and apply names; read `SPEAKER_NAMES` and `PLAYER_OUTPUT_NAME` in `app`; `.env.example`, `README.md`, `docs/reference-setup.md` (with `<maker>-mark` in the logos table); verify with the application and app tests
-- [ ] 2.5 Write failing HTTP tests "Recorded group", "Playing alone", "Mark supplied" and "No mark", then publish `speakers`, `outputs` and `device.markUrl`; kiosk API types; fake scenarios for a group (with a dropped speaker, many speakers, long names), AirPlay, Bluetooth, radio and Music Assistant unavailable; verify with the HTTP tests and by reading `/api/v1/player` for each scenario
+- [x] 2.1 Write failing domain tests, then add `Speaker`, `SpeakerKind`, `Output`, `OutputKind`, `Content.speakers` and `DeviceSnapshot.outputs`; verify with `cargo test -p jukelight-domain`
+- [x] 2.2 Write failing fixture tests "Recorded group", "A speaker dropped out", "No format for a speaker" and "Playing alone", then report the group's speakers with their kinds and formats (`players/all`, `audio_processing.outputs`); verify with the mapping tests
+- [x] 2.3 Write failing BluOS fixture tests "Subwoofer on" and "Subwoofer off" (scrubbed `/SyncStatus` from the recordings), then report the subwoofer, and read `/SyncStatus` again when `/Status`'s `syncStat` changes (found while applying: it was read once per connection, so switching the subwoofer off went unnoticed; test "subwoofer switched off"); verify with `cargo test -p jukelight-adapter-bluos`
+- [x] 2.4 Write failing application tests "Group with an output speaker and a subwoofer", "Nothing configured", "Renamed speaker", "Not renamed" and "Invalid names", then merge outputs and apply names; read `SPEAKER_NAMES` and `PLAYER_OUTPUT_NAME` in `app` (found while applying: the configuration is read before logging starts, so an invalid `SPEAKER_NAMES` becomes a warning that `run` logs); `.env.example`, `README.md`, `docs/reference-setup.md` (with `<maker>-mark` in the logos table); verify with the application and app tests
+- [x] 2.5 Write failing HTTP tests "Recorded group", "Playing alone", "Mark supplied" and "No mark", then publish `speakers`, `outputs` and `device.markUrl`; kiosk API types; fake scenarios for a group (with a dropped speaker, many speakers, long names), AirPlay, Bluetooth, radio and Music Assistant unavailable; verify with the HTTP tests and by reading `/api/v1/player` for each scenario
 - [ ] 2.6 Verify the layer (as 1.6); open the pull request and verify CI is green
+- [x] 2.7 Finding while applying (reading the API per scenario): a speaker fed CD quality padded to 24/44.1 was classed Hi-Res. A speaker's class is now the lower of the source's and what it receives, as for the player ("Padded CD quality is not Hi-Res")
 
 ## 3. The diagram on the kiosk (stack layer 3, DEV-45: kiosk, reference host)
 

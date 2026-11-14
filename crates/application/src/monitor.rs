@@ -4,6 +4,7 @@ use futures::{StreamExt, stream};
 use jukelight_domain::{DeviceSnapshot, PlayerEvent, PlayerSnapshot, detect_changes};
 use tokio::sync::{broadcast, watch};
 
+use crate::names::SpeakerNames;
 use crate::{DeviceMonitor, SessionProvider, arbitrate};
 
 const EVENT_CAPACITY: usize = 64;
@@ -15,6 +16,7 @@ const EVENT_CAPACITY: usize = 64;
 /// normal progress, which is what live clients need.
 pub struct PlayerMonitor {
     providers: Vec<Arc<dyn SessionProvider>>,
+    names: SpeakerNames,
     /// The last device report, to rebuild from when a provider updates.
     last_device: Mutex<Option<DeviceSnapshot>>,
     current: watch::Sender<PlayerSnapshot>,
@@ -32,12 +34,18 @@ pub struct PlayerHandle {
 
 impl PlayerMonitor {
     pub fn new(providers: Vec<Arc<dyn SessionProvider>>) -> Self {
+        Self::with_names(providers, SpeakerNames::default())
+    }
+
+    /// With your names for speakers and the player's output speaker.
+    pub fn with_names(providers: Vec<Arc<dyn SessionProvider>>, names: SpeakerNames) -> Self {
         let initial = PlayerSnapshot::nothing_playing("");
         let (current, _) = watch::channel(initial.clone());
         let (published, _) = watch::channel(initial);
         let (events, _) = broadcast::channel(EVENT_CAPACITY);
         Self {
             providers,
+            names,
             last_device: Mutex::new(None),
             current,
             published,
@@ -80,7 +88,7 @@ impl PlayerMonitor {
     }
 
     fn rebuild(&self, device: &DeviceSnapshot) {
-        let next = arbitrate(device, &self.providers);
+        let next = self.names.apply(arbitrate(device, &self.providers));
         let changes = detect_changes(&self.current.borrow(), &next);
 
         if changes.material {

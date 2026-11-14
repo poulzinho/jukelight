@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use jukelight_domain::{
     ArtworkRef, AudioFormat, AudioQuality, Brand, Change, Content, Decibels, Delivery, Palette,
-    Position, QueueEntry, QueueView, Rgb, Service, Timestamp, Track,
+    Position, QueueEntry, QueueView, Rgb, Service, Speaker, SpeakerKind, Timestamp, Track,
 };
 
 use crate::api;
@@ -28,6 +28,79 @@ const BUILT_IN: &[&str] = &["builtin", "library"];
 /// Music Assistant's default provider names that are too long to show.
 const SHORT_NAMES: &[(&str, &str)] = &[("OpenSubsonic Media Server Library", "Subsonic")];
 
+/// The other speakers playing the same queue: the leader (when this player
+/// is a member), then the leader's group members, then any other player
+/// synced to the leader; this player left out. Each with the format Music
+/// Assistant sends it, from the queue item's outputs.
+fn speakers(
+    responses: &Responses,
+    item: Option<&api::QueueItem>,
+    player_key: &str,
+) -> Vec<Speaker> {
+    if !in_group(&responses.player) {
+        return Vec::new();
+    }
+    let leader = responses
+        .player
+        .synced_to
+        .clone()
+        .unwrap_or_else(|| player_key.to_owned());
+    let by_id = |id: &str| responses.players.iter().find(|p| p.player_id == id);
+    let mut ids: Vec<String> = Vec::new();
+    let mut add = |id: &str| {
+        if id != player_key && !ids.iter().any(|known| known == id) {
+            ids.push(id.to_owned());
+        }
+    };
+    add(&leader);
+    let members = by_id(&leader).map_or(&responses.player.group_members, |p| &p.group_members);
+    for id in members {
+        add(id);
+    }
+    for player in &responses.players {
+        if player.synced_to.as_deref() == Some(leader.as_str()) {
+            add(&player.player_id);
+        }
+    }
+    let outputs = item
+        .and_then(|item| item.streamdetails.as_ref())
+        .and_then(|details| details.audio_processing.as_ref())
+        .map(|processing| processing.outputs.as_slice())
+        .unwrap_or_default();
+    ids.iter()
+        .filter_map(|id| by_id(id))
+        .map(|player| Speaker {
+            name: player
+                .display_name
+                .clone()
+                .filter(|name| !name.is_empty())
+                .unwrap_or_else(|| player.name.clone()),
+            kind: if player.provider == "sendspin"
+                && player
+                    .device_info
+                    .as_ref()
+                    .and_then(|info| info.manufacturer.as_deref())
+                    == Some("Music Assistant")
+            {
+                SpeakerKind::Computer
+            } else {
+                SpeakerKind::Speaker
+            },
+            playing: player.playback_state.as_deref() == Some("playing"),
+            quality: outputs
+                .iter()
+                .find(|output| output.player_ids.iter().any(|id| id == &player.player_id))
+                .and_then(|output| output.output_format.as_ref())
+                .map(measured),
+        })
+        .collect()
+}
+
+/// Whether the player plays in a group: it follows a leader, or leads others.
+pub fn in_group(player: &api::Player) -> bool {
+    player.synced_to.is_some() || player.group_members.len() > 1
+}
+
 /// The Music Assistant queue the player plays from, when Music Assistant
 /// drives it: its own queue (its player key), or its group leader's. `None`
 /// for anything else, such as a phone's AirPlay (`active_source` `AirPlay`).
@@ -44,6 +117,8 @@ pub struct Responses {
     /// The queue entries after the current one.
     pub upcoming: Vec<api::QueueItem>,
     pub providers: Vec<api::ProviderInfo>,
+    /// `players/all`, while the player is in a group; else empty.
+    pub players: Vec<api::PlayerInfo>,
 }
 
 /// The content Music Assistant reports for `player_key`, or `None` when it
@@ -79,6 +154,7 @@ pub fn to_content(
         palette: media
             .and_then(|media| media.palette.as_ref())
             .and_then(palette),
+        speakers: speakers(responses, item, player_key),
     })
 }
 

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{AudioQuality, Delivery, Timestamp};
+use crate::{AudioQuality, Delivery, QualityClass, Timestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlaybackState {
@@ -177,6 +177,68 @@ pub struct Palette {
     pub accent: Rgb,
 }
 
+/// Another speaker playing the same session, such as a member of Music
+/// Assistant's group.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Speaker {
+    pub name: String,
+    pub kind: SpeakerKind,
+    /// Whether it plays right now; a group member can drop out.
+    pub playing: bool,
+    /// What it receives, when its source says.
+    pub quality: Option<AudioQuality>,
+}
+
+impl Speaker {
+    /// The quality class of what it receives; unknown without a quality.
+    pub fn class(&self) -> QualityClass {
+        self.quality
+            .as_ref()
+            .map_or(QualityClass::Unknown, AudioQuality::class)
+    }
+
+    /// Its class on a path from `source`: the lower of the source's and what
+    /// it receives, so upsampling never makes Hi-Res.
+    pub fn class_from(&self, source: Option<&AudioQuality>) -> QualityClass {
+        match source {
+            Some(source) => self.class().min(source.class()),
+            None => self.class(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum SpeakerKind {
+    Speaker,
+    /// A computer or phone playing in a browser, such as Music Assistant's
+    /// web player.
+    Computer,
+}
+
+/// Something the player itself drives: the speaker on its output (which
+/// only configuration knows) or its subwoofer.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Output {
+    pub name: Option<String>,
+    pub kind: OutputKind,
+}
+
+impl Output {
+    /// Its name, or one for its kind.
+    pub fn display_name(&self) -> &str {
+        self.name.as_deref().unwrap_or(match self.kind {
+            OutputKind::Speaker => "Speaker",
+            OutputKind::Subwoofer => "Subwoofer",
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum OutputKind {
+    Speaker,
+    Subwoofer,
+}
+
 /// What is playing, from whichever source knows it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Content {
@@ -192,6 +254,9 @@ pub struct Content {
     /// knows it.
     pub service: Option<Service>,
     pub palette: Option<Palette>,
+    /// The other speakers playing the same session; empty when the player
+    /// plays alone.
+    pub speakers: Vec<Speaker>,
 }
 
 /// What the device reports about itself.
@@ -207,6 +272,9 @@ pub struct DeviceSnapshot {
     pub content: Option<Content>,
     /// The player's maker, when it is a known brand.
     pub maker: Option<Brand>,
+    /// What the player itself drives that it reports, such as its
+    /// subwoofer.
+    pub outputs: Vec<Output>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
@@ -229,6 +297,9 @@ pub struct PlayerSnapshot {
     pub source: Option<Source>,
     /// The player's maker, when it is a known brand.
     pub maker: Option<Brand>,
+    /// What the player itself drives: the configured output speaker, then
+    /// its subwoofer.
+    pub outputs: Vec<Output>,
 }
 
 impl PlayerSnapshot {
@@ -243,6 +314,7 @@ impl PlayerSnapshot {
             input: None,
             source: None,
             maker: None,
+            outputs: Vec::new(),
         }
     }
 }

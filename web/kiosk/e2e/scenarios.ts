@@ -16,6 +16,13 @@ export const SCENARIOS = [
   'long-signal',
   'upsampled',
   'unknown-quality',
+  'group',
+  'group-dropped',
+  'group-many',
+  'group-long-names',
+  'airplay',
+  'bluetooth',
+  'radio',
 ] as const
 
 /**

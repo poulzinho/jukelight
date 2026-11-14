@@ -3,9 +3,9 @@
 
 use jukelight_application::{ArtworkSource, BrandLogos};
 use jukelight_domain::{
-    ArtworkRef, AudioInput, AudioQuality, Brand, Change, Content, Decibels, InputKind,
-    PlaybackState, PlayerSnapshot, QualityClass, QualityMeasure, QueueView, Rgb, Source, Timestamp,
-    signal_class,
+    ArtworkRef, AudioInput, AudioQuality, Brand, Change, Content, Decibels, InputKind, OutputKind,
+    PlaybackState, PlayerSnapshot, QualityClass, QualityMeasure, QueueView, Rgb, Source, Speaker,
+    SpeakerKind, Timestamp, is_pcm, signal_class,
 };
 use serde::Serialize;
 
@@ -34,6 +34,40 @@ pub struct PlayerDto {
     /// (idle, or an input).
     pub signal: Option<SignalDto>,
     pub device: DeviceDto,
+    /// The other speakers playing the same session; empty when the player
+    /// plays alone.
+    pub speakers: Vec<SpeakerDto>,
+    /// What the player itself drives: its output speaker, its subwoofer.
+    pub outputs: Vec<OutputDto>,
+}
+
+/// Another speaker of the session.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeakerDto {
+    pub name: String,
+    /// `speaker` or `computer`.
+    pub kind: &'static str,
+    pub playing: bool,
+    /// The format it receives, with its class; `None` (`null`) when unknown.
+    pub quality: Option<SpeakerQualityDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeakerQualityDto {
+    #[serde(flatten)]
+    pub quality: QualityDto,
+    /// `hi-res`, `lossless` or `lossy`.
+    pub class: &'static str,
+}
+
+/// Something the player drives.
+#[derive(Debug, Serialize)]
+pub struct OutputDto {
+    pub name: String,
+    /// `speaker` or `subwoofer`.
+    pub kind: &'static str,
 }
 
 /// The path from the source, through the route, to the player.
@@ -94,6 +128,8 @@ pub struct DeviceDto {
     pub brand: Option<String>,
     pub name: String,
     pub logo_url: Option<String>,
+    /// The maker's mark (`<maker>-mark`), when supplied.
+    pub mark_url: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -224,7 +260,31 @@ pub fn player_dto(
             brand: brand(snapshot.maker.as_ref()),
             name: snapshot.player_name.clone(),
             logo_url: logo_url(snapshot.maker.as_ref(), logos),
+            mark_url: snapshot
+                .maker
+                .as_ref()
+                .and_then(|maker| Brand::new(&format!("{}-mark", maker.as_str())))
+                .and_then(|mark| logo_url(Some(&mark), logos)),
         },
+        speakers: content
+            .map(|c| {
+                c.speakers
+                    .iter()
+                    .map(|speaker| speaker_dto(speaker, c.quality.as_ref(), logos))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        outputs: snapshot
+            .outputs
+            .iter()
+            .map(|output| OutputDto {
+                name: output.display_name().to_owned(),
+                kind: match output.kind {
+                    OutputKind::Speaker => "speaker",
+                    OutputKind::Subwoofer => "subwoofer",
+                },
+            })
+            .collect(),
     }
 }
 
@@ -250,6 +310,34 @@ fn source_dto(source: &Source, logos: &dyn BrandLogos) -> SourceDto {
             available: route.available,
             logo_url: logo_url(route.service.brand.as_ref(), logos),
         }),
+    }
+}
+
+fn speaker_dto(
+    speaker: &Speaker,
+    source: Option<&AudioQuality>,
+    logos: &dyn BrandLogos,
+) -> SpeakerDto {
+    SpeakerDto {
+        name: speaker.name.clone(),
+        kind: match speaker.kind {
+            SpeakerKind::Speaker => "speaker",
+            SpeakerKind::Computer => "computer",
+        },
+        playing: speaker.playing,
+        quality: speaker.quality.as_ref().map(|quality| SpeakerQualityDto {
+            quality: quality_dto(quality, logos),
+            class: class_name(speaker.class_from(source)),
+        }),
+    }
+}
+
+fn class_name(class: QualityClass) -> &'static str {
+    match class {
+        QualityClass::HiRes => "hi-res",
+        QualityClass::Lossless => "lossless",
+        QualityClass::Lossy => "lossy",
+        QualityClass::Unknown => "unknown",
     }
 }
 
@@ -307,8 +395,15 @@ fn quality_dto(quality: &AudioQuality, logos: &dyn BrandLogos) -> QualityDto {
         } else {
             None
         },
-        // As the label writes it: sources report `flac` or `FLAC`.
-        codec: format.map(|f| f.codec.to_uppercase()),
+        // As the label writes it: sources report `flac` or `FLAC`; raw
+        // samples (`s16le`, `f32le`, …) are PCM.
+        codec: format.map(|f| {
+            if is_pcm(&f.codec) {
+                "PCM".to_owned()
+            } else {
+                f.codec.to_uppercase()
+            }
+        }),
         bit_depth: format.map(|f| f.bit_depth),
         sample_rate_hz: format.map(|f| f.sample_rate_hz),
         bitrate,

@@ -78,6 +78,8 @@ impl From<reqwest::Error> for PollError {
 #[derive(Default)]
 struct Session {
     identity: Option<Identity>,
+    /// The `syncStat` the last `/Status` reported.
+    sync_stat: Option<String>,
     etag: Option<String>,
     playlist_id: Option<String>,
     playlist: Vec<PlaylistEntry>,
@@ -159,7 +161,12 @@ impl Inner {
     }
 
     async fn poll(&self, session: &mut Session) -> Result<DeviceSnapshot, PollError> {
-        if session.identity.is_none() {
+        // Read again when the player's settings changed (`syncStat` in the
+        // last `/Status`), so a subwoofer switched off is noticed at once.
+        let stale = session.identity.as_ref().is_some_and(|identity| {
+            session.sync_stat.is_some() && session.sync_stat != identity.sync_stat
+        });
+        if session.identity.is_none() || stale {
             let body = self.get("/SyncStatus", self.timing.request_timeout).await?;
             session.identity = Some(parse::parse_sync_status(&body)?);
         }
@@ -179,6 +186,13 @@ impl Inner {
         };
         let status = parse::parse_status(&self.get(&path, timeout).await?)?;
         let now = self.clock.now();
+        let sync_stat = status.get("syncStat").map(str::to_owned);
+        if sync_stat.is_some() && sync_stat != identity.sync_stat {
+            // Settings changed: answer with the new identity on the next poll,
+            // which follows at once.
+            session.sync_stat = sync_stat;
+            session.etag = None;
+        }
 
         // The playlist only matters for native sessions, and only changes
         // with the playlist id.
@@ -229,6 +243,7 @@ fn offline(last: Option<&DeviceSnapshot>) -> DeviceSnapshot {
             state: PlaybackState::Stopped,
             origin: Origin::None,
             content: None,
+            outputs: Vec::new(),
         },
     }
 }

@@ -42,6 +42,8 @@ Set these in `.env` (see `.env.example`):
 | `MA_URL` | no | | Music Assistant's address, e.g. `http://192.168.1.50:8095` |
 | `MA_TOKEN` | with `MA_URL` | | A long-lived Music Assistant token |
 | `BRAND_ASSETS_DIR` | no | `/brand-assets` | The folder with your brand logos; `docker-compose.yml` mounts `./brand-assets` there (see below) |
+| `SPEAKER_NAMES` | no | | Your names for speakers, by the name Music Assistant shows: a JSON object such as `{"Example Portable Speaker": "Kitchen"}`. An invalid value only logs a warning |
+| `PLAYER_OUTPUT_NAME` | no | | The speaker plugged into the player's own output, shown under the player |
 
 `.env` is git-ignored. Never commit it.
 
@@ -57,9 +59,11 @@ Create the token in Music Assistant under your user's profile, as a
 long-lived token. Use a dedicated Music Assistant user without admin
 rights: Jukelight only reads.
 
-Playback to a group of speakers is not recognised yet: Music Assistant then
-sends to the player over AirPlay, and Jukelight shows "AirPlay" without
-the track details.
+When Music Assistant plays to a group of speakers, it sends to the player
+over AirPlay or Sendspin. Jukelight then asks Music Assistant whether the
+AirPlay session is its own, shows the group's track and queue, and draws
+every speaker of the group with the format it receives. A phone's AirPlay
+stays "AirPlay". Name the speakers with `SPEAKER_NAMES`.
 
 ### Try it without a player
 

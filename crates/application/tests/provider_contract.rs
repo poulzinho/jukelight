@@ -23,6 +23,7 @@ fn content(title: String) -> Content {
         queue: QueueView::NotApplicable,
         service: None,
         palette: None,
+        speakers: Vec::new(),
     }
 }
 
@@ -35,6 +36,7 @@ fn device(origin: Origin) -> DeviceSnapshot {
         state: PlaybackState::Playing,
         origin,
         content: None,
+        outputs: Vec::new(),
     }
 }
 
