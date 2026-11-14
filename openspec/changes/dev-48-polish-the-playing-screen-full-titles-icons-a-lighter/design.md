@@ -77,6 +77,15 @@ portrait (checked in the rendered proposal; an e2e scenario guards it).
 - *Alternative:* a smaller cover. Rejected: the cover is the screen's
   main element; the top margin had room to spare.
 
+In portrait the column below the cover (title, progress, diagram, "Up
+next") widens from 42vh to 47vh (at most 92vw), so the side margins shrink
+from about 13% to 8% of the width and the page breathes; the cover keeps
+its 42vh, so the vertical budget is unchanged. A long title fits on two
+lines at a larger size, and "Up next" gains most of the width.
+
+- *Alternative:* widen the cover with the column. Rejected: a taller cover
+  takes back the room the diagram needs (two speakers would fold).
+
 ### 4. Figtree, bundled like Inter
 
 `@fontsource-variable/figtree` replaces `@fontsource-variable/inter`: one
