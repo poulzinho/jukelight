@@ -405,7 +405,6 @@ function useMeasure(unit: number): Measure {
   }, [unit, fontsLoaded])
 }
 
-/** A logo's width over its height, once it has loaded. */
 /** Logos' proportions, kept across screens: a logo that comes back keeps its size. */
 const aspects = new Map<string, number>()
 

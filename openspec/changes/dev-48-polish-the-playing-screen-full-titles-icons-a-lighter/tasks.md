@@ -36,6 +36,7 @@
 - [x] 5.5 Found in the acceptance (7.4): the wave's flash smeared the format ("16/44.1"): its bright copy lacked tabular numbers, so the digits didn't lie over the format's. Test "the flash text lies exactly over the format"; fixed in layer 4
 - [x] 5.6 Found in the acceptance (7.4): back from the idle screen, the diagram showed for two frames at a guessed size (236 by 227 pixels) before its measured one, so the diagram jumped. Write the failing e2e check "Back from the idle screen" (the diagram's and "Up next"'s boxes in the first frame equal the settled ones), then measure the box before the first paint and remember logo proportions across screens
 - [x] 5.7 Found in the acceptance (7.4), with the title's taller lines (3.6): in landscape "Up next" always showed four entries, so a two-line title pushed the classical queue past the bottom margin. Keep the e2e check "up next groups a classical queue by work" failing in landscape; then bound the information column to the page in landscape as in portrait, so entries that don't fit leave whole; verify with the kiosk tests and the e2e checks
+- [x] 5.8 Found in the review: a stale doc comment above the logos' proportions; remove it
 
 ## 6. A new session settles before it shows (stack layer 6, DEV-54: application, Music Assistant adapter)
 
