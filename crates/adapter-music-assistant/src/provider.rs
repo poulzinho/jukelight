@@ -1,6 +1,7 @@
 use std::fmt;
 use std::future::Future;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use futures::StreamExt;
@@ -110,6 +111,9 @@ struct Inner {
     /// Music Assistant's latest answer during an AirPlay session; it ticks
     /// `updates` when the queue changes, so the claim is decided again.
     answer: watch::Sender<Option<Answer>>,
+    /// Whether the last request to Music Assistant was answered: a provider
+    /// that can't reach it isn't settling anything.
+    reachable: AtomicBool,
     /// The last group session claimed, kept while the player stays stopped
     /// after it, so a paused group can be held.
     group: std::sync::Mutex<Option<Group>>,
@@ -158,6 +162,7 @@ impl MusicAssistantProvider {
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
                 answer: watch::Sender::new(None),
+                reachable: AtomicBool::new(true),
                 group: std::sync::Mutex::new(None),
             }),
         })
@@ -202,6 +207,7 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
                     tracing::info!("Music Assistant reachable again");
                 }
                 reachable = true;
+                provider.reachable.store(true, Ordering::Relaxed);
                 if held && content.is_none() {
                     // Music Assistant let go of the group's item: stop following.
                     provider.release();
@@ -215,6 +221,7 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
                     tracing::debug!(%error, "Music Assistant still unreachable");
                 }
                 reachable = false;
+                provider.reachable.store(false, Ordering::Relaxed);
                 cache = Cache::default();
                 provider.publish(None);
                 provider.forget_answer();
@@ -423,6 +430,20 @@ impl SessionProvider for MusicAssistantProvider {
 
     fn content(&self) -> Option<Content> {
         self.inner.content.borrow().clone()
+    }
+
+    /// Settling while Music Assistant hasn't answered for an AirPlay origin
+    /// yet, or while the provider claims the origin without content for it;
+    /// never while Music Assistant is unreachable.
+    fn settling(&self, device: &DeviceSnapshot) -> bool {
+        if !self.inner.reachable.load(Ordering::Relaxed) {
+            return false;
+        }
+        let claimed = self.claims(device);
+        if claimed {
+            return self.inner.content.borrow().is_none();
+        }
+        is_airplay(device) && self.inner.answer.borrow().is_none()
     }
 
     fn follow(&self, device: &DeviceSnapshot) {
