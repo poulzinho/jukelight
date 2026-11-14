@@ -1,6 +1,6 @@
 // Spec: kiosk-display, "Playing screen": the stepped title, the artists on
 // up to two lines, and the icons by the artists and the album.
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test } from 'vitest'
 import type { Player } from '../api'
 import { TrackInfo } from './TrackInfo'
@@ -8,13 +8,14 @@ import { TrackInfo } from './TrackInfo'
 /**
  * A stand-in for the browser's layout: text runs at half its font size per
  * character across a column 74 units wide (the portrait column, in vmin),
- * so the title overflows when it needs more lines than it may show.
+ * so the title overflows when it needs more lines than it may show. A test
+ * may widen the column, as a new viewport would.
  */
-const COLUMN = 74
+let column = 74
 function lines(element: HTMLElement): { needed: number; shown: number; height: number } {
   const size = Number.parseFloat(element.style.fontSize) || 7.2
   const clamp = Number(element.style.webkitLineClamp || element.style.getPropertyValue('-webkit-line-clamp')) || 1
-  const needed = Math.max(1, Math.ceil(((element.textContent ?? '').length * size * 0.5) / COLUMN))
+  const needed = Math.max(1, Math.ceil(((element.textContent ?? '').length * size * 0.5) / column))
   return { needed, shown: Math.min(needed, clamp), height: size * 1.15 }
 }
 const descriptors: [string, PropertyDescriptor | undefined][] = []
@@ -40,8 +41,11 @@ beforeEach(() => {
   })
 })
 afterEach(() => {
+  column = 74
   for (const [name, descriptor] of descriptors.splice(0)) {
+    // The getters are usually inherited: removing the stand-in restores them.
     if (descriptor) Object.defineProperty(HTMLElement.prototype, name, descriptor)
+    else Reflect.deleteProperty(HTMLElement.prototype, name)
   }
 })
 
@@ -59,6 +63,16 @@ function title() {
 
 test('short title: the largest size, one line', () => {
   render(<TrackInfo track={track()} />)
+  expect(title()).toEqual({ size: 7.2, lines: 1 })
+})
+
+test('a new viewport: the title fits again from the largest size', () => {
+  render(<TrackInfo track={track({ title: 'Example Song Title (Remastered 2024)' })} />)
+  expect(title().lines).toBe(2)
+  column = 200
+  act(() => {
+    window.dispatchEvent(new Event('resize'))
+  })
   expect(title()).toEqual({ size: 7.2, lines: 1 })
 })
 

@@ -17,6 +17,7 @@
 - [x] 3.4 Write failing e2e checks: a long classical title in full, "Aligned with the cover in portrait" (the edges of the title, progress, diagram and "Up next" against the cover), no footer on the playing screen, overflow checks against the bottom margin for every fake scenario in both orientations; review the screenshots
 - [ ] 3.5 Verify the layer (as 1.2); open the pull request and verify CI is green
 - [x] 3.6 Found in the acceptance (7.4): the title clipped the tails of its letters ("g"). Write a failing e2e check "Letters with tails and accents" (each line holds the letters' ink, from the font's own metrics, for a short and a long title in both orientations); then lines 1.15 times the size and the steps 7.2 and 6.2 on one line, 4.8 and 4.2 on two, 3.2 on three, still in the 11.2 vmin box; verify with the kiosk tests and the e2e checks
+- [x] 3.7 Found in the review: the title didn't fit itself again when the viewport changed (design decision 1), and the component tests left their stand-in heights in place. Write the failing component test "a new viewport: the title fits again from the largest size"; then refit on a resize and remove the stand-ins after each test; verify with the kiosk tests
 
 ## 4. The diagram (stack layer 4, DEV-52: kiosk)
 

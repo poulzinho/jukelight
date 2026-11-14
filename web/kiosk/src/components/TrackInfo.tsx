@@ -1,5 +1,5 @@
 import { Disc3, UserRound, Users } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Player } from '../api'
 import { useFontsLoaded } from '../useFontsLoaded'
 
@@ -27,21 +27,34 @@ const GROUP_WORDS =
 /** Several artists, or one whose name says it is a group. */
 const isGroup = (artists: string[]) => artists.length > 1 || GROUP_WORDS.test(artists[0] ?? '')
 
+/** Counts the viewport's changes of size, so the title can fit itself again. */
+function useViewportChanges(): number {
+  const [changes, setChanges] = useState(0)
+  useEffect(() => {
+    const changed = () => setChanges((count) => count + 1)
+    window.addEventListener('resize', changed)
+    return () => window.removeEventListener('resize', changed)
+  }, [])
+  return changes
+}
+
 function Title({ title }: { title: string }) {
   const ref = useRef<HTMLHeadingElement>(null)
   const fontsLoaded = useFontsLoaded()
-  const [fitted, setFitted] = useState({ title, fontsLoaded, step: 0 })
-  // A new title, or newly loaded fonts, start again from the largest size.
-  const step = fitted.title === title && fitted.fontsLoaded === fontsLoaded ? fitted.step : 0
+  const viewport = useViewportChanges()
+  const [fitted, setFitted] = useState({ title, fontsLoaded, viewport, step: 0 })
+  // A new title, newly loaded fonts or a new viewport start again from the largest size.
+  const step =
+    fitted.title === title && fitted.fontsLoaded === fontsLoaded && fitted.viewport === viewport ? fitted.step : 0
   useLayoutEffect(() => {
     const element = ref.current
     if (!element || step >= STEPS.length - 1) return
     // Letters may overhang their line a little: a fifth of a line is still a fit.
     const overhang = (Number.parseFloat(getComputedStyle(element).fontSize) || 0) * 0.2
     if (element.scrollHeight > element.clientHeight + overhang) {
-      setFitted({ title, fontsLoaded, step: step + 1 })
+      setFitted({ title, fontsLoaded, viewport, step: step + 1 })
     }
-  }, [title, fontsLoaded, step])
+  }, [title, fontsLoaded, viewport, step])
   const { size, lines } = STEPS[step] ?? STEPS[0]
   return (
     <div className="portrait:h-[11.2vmin]">
