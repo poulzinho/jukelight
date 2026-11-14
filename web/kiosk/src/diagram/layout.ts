@@ -213,6 +213,8 @@ function routeNode(model: DiagramModel, x: number, y: number, out: Layout) {
 
 /** The shortest wave between the source's logo and its format. */
 const WAVE_MIN = 40
+/** The narrowest a source's logo is drawn. */
+const LOGO_MIN = 24
 
 /** Where the format of what the source streams starts, right-aligned at `right`. */
 function formatLeft(model: DiagramModel, right: number, measure: Measure): number {
@@ -301,7 +303,11 @@ function layoutDown(model: DiagramModel, w: number, option: Options, measure: Me
   const seg = option.compact ? SEG_COMPACT : SEG
 
   // A logo leaves room for at least a short wave to what it streams.
-  const logoRoom = model.streams ? formatLeft(model, w - 2, measure) - 8 - (WAVE_MIN + 9) - 8 - (tx - 12) : w - 2
+  // At least a small logo, however narrow the diagram.
+  const logoRoom = Math.max(
+    LOGO_MIN,
+    model.streams ? formatLeft(model, w - 2, measure) - 8 - (WAVE_MIN + 9) - 8 - (tx - 12) : w - 2,
+  )
   const sourceW = source(model, tx - 12, 9, logoRoom, measure, out)
   const sourceInk: Ink = model.streams ? model.sourceClass : 'faint'
   out.lines.push({ d: `M${tx},22 V${seg}`, ink: sourceInk, soft: false, segments: [{ x1: tx, y1: 22, x2: tx, y2: seg, from: 0 }] })

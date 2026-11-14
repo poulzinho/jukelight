@@ -200,3 +200,12 @@ test('a long room name is shortened in the lid; the mark always stays', () => {
   expect(out.card.room).toMatch(/…$/)
   expect(out.card.markUrl).toBe('/api/v1/logos/bluesound-mark?v=1')
 })
+
+test('a diagram too narrow for logo and format still draws the logo at a positive size', () => {
+  const model = diagramModel(group(1, { source: { ...qobuzViaMusicAssistant, logoUrl: '/api/v1/logos/qobuz?v=1' } }))
+  if (!model) throw new Error('no model')
+  const out = layout(model, 90, 262, true, measure)
+  const logo = out.pictures.find((p) => p.part === 'source')
+  expect(logo?.width).toBeGreaterThan(0)
+  expect(logo?.height).toBeGreaterThan(0)
+})

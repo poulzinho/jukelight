@@ -268,6 +268,11 @@ test('a pulse lights up the wave and its format at once', () => {
 test('the flash text lies exactly over the format: set the same way', () => {
   show({ source: { ...qobuzViaMusicAssistant(), logoUrl: '/api/v1/logos/qobuz?v=1' }, signal: signal(), speakers: [speaker('Kitchen')], queue })
   const flash = parts('wave-flash')[0] as Element
+  // The bright wave lies exactly over the wave: the same path and width.
+  const wave = [...(diagram().querySelector('svg') as SVGSVGElement).querySelectorAll(':scope > path')].find((p) => p.getAttribute('d')?.includes(' q'))
+  const brightWave = flash.querySelector('path')
+  expect(brightWave?.getAttribute('d')).toBe(wave?.getAttribute('d'))
+  expect(brightWave?.getAttribute('stroke-width')).toBe(wave?.getAttribute('stroke-width'))
   const copies = [...flash.querySelectorAll('text')]
   const originals = [...parts('streams'), ...parts('streams-codec')]
   expect(copies).toHaveLength(originals.length)
