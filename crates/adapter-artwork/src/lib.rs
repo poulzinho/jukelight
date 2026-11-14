@@ -21,9 +21,16 @@ use sha2::{Digest, Sha256};
 
 /// Images kept in memory by default.
 const DEFAULT_CAPACITY: usize = 64;
-/// The longer side of a backdrop image, in pixels: stretched over the
-/// screen, it blurs by itself, with no work for the GPU.
-const BACKDROP_PIXELS: u32 = 32;
+/// The longer side of a backdrop image, in pixels. It is blurred here, once
+/// per cover, so the kiosk can stretch it over the screen without a CSS
+/// filter (costly at 4K on an integrated GPU).
+const BACKDROP_PIXELS: u32 = 128;
+/// The blur's standard deviation at that size, in pixels: soft enough to
+/// show no blocks when stretched about thirty times.
+const BACKDROP_BLUR: f32 = 6.0;
+/// The grain's greatest change per channel, in levels, against banding in
+/// dark gradients.
+const BACKDROP_GRAIN: i16 = 2;
 /// Issued ids remembered; the oldest are forgotten first.
 const MAX_ISSUED: usize = 4096;
 const FETCH_TIMEOUT: Duration = Duration::from_secs(10);
@@ -228,14 +235,30 @@ impl Inner {
 }
 
 /// The image scaled down to at most `BACKDROP_PIXELS` on its longer side,
-/// as PNG. Fails like an unreachable source when it isn't a raster image.
+/// blurred and with a faint grain, as PNG. The grain comes from a fixed
+/// seed, so the same cover always gives the same bytes. Fails like an
+/// unreachable source when it isn't a raster image.
 fn backdrop(image: &Image) -> Result<Image, ArtworkError> {
     let small = image::load_from_memory(&image.bytes)
         .map_err(source_error)?
-        .thumbnail(BACKDROP_PIXELS, BACKDROP_PIXELS);
+        .thumbnail(BACKDROP_PIXELS, BACKDROP_PIXELS)
+        .to_rgb8();
+    let mut soft = image::imageops::blur(&small, BACKDROP_BLUR);
+    let mut seed: u32 = 0x9E37_79B9;
+    for pixel in soft.pixels_mut() {
+        // xorshift32: cheap, and the same sequence every time.
+        seed ^= seed << 13;
+        seed ^= seed >> 17;
+        seed ^= seed << 5;
+        let span = u32::try_from(2 * BACKDROP_GRAIN + 1).unwrap_or(1);
+        let offset = i16::try_from(seed % span).unwrap_or(0) - BACKDROP_GRAIN;
+        for channel in &mut pixel.0 {
+            *channel =
+                u8::try_from((i16::from(*channel) + offset).clamp(0, 255)).unwrap_or(*channel);
+        }
+    }
     let mut png = Vec::new();
-    small
-        .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
+    soft.write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
         .map_err(source_error)?;
     Ok(Image {
         content_type: "image/png".into(),

@@ -7,10 +7,10 @@ interface Props {
 }
 
 /**
- * The cover's tiny version stretched over the whole screen: stretching
- * blurs it, so no CSS filter is needed (expensive at 4K on an integrated
- * GPU). A dark veil keeps the text readable. Without an image, or when it
- * fails, the plain background colour shows.
+ * The cover's backdrop version, already blurred by the backend, stretched
+ * over the whole screen, so no CSS filter is needed (expensive at 4K on an
+ * integrated GPU). A dark veil keeps the text readable. Without an image,
+ * or when it fails, the plain background colour shows.
  */
 export function Backdrop({ url, picture }: Props) {
   return (
