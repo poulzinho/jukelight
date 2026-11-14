@@ -139,6 +139,55 @@ test('long artists wrap to a second line, in full', async ({ page }) => {
   await screenshot(page, 'long-artists')
 })
 
+// Spec: kiosk-display, "Steady portrait layout", "Back from the idle screen".
+test('back from the idle screen, the diagram and "Up next" appear in place', async ({ page }) => {
+  // The real snapshot of a group, shown first stopped (the idle screen),
+  // then playing again.
+  const playing = await (await fetch(`http://127.0.0.1:${portFor('group')}/api/v1/player`)).text()
+  const idle = JSON.stringify({ ...JSON.parse(playing), state: 'stopped' })
+  await page.route('**/api/v1/player', (route) => route.fulfill({ contentType: 'application/json', body: idle }))
+  await page.addInitScript(([idle, playing]) => {
+    const w = window as unknown as { EventSource: unknown; play: () => void; idleSent: boolean }
+    w.EventSource = class {
+      onopen?: () => void
+      onmessage?: (event: { data: string }) => void
+      constructor() {
+        setTimeout(() => {
+          this.onopen?.()
+          this.onmessage?.({ data: idle })
+          w.idleSent = true
+        }, 30)
+        w.play = () => this.onmessage?.({ data: playing })
+      }
+      addEventListener() {}
+      close() {}
+    }
+  }, [idle, playing])
+  await page.goto(`http://127.0.0.1:${portFor('group')}/`)
+  // The live feed has sent the stopped snapshot: the idle screen.
+  await page.waitForFunction(() => (window as unknown as { idleSent?: boolean }).idleSent === true)
+  await expect(page.getByText('nothing playing')).toBeVisible()
+  const frames = await page.evaluate(
+    () =>
+      new Promise<string[]>((resolve) => {
+        const boxes: string[] = []
+        ;(window as unknown as { play: () => void }).play()
+        const tick = () => {
+          const diagram = document.querySelector('[data-testid="signal-diagram"] svg')?.getBoundingClientRect()
+          const upNext = document.querySelector('[aria-labelledby="up-next"]')?.getBoundingClientRect()
+          const round = (r?: DOMRect) => (r ? [r.x, r.y, r.width, r.height].map(Math.round).join(',') : 'none')
+          boxes.push(`${round(diagram)} | ${round(upNext)}`)
+          if (boxes.length < 30) requestAnimationFrame(tick)
+          else resolve(boxes)
+        }
+        requestAnimationFrame(tick)
+      }),
+  )
+  // Every frame in which the screen shows matches the settled one.
+  const settled = frames[frames.length - 1]
+  expect(frames.filter((frame) => !frame.startsWith('none'))).toEqual(frames.filter((frame) => !frame.startsWith('none')).map(() => settled))
+})
+
 // Spec: kiosk-display, "Up next": a classical queue grouped by work.
 test('up next groups a classical queue by work', async ({ page }) => {
   await open(page, 'classical')
