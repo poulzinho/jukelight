@@ -172,6 +172,20 @@ test('offline keeps the screen and shows the indicator', async ({ page }) => {
 })
 
 // Spec: kiosk-display, "No translation prompt".
+// Spec: kiosk-display, "Typeface", "Bundled font".
+test('the text is set in Figtree, served by Jukelight', async ({ page }) => {
+  const fonts: string[] = []
+  page.on('request', (request) => {
+    if (request.resourceType() === 'font') fonts.push(request.url())
+  })
+  await open(page, 'playing-with-queue')
+  await expect.poll(() => page.evaluate(() => document.fonts.check('600 20px "Figtree Variable"'))).toBe(true)
+  const family = await page.getByRole('heading', { level: 1 }).evaluate((h) => getComputedStyle(h).fontFamily)
+  expect(family).toContain('Figtree Variable')
+  expect(fonts.length).toBeGreaterThan(0)
+  for (const url of fonts) expect(new URL(url).origin).toBe(new URL(page.url()).origin)
+})
+
 test('the page asks browsers not to translate it', async ({ page }) => {
   await open(page, 'playing-with-queue')
   const marks = await page.evaluate(() => ({

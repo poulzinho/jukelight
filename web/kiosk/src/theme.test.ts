@@ -26,7 +26,9 @@ test('colours come from per-track variables', () => {
   }
 })
 
-test('the font is the bundled Inter', () => {
-  expect(css).toContain("@import '@fontsource-variable/inter'")
-  expect(css).toMatch(/--font-sans:\s*'Inter Variable'/)
+// Spec: kiosk-display, "Typeface", "Bundled font".
+test('the font is the bundled Figtree', () => {
+  expect(css).toContain("@import '@fontsource-variable/figtree'")
+  expect(css).toMatch(/--font-sans:\s*'Figtree Variable'/)
+  expect(css).not.toMatch(/https?:\/\//)
 })
