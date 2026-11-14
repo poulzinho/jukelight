@@ -76,14 +76,14 @@ function Drawing({ laid }: { laid: Layout }) {
   return (
     <>
       {laid.lines.map((line, i) => (
-        <path key={`l${i}`} d={line.d} fill="none" stroke={ink(line.ink, line.soft)} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+        <path key={`l${i}`} d={line.d} fill="none" stroke={ink(line.ink, line.soft)} strokeWidth={1} strokeOpacity={0.6} strokeLinecap="round" strokeLinejoin="round" />
       ))}
       {laid.dots.map((dot, i) => (
-        <circle key={`d${i}`} cx={dot.x} cy={dot.y} r={2.6} fill={ink(dot.ink, dot.soft)} />
+        <circle key={`d${i}`} cx={dot.x} cy={dot.y} r={1.9} fill={ink(dot.ink, dot.soft)} opacity={0.75} />
       ))}
       {laid.ports.map((port, i) => (
         <g key={`p${i}`}>
-          <circle cx={port.x} cy={port.y} r={4.2} fill="#111318" stroke={ink(port.ink, port.soft)} strokeWidth={1.6} />
+          <circle cx={port.x} cy={port.y} r={3.3} fill="#111318" stroke={ink(port.ink, port.soft)} strokeWidth={1.1} strokeOpacity={0.75} />
         </g>
       ))}
       {laid.pictures.map((picture, i) => (
@@ -132,7 +132,7 @@ function Drawing({ laid }: { laid: Layout }) {
   )
 }
 
-const CARD_HEIGHT = 56
+const CARD_HEIGHT = 58
 
 /** The player as a streamer: a low card with a lid, a status light and feet. */
 function Streamer({ card }: { card: Card }) {
@@ -141,42 +141,43 @@ function Streamer({ card }: { card: Card }) {
   const left = card.hiRes ? x + 51 : x + 12
   return (
     <g data-part="streamer">
-      <rect x={x} y={y} width={w} height={CARD_HEIGHT} rx={7} fill="rgba(0,0,0,.5)" stroke={colour} strokeWidth={1.6} />
+      <rect x={x} y={y} width={w} height={CARD_HEIGHT} rx={7} fill="rgba(0,0,0,.5)" stroke={colour} strokeWidth={1.05} />
       <path
-        d={`M${x + 7} ${y + 0.8} H${x + w - 7} Q${x + w - 0.8} ${y + 0.8} ${x + w - 0.8} ${y + 7} V${y + 8} H${x + 0.8} V${y + 7} Q${x + 0.8} ${y + 0.8} ${x + 7} ${y + 0.8} Z`}
+        d={`M${x + 7} ${y + 0.8} H${x + w - 7} Q${x + w - 0.8} ${y + 0.8} ${x + w - 0.8} ${y + 7} V${y + 19} H${x + 0.8} V${y + 7} Q${x + 0.8} ${y + 0.8} ${x + 7} ${y + 0.8} Z`}
         fill={colour}
         opacity={0.16}
       />
-      <line x1={x + 1} y1={y + 8} x2={x + w - 1} y2={y + 8} stroke={colour} strokeWidth={1} opacity={0.45} />
-      <circle cx={x + w - 12} cy={y + 4.4} r={2} fill={colour} />
+      <line x1={x + 1} y1={y + 19} x2={x + w - 1} y2={y + 19} stroke={colour} strokeWidth={1} opacity={0.4} />
+      <circle cx={x + w - 11} cy={y + 9.8} r={2} fill={colour} />
+      {/* The maker's mark, then the room, set like a speaker's name, in the lid. */}
+      {card.markUrl && <image href={card.markUrl} x={x + 8} y={y + 3.6} width={12} height={12} opacity={0.85} />}
+      <text data-part="streamer-room" x={card.markUrl ? x + 25 : x + 9} y={y + 14.2} fontSize={12.5} fontWeight={400} fill={ink('text', false)}>
+        {card.room}
+      </text>
       <rect x={x + 14} y={y + CARD_HEIGHT} width={18} height={3.5} rx={1.5} fill={colour} opacity={0.55} />
       <rect x={x + w - 32} y={y + CARD_HEIGHT} width={18} height={3.5} rx={1.5} fill={colour} opacity={0.55} />
       {card.hiRes &&
         (card.hiResLogoUrl ? (
-          <image href={card.hiResLogoUrl} x={x + 10} y={y + 16} width={32} height={32}>
+          <image href={card.hiResLogoUrl} x={x + 10} y={y + 23} width={32} height={32}>
             <title>Hi-Res</title>
           </image>
         ) : (
           <g>
-            <rect x={x + 8} y={y + 22} width={38} height={15} rx={7.5} fill="rgb(236 196 96)" />
-            <text x={x + 27} y={y + 32.5} fontSize={8} fontWeight={700} fill="rgb(26 20 5)" textAnchor="middle" letterSpacing={0.6}>
+            <rect x={x + 8} y={y + 32} width={38} height={15} rx={7.5} fill="rgb(236 196 96)" />
+            <text x={x + 27} y={y + 42.5} fontSize={8} fontWeight={700} fill="rgb(26 20 5)" textAnchor="middle" letterSpacing={0.6}>
               HI-RES
             </text>
           </g>
         ))}
-      {card.markUrl && <image href={card.markUrl} x={x + w - 23} y={y + 13} width={14} height={15} opacity={0.8} />}
-      <text data-part="streamer-main" x={left} y={y + 25} fontSize={card.mainSize} fontWeight={650} fill="rgba(245,245,247,.92)" className="tabular-nums">
+      <text data-part="streamer-main" x={left} y={y + 36.5} fontSize={card.mainSize} fontWeight={650} fill="rgba(245,245,247,.92)" className="tabular-nums">
         {card.main}
       </text>
-      {card.pcm && <Pcm x={left} y={y + 29.5} colour="rgba(245,245,247,.62)" />}
+      {card.pcm && <Pcm x={left} y={y + 41.5} colour="rgba(245,245,247,.62)" />}
       {card.codec && (
-        <text data-part="streamer-codec" x={card.pcm ? left + 17 : left} y={y + 38} fontSize={10.5} fontWeight={500} fill="rgba(245,245,247,.62)">
+        <text data-part="streamer-codec" x={card.pcm ? left + 17 : left} y={y + 50.5} fontSize={10.5} fontWeight={500} fill="rgba(245,245,247,.62)">
           {card.codec}
         </text>
       )}
-      <text data-part="streamer-room" x={left} y={y + 50} fontSize={9.5} fill="rgba(245,245,247,.5)">
-        {card.room}
-      </text>
     </g>
   )
 }
@@ -199,7 +200,7 @@ function Pcm({ x, y, colour }: { x: number; y: number; colour: string }) {
 
 function IconAt({ icon }: { icon: Icon }) {
   const colour = icon.ink === 'text' ? 'rgba(245,245,247,.85)' : ink(icon.ink, icon.soft)
-  const props = { x: icon.x - 9, y: icon.y - 9, width: 18, height: 18, color: colour, strokeWidth: 1.9, 'aria-hidden': true } as const
+  const props = { x: icon.x - 9, y: icon.y - 9, width: 18, height: 18, color: colour, strokeWidth: 1.4, 'aria-hidden': true } as const
   switch (icon.kind) {
     case 'speaker':
       return <SpeakerIcon data-part="icon-speaker" {...props} />
@@ -207,7 +208,7 @@ function IconAt({ icon }: { icon: Icon }) {
       return <Laptop data-part="icon-computer" {...props} />
     case 'subwoofer':
       return (
-        <g data-part="icon-subwoofer" transform={`translate(${icon.x - 8.5} ${icon.y - 8.5}) scale(0.95)`} fill="none" stroke={colour} strokeWidth={1.6}>
+        <g data-part="icon-subwoofer" transform={`translate(${icon.x - 8.5} ${icon.y - 8.5}) scale(0.95)`} fill="none" stroke={colour} strokeWidth={1.1}>
           <rect x={1} y={1} width={16} height={16} rx={3} />
           <circle cx={9} cy={9} r={4.4} />
           <circle cx={9} cy={9} r={1.4} />
@@ -238,8 +239,21 @@ function IconAt({ icon }: { icon: Icon }) {
  * reduced motion nothing runs (see `index.css`).
  */
 function Pulse({ laid }: { laid: Layout }) {
+  // The source's wave and its format light up at once as the pulse starts.
+  const wave = laid.lines.find((line) => line.part === 'wave')
+  const formats = laid.texts.filter((text) => text.part === 'streams' || text.part === 'streams-codec')
   return (
     <g data-testid="pulse">
+      {wave && (
+        <g data-part="wave-flash" className="signal-flash" style={{ animationDelay: '0ms' }}>
+          <path d={wave.d} fill="none" stroke="#fff" strokeWidth={1.6} strokeLinecap="round" />
+          {formats.map((text, i) => (
+            <text key={i} x={text.x} y={text.y} fontSize={text.size} fontWeight={text.weight} textAnchor={text.anchor} fill="#fff">
+              {text.text}
+            </text>
+          ))}
+        </g>
+      )}
       {laid.lines.flatMap((line, i) =>
         line.segments.map((segment, j) => {
           const length = Math.hypot(segment.x2 - segment.x1, segment.y2 - segment.y1)

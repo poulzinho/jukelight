@@ -6,7 +6,7 @@ import { player, quality } from '../test/fixtures'
 import { type Layout, type Measure, type Port, fit, layout } from './layout'
 import { diagramModel } from './model'
 
-// Roughly Inter's average widths.
+// Roughly Figtree's average widths.
 const measure: Measure = (text, size, bold) => text.length * size * (bold ? 0.56 : 0.5)
 
 const qobuzViaMusicAssistant = {
@@ -136,4 +136,67 @@ test('without a queue the streamer is only as wide as it needs, so the outputs f
   const out = laidOut(airplay, 444, 262, false)
   expect(out.direction).toBe('across')
   expect(out.card.width).toBeLessThan(176)
+})
+
+/** A group whose source shows a logo of the given width over height. */
+function withLogo(aspect: number, count = 1): Layout {
+  const model = diagramModel(group(count, { source: { ...qobuzViaMusicAssistant, logoUrl: '/api/v1/logos/qobuz?v=1' } }))
+  if (!model) throw new Error('no model')
+  model.source.logoAspect = aspect
+  return layout(model, 236, 262, true, measure)
+}
+
+/** The wave: the line drawn as curves, with its start and its length along x. */
+function wave(out: Layout) {
+  const line = out.lines.find((l) => l.d.includes(' q'))
+  if (!line) return null
+  const start = Number(/^M([\d.]+),/.exec(line.d)?.[1])
+  const curves = line.d.split(' q').length - 1
+  return { start, length: curves * 9, line }
+}
+
+test('what the source streams, as a wave: from the logo to the format, on the logo\'s line', () => {
+  const out = withLogo(3.2)
+  const logo = out.pictures.find((p) => p.part === 'source')
+  const w = wave(out)
+  expect(logo).toBeDefined()
+  expect(w).not.toBeNull()
+  expect(w?.start).toBeCloseTo((logo?.x ?? 0) + (logo?.width ?? 0) + 8)
+  // No pulse runs along it: it describes the stream, it leads nowhere.
+  expect(w?.line.segments).toEqual([])
+  // The format on the logo's line, ending where the speakers' formats end.
+  const format = out.texts.find((t) => t.part === 'streams-codec')
+  const speakerFormat = out.texts.find((t) => t.part === 'speaker-quality')
+  expect(format?.x).toBe(speakerFormat?.x)
+  expect(format?.y).toBeLessThan((logo?.y ?? 0) + (logo?.height ?? 0) + 4)
+  expect(texts(out, 'streams')).not.toContain('streams')
+})
+
+test('a wide logo is shown smaller, and the wave keeps its minimum length', () => {
+  const out = withLogo(9)
+  expect(wave(out)?.length).toBeGreaterThanOrEqual(40)
+  const logo = out.pictures.find((p) => p.part === 'source')
+  expect(logo?.width).toBeLessThan(18 * 9)
+})
+
+test('no quality reported: no wave', () => {
+  const out = laidOut(group(1, { signal: { class: 'unknown', source: null, delivered: null, changes: [], hiResLogoUrl: null } }))
+  expect(out.lines.some((l) => l.d.includes(' q'))).toBe(false)
+})
+
+test('two speakers in portrait: both rows, without "+ N more"', () => {
+  // The room the diagram has on the reference screen in portrait.
+  const out = laidOut(group(2), 237, 267)
+  expect(texts(out, 'speaker-name')).toEqual(['Speaker 1', 'Speaker 2'])
+  expect(texts(out, 'more')).toEqual([])
+})
+
+test('a long room name is shortened in the lid; the mark always stays', () => {
+  const out = laidOut(
+    group(1, {
+      device: { brand: 'bluesound', name: 'Example Very Long Room Name Upstairs', logoUrl: null, markUrl: '/api/v1/logos/bluesound-mark?v=1' },
+    }),
+  )
+  expect(out.card.room).toMatch(/…$/)
+  expect(out.card.markUrl).toBe('/api/v1/logos/bluesound-mark?v=1')
 })
