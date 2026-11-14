@@ -17,6 +17,47 @@ measured again once the font has loaded.
 
 ## MODIFIED Requirements
 
+### Requirement: Signal diagram
+The playing screen SHALL show how the music reaches every speaker as a
+diagram of nodes joined by lines: the source (its logo, or its icon and
+name) with what it streams as a row like a speaker's ("streams" where the
+speakers' names start, set like them, and the format in its short form
+with the codec, "24/44.1 FLAC", aligned with and set like the speakers'
+formats; nothing when the quality is not reported); Music Assistant's
+logo when it is the route; one row per other speaker of the session
+(`speakers`: an icon by kind, the name, and the format it receives with
+its codec, or "not playing", dimmed, when it doesn't play); the player as
+a streamer card; and the player's outputs (`outputs`: an icon by kind and
+the name) hanging from the streamer. Lines SHALL run straight with right
+angles and rounded corners, branch at junction dots, and end in a port.
+The diagram SHALL start at the left edge of the progress bar. With a queue
+the diagram SHALL run top to bottom; without a queue it SHALL run left to
+right, the source on the left and the outputs on the right.
+
+#### Scenario: A group with a queue
+- **WHEN** Qobuz plays through Music Assistant to the player and the speakers "Kitchen" and "Office", the player has the outputs "Example Speaker" and a subwoofer, and the queue has entries
+- **THEN** the diagram runs top to bottom: the Qobuz logo with "streams …", Music Assistant's logo, the rows "Kitchen" and "Office" with their formats, the streamer, and under it "Example Speaker" and "Subwoofer"
+
+#### Scenario: What the source streams, as a row
+- **WHEN** Qobuz streams FLAC 24/44.1 through Music Assistant to the speaker "Office", which receives FLAC 24/44.1
+- **THEN** "streams" starts where "Office" starts, with the same size, weight and colour, and "24/44.1 FLAC" on the same line ends where Office's "24/44.1 FLAC" ends, set the same way
+
+#### Scenario: Native service without a queue
+- **WHEN** Spotify Connect plays at 320 kbps with no queue
+- **THEN** the diagram runs left to right: the Spotify logo with "streams 320 kbps lossy" under it, a line to the streamer, and the outputs to its right
+
+#### Scenario: AirPlay from a phone
+- **WHEN** the session is AirPlay with no quality reported
+- **THEN** the source shows an AirPlay icon and "AirPlay", its line has no label, and the streamer's first line is "AirPlay"
+
+#### Scenario: Music Assistant unavailable
+- **WHEN** the route Music Assistant is unavailable
+- **THEN** the source shows Music Assistant's logo greyed with "unavailable", and the streamer shows only the room
+
+#### Scenario: A speaker dropped out
+- **WHEN** a speaker of the session doesn't play
+- **THEN** its row is dimmed and shows "not playing" instead of a format
+
 ### Requirement: Playing screen
 While a track is playing, the kiosk SHALL show the artwork, title, artists,
 album, a progress bar with elapsed time and duration, and the signal
