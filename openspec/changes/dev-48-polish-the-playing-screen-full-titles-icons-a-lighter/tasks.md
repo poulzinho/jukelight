@@ -32,5 +32,5 @@
 - [x] 5.1 Write failing unit tests for the grouping function, one per "Up next" scenario (movements of one work, performer changes, no composer, dash separator, lone title, album, featured artist, artist interrupted, no artist), then the function; verify with the kiosk tests
 - [x] 5.2 Write failing component tests "Long title" (two lines, then "…") and "Heading at the bottom", then the grouped list; verify with the kiosk tests
 - [x] 5.3 Add a fake scenario with a classical queue; write the failing e2e check for a grouped classical queue; review the screenshots
-- [ ] 5.4 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [ ] 5.4 Verify the layer (as 1.2); open the pull request and verify CI is green (found: on CI the e2e check that the cover has loaded read it the instant the page opened; it now waits for it)
 - [ ] 5.5 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing; an hour's CPU against about 64 s; record the results on DEV-48
