@@ -27,20 +27,19 @@ export function UpNext({ queue, current }: Props) {
     }
   }
   return (
-    // Beside the signal diagram, its heading level with the diagram's top. In
-    // portrait the list fills the room down to the page's bottom margin;
-    // entries that don't fit wrap into a second, clipped column, so none
-    // shows cut in half.
-    <section className="min-w-0 text-[length:initial] portrait:flex portrait:min-h-0 portrait:flex-col portrait:self-stretch">
+    // Beside the signal diagram, its heading level with the diagram's top.
+    // The list fills the room down to the page's bottom margin; entries that
+    // don't fit wrap into a second, clipped column, so none shows cut in half.
+    <section className="flex min-h-0 min-w-0 flex-col self-stretch text-[length:initial]">
       <h2 id="up-next" className="mb-[1.6vmin] text-badge font-semibold tracking-[0.14em] text-kiosk-text/50 uppercase">
         Up next
       </h2>
       <ol
         aria-labelledby="up-next"
-        className="grid gap-[1.4vmin] portrait:flex portrait:min-h-0 portrait:flex-1 portrait:flex-col portrait:flex-wrap portrait:content-start portrait:overflow-hidden"
+        className="flex min-h-0 flex-1 flex-col flex-wrap content-start gap-[1.4vmin] overflow-hidden"
       >
         {items.map(({ entry, heading }, index) => (
-          <li key={entry.key} className={`min-w-0 portrait:w-full ${index === SHOWN - 1 ? 'landscape:hidden' : ''}`}>
+          <li key={entry.key} className={`w-full min-w-0 ${index === SHOWN - 1 ? 'landscape:hidden' : ''}`}>
             {heading && (
               <p data-part="group-heading" className="mt-[0.6vmin] mb-[1vmin] truncate text-next-artist font-semibold text-kiosk-text/60">
                 {heading}

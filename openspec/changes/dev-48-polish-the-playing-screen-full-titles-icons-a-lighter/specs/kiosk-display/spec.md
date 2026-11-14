@@ -214,6 +214,10 @@ below it.
 - **WHEN** in portrait a group's heading would fit above the page's bottom margin but its first entry would not
 - **THEN** neither is shown
 
+#### Scenario: A tall title in landscape
+- **WHEN** the screen is landscape and a two-line title leaves no room for all four entries above the page's bottom margin
+- **THEN** "Up next" shows only the entries that fit, each with its heading, and nothing runs past the margin
+
 ### Requirement: Steady portrait layout
 In portrait, the cover, the title (room for one line at the largest size,
 whatever size the title takes), the artists (one line), the album (one
