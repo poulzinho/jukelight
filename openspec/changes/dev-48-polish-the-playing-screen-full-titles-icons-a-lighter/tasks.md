@@ -1,13 +1,13 @@
 ## 1. A softer background (stack layer 1, DEV-49: artwork adapter)
 
 - [x] 1.1 Write failing artwork tests "Backdrop of a cover" (at most 128 px), "Blurred" (half black, half white: a gradual change, no sharp edge), "Grain against banding" (flat colour: neighbours differ by a few levels at most) and the same cover giving the same bytes; then scale to 128 px, blur and add a fixed-seed grain; verify with `cargo test -p jukelight-adapter-artwork`
-- [ ] 1.2 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck, tests and e2e; open the pull request and verify CI is green
+- [x] 1.2 Verify the layer: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, kiosk lint, typecheck, tests and e2e; open the pull request and verify CI is green
 
 ## 2. Figtree (stack layer 2, DEV-50: kiosk)
 
 - [x] 2.1 Write failing kiosk tests "Bundled font" (Figtree, served by Jukelight) and "Measured after loading" (the diagram is laid out again once the font has loaded); then replace `@fontsource-variable/inter` with `@fontsource-variable/figtree` and rebuild the diagram's measure when the font has loaded; verify with the kiosk tests
 - [x] 2.2 Update the project context (`openspec/config.yaml`: the bundled font) and `README.md` where it names the font
-- [ ] 2.3 Verify the layer (as 1.2), including the e2e overflow checks in the new font and a screenshot review; open the pull request and verify CI is green
+- [x] 2.3 Verify the layer (as 1.2), including the e2e overflow checks in the new font and a screenshot review; open the pull request and verify CI is green
 
 ## 3. The track's text and the page's room (stack layer 3, DEV-51: kiosk)
 
