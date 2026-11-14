@@ -64,8 +64,8 @@ Lines go from 1.6 to 1.0 units at 0.6 opacity; ports from radius 4.2 to
 3.3 with a 1.1 stroke at 0.75 opacity; junction dots from 2.6 to 1.9 at
 0.75. The card's border goes to 1.05, as thick as the icons' strokes appear, and stays stronger than the lines. The diagram's icons (speakers, computers, outputs) go from a 1.9 to a 1.4 stroke on lucide's 24-unit grid (about 1.05 as drawn), as light as the text beside them and the maker's mark. The
 gap between the last speaker row and the streamer grows from 14 to 24
-units; the source's line shrinks from 52 to 48 (its label still clears the
-logo).
+units; the source's line shrinks from 52 to 40: its label is now one row
+(see "What the source streams"), so it needs less height.
 
 Seen from across the room, the rows were too close. Speaker rows go from
 26 to 31 units apart, the gap above the streamer to 24 and the output rows
@@ -76,6 +76,10 @@ portrait (checked in the rendered proposal; an e2e scenario guards it).
 
 - *Alternative:* a smaller cover. Rejected: the cover is the screen's
   main element; the top margin had room to spare.
+
+The gap between the progress bar and the diagram and "Up next" grows from
+1.5 to 5 vmin, so the progress bar reads as a divider; the shorter
+source line and a bottom margin of 4.5vh pay for it.
 
 In portrait the column below the cover (title, progress, diagram, "Up
 next") widens from 42vh to 47vh (at most 92vw), so the side margins shrink

@@ -20,8 +20,9 @@ measured again once the font has loaded.
 ### Requirement: Signal diagram
 The playing screen SHALL show how the music reaches every speaker as a
 diagram of nodes joined by lines: the source (its logo, or its icon and
-name) with what it streams as a row like a speaker's ("streams" where the
-speakers' names start, set like them, and the format in its short form
+name) with what it streams as a row like a speaker's (a waveform icon
+where the speakers' icons are, "streams" where their names start, set like
+them, and the format in its short form
 with the codec, "24/44.1 FLAC", aligned with and set like the speakers'
 formats; nothing when the quality is not reported); Music Assistant's
 logo when it is the route; one row per other speaker of the session
@@ -40,7 +41,7 @@ right, the source on the left and the outputs on the right.
 
 #### Scenario: What the source streams, as a row
 - **WHEN** Qobuz streams FLAC 24/44.1 through Music Assistant to the speaker "Office", which receives FLAC 24/44.1
-- **THEN** "streams" starts where "Office" starts, with the same size, weight and colour, and "24/44.1 FLAC" on the same line ends where Office's "24/44.1 FLAC" ends, set the same way
+- **THEN** a waveform icon sits where Office's icon is, "streams" starts where "Office" starts, with the same size, weight and colour, and "24/44.1 FLAC" on the same line ends where Office's "24/44.1 FLAC" ends, set the same way
 
 #### Scenario: Native service without a queue
 - **WHEN** Spotify Connect plays at 320 kbps with no queue
