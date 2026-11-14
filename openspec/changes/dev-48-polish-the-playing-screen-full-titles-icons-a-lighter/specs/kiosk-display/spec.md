@@ -82,7 +82,9 @@ the right, both aligned at the top; without a queue the diagram SHALL take
 the full width. The title SHALL take the largest size that fits its room
 (one line at the largest size): one line at the two largest sizes, then
 two lines at smaller sizes, then three lines at the smallest; only a title
-that doesn't fit even then SHALL end with an ellipsis.
+that doesn't fit even then SHALL end with an ellipsis. The title's
+letters SHALL never be clipped: each line SHALL be tall enough for the
+tails of letters such as "g" and for accents.
 
 #### Scenario: Track with all data
 - **WHEN** the snapshot is playing "Example Song" by "Example Artist" with artwork, position, the source "Qobuz" and the quality FLAC at 16 bits and 44 100 Hz
@@ -119,6 +121,10 @@ that doesn't fit even then SHALL end with an ellipsis.
 #### Scenario: Title too long for any size
 - **WHEN** the title is longer than three lines at the smallest size
 - **THEN** it is shown on three lines at the smallest size, ending with "…"
+
+#### Scenario: Letters with tails and accents
+- **WHEN** the title is "Example Song" or a long classical title, at any size
+- **THEN** the tails of its "g", "p" and "y" and its accents show in full, inside the title's room
 
 #### Scenario: Artists and album with icons
 - **WHEN** the snapshot names the artist "Example Artist" and the album "Example Album"

@@ -8,14 +8,16 @@ import { useFontsLoaded } from '../useFontsLoaded'
  * fits. One line at the two largest, two lines at smaller sizes, three at
  * the smallest; only a title that doesn't fit even then ends with "…". In
  * portrait the title's room is one line at the largest size, which two
- * lines at 5.4 or 4.6 and three at 3.6 also fit, so nothing below moves.
+ * lines at 4.8 or 4.2 and three at 3.2 also fit, so nothing below moves.
+ * Each line is tall enough for its letters' tails and accents, which the
+ * title would otherwise clip.
  */
 const STEPS = [
   { size: 7.2, lines: 1 },
   { size: 6.2, lines: 1 },
-  { size: 5.4, lines: 2 },
-  { size: 4.6, lines: 2 },
-  { size: 3.6, lines: 3 },
+  { size: 4.8, lines: 2 },
+  { size: 4.2, lines: 2 },
+  { size: 3.2, lines: 3 },
 ] as const
 
 /** Words that name a group, as whole words, in any case. */
@@ -46,7 +48,7 @@ function Title({ title }: { title: string }) {
       <h1
         ref={ref}
         className="overflow-hidden font-bold tracking-tight [display:-webkit-box] [-webkit-box-orient:vertical]"
-        style={{ fontSize: `${size}vmin`, lineHeight: 1.02, WebkitLineClamp: lines }}
+        style={{ fontSize: `${size}vmin`, lineHeight: 1.15, WebkitLineClamp: lines }}
       >
         {title}
       </h1>

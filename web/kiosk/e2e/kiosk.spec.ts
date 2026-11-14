@@ -102,6 +102,30 @@ test('long title steps down to fit its room', async ({ page }) => {
   await screenshot(page, 'long-title')
 })
 
+// Spec: kiosk-display, "Playing screen": the title in full, its letters'
+// tails (g, p, y) included.
+for (const scenario of ['playing-with-queue', 'long-title'] as const) {
+  test(`${scenario}: the title's letters are never clipped`, async ({ page }) => {
+    await open(page, scenario)
+    const heading = page.getByRole('heading', { level: 1 })
+    await expect(heading).toBeVisible()
+    // Where the letters' ink sits in each line: the tails of g, p and y
+    // below the baseline, accents above, from the font's own metrics.
+    const ink = await heading.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const size = Number.parseFloat(style.fontSize)
+      const lineHeight = Number.parseFloat(style.lineHeight)
+      const canvas = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
+      canvas.font = `${style.fontWeight} ${size}px ${style.fontFamily}`
+      const metrics = canvas.measureText('gpqyÉÁ')
+      const baseline = (lineHeight - (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent)) / 2 + metrics.fontBoundingBoxAscent
+      return { top: baseline - metrics.actualBoundingBoxAscent, bottom: baseline + metrics.actualBoundingBoxDescent, lineHeight }
+    })
+    expect(ink.top).toBeGreaterThanOrEqual(0)
+    expect(ink.bottom).toBeLessThanOrEqual(ink.lineHeight)
+  })
+}
+
 // Spec: kiosk-display, "Playing screen", "Two artists on two lines".
 test('long artists wrap to a second line, in full', async ({ page }) => {
   await open(page, 'long-artists')

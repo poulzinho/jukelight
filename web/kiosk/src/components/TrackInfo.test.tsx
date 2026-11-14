@@ -15,7 +15,7 @@ function lines(element: HTMLElement): { needed: number; shown: number; height: n
   const size = Number.parseFloat(element.style.fontSize) || 7.2
   const clamp = Number(element.style.webkitLineClamp || element.style.getPropertyValue('-webkit-line-clamp')) || 1
   const needed = Math.max(1, Math.ceil(((element.textContent ?? '').length * size * 0.5) / COLUMN))
-  return { needed, shown: Math.min(needed, clamp), height: size * 1.02 }
+  return { needed, shown: Math.min(needed, clamp), height: size * 1.15 }
 }
 const descriptors: [string, PropertyDescriptor | undefined][] = []
 beforeEach(() => {
@@ -72,14 +72,14 @@ test('medium title: two lines at a smaller size', () => {
 test('long classical title: in full, smaller, without an ellipsis', () => {
   render(<TrackInfo track={track({ title: 'J.S. Bach: Violin Concerto No. 1 in A Minor, BWV 1041: I. Allegro moderato' })} />)
   const heading = screen.getByRole('heading', { level: 1 })
-  expect(title().size).toBeLessThan(5.4)
+  expect(title().size).toBeLessThan(4.8)
   // It fits: what it needs is all it shows.
   expect(heading.scrollHeight).toBe(heading.clientHeight)
 })
 
 test('title too long for any size: three lines at the smallest size', () => {
   render(<TrackInfo track={track({ title: 'An Example Title '.repeat(20) })} />)
-  expect(title()).toEqual({ size: 3.6, lines: 3 })
+  expect(title()).toEqual({ size: 3.2, lines: 3 })
 })
 
 test('two artists on two lines: in full, up to two lines', () => {

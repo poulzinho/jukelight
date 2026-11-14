@@ -16,6 +16,7 @@
 - [x] 3.3 Write failing tests for "Device signature" (no footer on the playing screen; the footer on the idle and input screens) and the steady portrait layout ("Title stepped down to two lines" and the artists' exception); then remove the footer from the playing screen, set the margins (5vh top, 4.5vh bottom) and 5vmin under the progress, and let the diagram and "Up next" run to the bottom margin; verify with the kiosk tests
 - [x] 3.4 Write failing e2e checks: a long classical title in full, "Aligned with the cover in portrait" (the edges of the title, progress, diagram and "Up next" against the cover), no footer on the playing screen, overflow checks against the bottom margin for every fake scenario in both orientations; review the screenshots
 - [ ] 3.5 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [x] 3.6 Found in the acceptance (7.4): the title clipped the tails of its letters ("g"). Write a failing e2e check "Letters with tails and accents" (each line holds the letters' ink, from the font's own metrics, for a short and a long title in both orientations); then lines 1.15 times the size and the steps 7.2 and 6.2 on one line, 4.8 and 4.2 on two, 3.2 on three, still in the 11.2 vmin box; verify with the kiosk tests and the e2e checks
 
 ## 4. The diagram (stack layer 4, DEV-52: kiosk)
 
