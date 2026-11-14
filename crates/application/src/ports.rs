@@ -28,6 +28,14 @@ pub trait SessionProvider: Send + Sync + 'static {
     /// The provider's current content, or `None` while it is unreachable.
     fn content(&self) -> Option<Content>;
 
+    /// Whether the provider is still settling the device's origin: it hasn't
+    /// answered yet whether it drives the device, or it claims the device
+    /// but hasn't fetched its first content. The player snapshot waits for
+    /// it, briefly.
+    fn settling(&self, _device: &DeviceSnapshot) -> bool {
+        false
+    }
+
     /// The current device report, given before every rebuild of the player
     /// snapshot, so the provider can start or stop following the player.
     fn follow(&self, device: &DeviceSnapshot);
