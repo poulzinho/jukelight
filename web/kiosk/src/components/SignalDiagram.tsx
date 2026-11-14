@@ -1,5 +1,6 @@
 import { Airplay, AudioLines, Bluetooth, Cable, Folder, Laptop, Radio, Server, Speaker as SpeakerIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useFontsLoaded } from '../useFontsLoaded'
 import type { Player } from '../api'
 import { type Card, type Icon, type Ink, type Layout, type Measure, layout } from '../diagram/layout'
 import { diagramModel } from '../diagram/model'
@@ -344,25 +345,43 @@ function useBoxSize(ref: React.RefObject<HTMLDivElement | null>, queue: boolean)
 /** A canvas to measure text with the page's font; `null` where there is none (tests). */
 let canvas: CanvasRenderingContext2D | null | undefined
 
-function textWidth(text: string, font: string): number | null {
+/** Widths measured so far, for one generation of loaded fonts. */
+const widths = new Map<string, number>()
+let widthsGeneration = 0
+
+/** The width of `text` in `font`; `generation` changes when fonts finish loading. */
+function textWidth(text: string, font: string, generation: number): number | null {
   if (canvas === undefined) {
     canvas = typeof navigator !== 'undefined' && /jsdom/.test(navigator.userAgent) ? null : document.createElement('canvas').getContext('2d')
   }
   if (!canvas) return null
+  if (generation !== widthsGeneration) {
+    widths.clear()
+    widthsGeneration = generation
+  }
+  const key = `${font}|${text}`
+  const known = widths.get(key)
+  if (known !== undefined) return known
   canvas.font = font
-  return canvas.measureText(text).width
+  const width = canvas.measureText(text).width
+  widths.set(key, width)
+  return width
 }
 
-/** Measures text with the page's font, in diagram units; an estimate without a canvas. */
+/**
+ * Measures text with the page's font, in diagram units; an estimate without
+ * a canvas. Measured again once the page's fonts have loaded.
+ */
 function useMeasure(unit: number): Measure {
+  const fontsLoaded = useFontsLoaded()
   return useMemo(() => {
     const family = getComputedStyle(document.body).fontFamily || 'sans-serif'
     return (text, size, bold) => {
-      const width = textWidth(text, `${bold ? 650 : 400} ${size * unit}px ${family}`)
-      // Without a canvas (tests): Inter's average widths.
+      const width = textWidth(text, `${bold ? 650 : 400} ${size * unit}px ${family}`, fontsLoaded)
+      // Without a canvas (tests): Figtree's average widths.
       return width === null ? text.length * size * (bold ? 0.5 : 0.47) : width / unit
     }
-  }, [unit])
+  }, [unit, fontsLoaded])
 }
 
 /** A logo's width over its height, once it has loaded. */

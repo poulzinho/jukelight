@@ -5,8 +5,8 @@
 
 ## 2. Figtree (stack layer 2, DEV-50: kiosk)
 
-- [ ] 2.1 Write failing kiosk tests "Bundled font" (Figtree, served by Jukelight) and "Measured after loading" (the diagram is laid out again once the font has loaded); then replace `@fontsource-variable/inter` with `@fontsource-variable/figtree` and rebuild the diagram's measure when the font has loaded; verify with the kiosk tests
-- [ ] 2.2 Update the project context (`openspec/config.yaml`: the bundled font) and `README.md` where it names the font
+- [x] 2.1 Write failing kiosk tests "Bundled font" (Figtree, served by Jukelight) and "Measured after loading" (the diagram is laid out again once the font has loaded); then replace `@fontsource-variable/inter` with `@fontsource-variable/figtree` and rebuild the diagram's measure when the font has loaded; verify with the kiosk tests
+- [x] 2.2 Update the project context (`openspec/config.yaml`: the bundled font) and `README.md` where it names the font
 - [ ] 2.3 Verify the layer (as 1.2), including the e2e overflow checks in the new font and a screenshot review; open the pull request and verify CI is green
 
 ## 3. The track's text and the page's room (stack layer 3, DEV-51: kiosk)

@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/figtree';
 
 /*
  * Jukelight's design tokens. Sizes are relative to the shorter side of the
@@ -7,7 +7,7 @@
  * text stays readable from across the room.
  */
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
 
   --text-title: 7.2vmin;
   --text-title--line-height: 1.08;
