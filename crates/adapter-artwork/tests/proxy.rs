@@ -350,11 +350,19 @@ async fn grain_against_banding() {
     assert!(max - min <= 8, "grain too strong: {min}..{max}");
 }
 
-/// The same cover always gives the same backdrop.
+/// The same cover always gives the same backdrop, byte for byte: the
+/// artwork cache relies on it.
 #[tokio::test]
 async fn the_same_cover_gives_the_same_backdrop() {
     let cover = image::RgbImage::from_pixel(600, 600, image::Rgb([60, 70, 80]));
-    assert_eq!(backdrop_of(&cover).await, backdrop_of(&cover).await);
+    let bytes = || async {
+        let url = serve_once("image/png", png_of(&cover)).await;
+        // A proxy of its own each time: nothing comes from a cache.
+        let proxy = ArtworkProxy::new();
+        let id = proxy.issue(&ArtworkRef::new(url));
+        proxy.fetch(&id, ArtworkSize::Backdrop).await.unwrap().bytes
+    };
+    assert_eq!(bytes().await, bytes().await);
 }
 
 #[tokio::test]
