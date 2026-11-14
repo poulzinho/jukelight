@@ -1,6 +1,6 @@
 //! Spec: session-music-assistant, "Claiming the session" (group sessions),
 //! "The group's queue", "Following the player", "Up next" and
-//! "Unreachable Music Assistant", against a local test server that replays
+//! "Unreachable Music Assistant" and "A paused group", against a local test server that replays
 //! recorded responses; plus the session provider contract.
 
 #![allow(clippy::unwrap_used, clippy::expect_used)] // tests may panic on bad test data
@@ -13,7 +13,7 @@ use futures::StreamExt;
 use jukelight_adapter_music_assistant::Timing;
 use jukelight_application::SessionProvider;
 use jukelight_application::testing::contract::{ProviderHarness, session_provider_contract};
-use jukelight_domain::DeviceSnapshot;
+use jukelight_domain::{DeviceSnapshot, PlaybackState};
 use serde_json::json;
 use support::*;
 
@@ -197,6 +197,137 @@ mod contract {
 // Spec: session-music-assistant, "Claiming the session" (Music Assistant's
 // group sessions), "Following the player" ("AirPlay session") and "The
 // group's queue".
+mod paused_groups {
+    use super::*;
+
+    /// The player after Music Assistant paused the group: stopped, back on
+    /// its own previous queue.
+    fn stopped_on_its_own_queue() -> DeviceSnapshot {
+        DeviceSnapshot {
+            state: PlaybackState::Stopped,
+            ..service_device()
+        }
+    }
+
+    fn paused_title() -> String {
+        fixture("group-paused", "queue.json")["current_item"]["media_item"]["name"]
+            .as_str()
+            .unwrap()
+            .to_owned()
+    }
+
+    /// A group session, then Music Assistant pauses it.
+    async fn held(
+        server: &TestServer,
+    ) -> std::sync::Arc<jukelight_adapter_music_assistant::MusicAssistantProvider> {
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&airplay_device());
+        wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| !content.held)
+        })
+        .await;
+        server.set_fixture("group-paused");
+        let stopped = stopped_on_its_own_queue();
+        provider.follow(&stopped);
+        wait_for_claim(&provider, &stopped, true).await;
+        provider
+    }
+
+    #[tokio::test]
+    async fn group_paused() {
+        let server = TestServer::start("group-playing").await;
+        let provider = held(&server).await;
+        // Held at once with what played, then at the paused queue's position.
+        let content = wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| {
+                content.held
+                    && content
+                        .position
+                        .is_some_and(|position| position.elapsed.as_secs() == 121)
+            })
+        })
+        .await
+        .unwrap();
+        assert_eq!(content.track.title, paused_title());
+        assert!(!content.speakers.is_empty(), "the group's speakers stay");
+    }
+
+    #[tokio::test]
+    async fn group_resumed() {
+        let server = TestServer::start("group-playing").await;
+        let provider = held(&server).await;
+        server.set_fixture("group-playing");
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_for_claim(&provider, &device, true).await;
+        wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| !content.held)
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn something_else_plays() {
+        let server = TestServer::start("group-playing").await;
+        let provider = held(&server).await;
+        let device = service_device();
+        provider.follow(&device);
+        assert!(!provider.claims(&device));
+        // Back to the stopped player: the hold is over.
+        let stopped = stopped_on_its_own_queue();
+        provider.follow(&stopped);
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert!(!provider.claims(&stopped));
+    }
+
+    #[tokio::test]
+    async fn queue_cleared() {
+        let server = TestServer::start("group-playing").await;
+        let provider = held(&server).await;
+        server.patch_queue(json!({"current_item": null, "current_index": null}));
+        let stopped = stopped_on_its_own_queue();
+        wait_for_claim(&provider, &stopped, false).await;
+        assert_eq!(provider.content(), None);
+        // The hold is over: no more requests.
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let count = server.request_count();
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        assert_eq!(server.request_count(), count);
+    }
+
+    #[tokio::test]
+    async fn another_track_in_the_queue() {
+        let server = TestServer::start("group-playing").await;
+        let provider = held(&server).await;
+        server.patch_queue(
+            json!({"current_item": {"queue_item_id": "another", "name": "Another Song"}}),
+        );
+        wait_for_claim(&provider, &stopped_on_its_own_queue(), false).await;
+    }
+
+    #[tokio::test]
+    async fn polls_while_held() {
+        let server = TestServer::start("group-playing").await;
+        let _provider = held(&server).await;
+        let players = server.requests("players/get").len();
+        let queues = server.requests("player_queues/get").len();
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        assert!(server.requests("players/get").len() >= players + 2);
+        assert!(server.requests("player_queues/get").len() >= queues + 2);
+    }
+
+    #[tokio::test]
+    async fn a_stop_without_a_group_session_is_not_claimed() {
+        let server = TestServer::start("group-paused").await;
+        let provider = server.provider(TOKEN, FAST);
+        let stopped = stopped_on_its_own_queue();
+        provider.follow(&stopped);
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert!(!provider.claims(&stopped));
+        assert_eq!(server.request_count(), 0);
+    }
+}
+
 mod group_sessions {
     use super::*;
 

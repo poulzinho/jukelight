@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 /** How long the old text takes to fade out (the fade-out animation). */
 const FADE_OUT_MS = 300
@@ -17,13 +17,19 @@ interface Props {
 export function TextSwap({ name, children }: Props) {
   const [shown, setShown] = useState({ name, children })
   const changing = shown.name !== name
+  // The newest content, for when the fade-out ends: new snapshots during the
+  // fade-out must not restart it.
+  const latest = useRef(children)
+  useEffect(() => {
+    latest.current = children
+  })
 
   useEffect(() => {
     if (!changing) return
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-    const timer = setTimeout(() => setShown({ name, children }), reduced ? 0 : FADE_OUT_MS)
+    const timer = setTimeout(() => setShown({ name, children: latest.current }), reduced ? 0 : FADE_OUT_MS)
     return () => clearTimeout(timer)
-  }, [changing, name, children])
+  }, [changing, name])
 
   if (changing) {
     return <div className="motion-safe:animate-fade-out">{shown.children}</div>

@@ -389,9 +389,16 @@ test.describe('signal diagram', () => {
 
   test('the diagram and "Up next" are top-aligned', async ({ page }) => {
     await open(page, 'group')
-    const diagram = await page.getByTestId('signal-diagram').boundingBox()
-    const heading = await page.getByRole('heading', { name: 'Up next' }).boundingBox()
-    expect(Math.abs((diagram?.y ?? 0) - (heading?.y ?? 0))).toBeLessThan(4)
+    // Once the layout has settled (a slow runner may read it mid-way).
+    await expect
+      .poll(async () => {
+        const diagram = await page.getByTestId('signal-diagram').boundingBox()
+        const heading = await page.getByRole('heading', { name: 'Up next' }).boundingBox()
+        // Not measurable yet: never aligned.
+        if (!diagram || !heading) return Number.POSITIVE_INFINITY
+        return Math.abs(diagram.y - heading.y)
+      }, { timeout: 5_000 })
+      .toBeLessThan(4)
   })
 
   /** The CSS properties the diagram's running animations change. */

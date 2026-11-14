@@ -187,11 +187,11 @@ impl Inner {
         let status = parse::parse_status(&self.get(&path, timeout).await?)?;
         let now = self.clock.now();
         let sync_stat = status.get("syncStat").map(str::to_owned);
-        if sync_stat.is_some() && sync_stat != identity.sync_stat {
-            // Settings changed: answer with the new identity on the next poll,
-            // which follows at once.
+        // Settings changed: the next poll reads the new identity and asks for
+        // `/Status` at once, without a long-poll.
+        let settings_changed = sync_stat.is_some() && sync_stat != identity.sync_stat;
+        if settings_changed {
             session.sync_stat = sync_stat;
-            session.etag = None;
         }
 
         // The playlist only matters for native sessions, and only changes
@@ -204,7 +204,7 @@ impl Inner {
             session.playlist_id = playlist_id;
         }
 
-        session.etag = Some(status.etag.clone());
+        session.etag = (!settings_changed).then(|| status.etag.clone());
         Ok(to_device_snapshot(
             &status,
             identity,

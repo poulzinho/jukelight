@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use jukelight_domain::{
-    Content, DeviceSnapshot, InputKind, Origin, PlayerSnapshot, QueueView, Route, Service, Session,
-    Source, Track,
+    Content, DeviceSnapshot, InputKind, Origin, PlaybackState, PlayerSnapshot, QueueView, Route,
+    Service, Session, Source, Track,
 };
 
 use crate::SessionProvider;
@@ -14,15 +14,17 @@ use crate::SessionProvider;
 ///   ("<label> · <service>" when the content names a music service).
 /// - A claiming provider without content gives "Playing from <label>".
 /// - Otherwise the device's own content is shown, labelled by its origin; an
-///   audio input is labelled by its kind and carried on the snapshot.
+///   audio input is labelled by its kind and carried on the snapshot. A
+///   service playing without content gives "Playing from <service>".
 ///
 /// The source names the music service and the route it takes: a claiming
 /// provider's service via the provider (the provider alone when it names no
 /// service; marked unavailable when it can't be reached), or the device's own
 /// service or input without a route.
 ///
-/// Playback state, connectivity and the player's maker always come from the
-/// device.
+/// Playback state, connectivity and the player's maker come from the device;
+/// only a held group session (paused, while the device reports stopped) is
+/// shown as paused.
 pub fn arbitrate(
     device: &DeviceSnapshot,
     providers: &[Arc<dyn SessionProvider>],
@@ -60,7 +62,7 @@ pub fn arbitrate(
                         label: provider.label().into(),
                         available: false,
                     },
-                    Some(unreachable(provider.label())),
+                    Some(playing_from(provider.label())),
                     Some(Source {
                         service: itself.clone(),
                         via: Some(Route {
@@ -76,15 +78,27 @@ pub fn arbitrate(
                 label: origin_label(&device.origin),
                 available: true,
             },
-            device.content.clone(),
+            match (&device.origin, &device.content) {
+                // A sender without a title (YouTube by AirPlay): it still plays.
+                (Origin::Service { name, .. }, None) if device.state != PlaybackState::Stopped => {
+                    Some(playing_from(name))
+                }
+                _ => device.content.clone(),
+            },
             origin_source(&device.origin),
         ),
     };
 
+    // A held group session is paused, though the device reports stopped.
+    let held = content.as_ref().is_some_and(|content| content.held);
     PlayerSnapshot {
         player_name: device.name.clone(),
         online: device.online,
-        state: device.state,
+        state: if held && device.state == PlaybackState::Stopped {
+            PlaybackState::Paused
+        } else {
+            device.state
+        },
         session,
         content,
         input: match &device.origin {
@@ -125,8 +139,9 @@ fn input_label(kind: InputKind) -> &'static str {
     }
 }
 
-/// What to show while the provider driving the device cannot be reached.
-fn unreachable(label: &str) -> Content {
+/// "Playing from <label>": what to show while the provider driving the
+/// device cannot be reached, or while a service plays without a title.
+fn playing_from(label: &str) -> Content {
     Content {
         track: Track {
             title: format!("Playing from {label}"),
@@ -141,5 +156,6 @@ fn unreachable(label: &str) -> Content {
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }

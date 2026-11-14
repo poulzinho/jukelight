@@ -61,6 +61,41 @@ test('old text fades out first, then the new text replaces it', async () => {
   expect(screen.queryByRole('heading', { name: 'Example Song' })).toBeNull()
 })
 
+test('snapshots keep arriving during the change: the new text still replaces the old', () => {
+  vi.useFakeTimers()
+  try {
+    const update = screenFor(player())
+    const next = { track: { title: 'Second Song', artists: ['Example Artist'], album: 'Example Album' } }
+    update(player(next))
+    // A new snapshot every 200 ms, with the same track, for two seconds.
+    for (let i = 0; i < 10; i++) {
+      act(() => vi.advanceTimersByTime(200))
+      update(player(next))
+    }
+    expect(screen.getByRole('heading', { name: 'Second Song' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Example Song' })).toBeNull()
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+test('reduced motion: the new text replaces the old at once, with the newest content', () => {
+  vi.useFakeTimers()
+  const matchMedia = window.matchMedia
+  window.matchMedia = ((query: string) => ({ matches: query.includes('reduce'), media: query })) as typeof window.matchMedia
+  try {
+    const update = screenFor(player())
+    update(player({ track: { title: 'Second Song', artists: ['Example Artist'], album: 'Example Album' } }))
+    update(player({ track: { title: 'Second Song', artists: ['Example Artist'], album: 'Example Album' } }))
+    act(() => vi.advanceTimersByTime(0))
+    expect(screen.getByRole('heading', { name: 'Second Song' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Example Song' })).toBeNull()
+  } finally {
+    window.matchMedia = matchMedia
+    vi.useRealTimers()
+  }
+})
+
 test('track with a new cover: the old one stays until the new one has loaded', async () => {
   const update = screenFor(player())
   update(

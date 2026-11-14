@@ -175,6 +175,7 @@ fn example_snapshot(clock: &dyn Clock) -> DeviceSnapshot {
             service: None,
             palette: None,
             speakers: Vec::new(),
+            held: false,
         }),
     }
 }

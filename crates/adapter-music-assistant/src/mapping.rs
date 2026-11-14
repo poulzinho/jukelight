@@ -155,6 +155,7 @@ pub fn to_content(
             .and_then(|media| media.palette.as_ref())
             .and_then(palette),
         speakers: speakers(responses, item, player_key),
+        held: false,
     })
 }
 

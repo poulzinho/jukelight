@@ -26,6 +26,7 @@ fn content(title: &str) -> Content {
         service: None,
         palette: None,
         speakers: Vec::new(),
+        held: false,
     }
 }
 
@@ -80,6 +81,23 @@ fn state_comes_from_the_device() {
     assert_eq!(snapshot.player_name, "Example Player");
 }
 
+/// Spec: session-arbitration, "Held content is paused".
+#[test]
+fn held_content_is_paused() {
+    let held = Content {
+        held: true,
+        ..content("Provider Song")
+    };
+    let provider = FakeProvider::claiming("Example Provider", Some(held));
+    let snapshot = arbitrate(
+        &device(stream(), PlaybackState::Stopped, "x"),
+        &providers(vec![provider]),
+    );
+
+    assert_eq!(snapshot.state, PlaybackState::Paused);
+    assert_eq!(snapshot.content.unwrap().track.title, "Provider Song");
+}
+
 #[test]
 fn provider_down() {
     let provider = FakeProvider::claiming("Example Provider", None);
@@ -96,6 +114,42 @@ fn provider_down() {
     assert_eq!(shown.artwork, None);
     assert_eq!(shown.position, None);
     assert_eq!(shown.queue, QueueView::NotApplicable);
+}
+
+fn airplay_without_a_title(state: PlaybackState) -> DeviceSnapshot {
+    DeviceSnapshot {
+        content: None,
+        ..device(
+            Origin::Service {
+                brand: Brand::new("airplay"),
+                id: "AirPlay".into(),
+                name: "AirPlay".into(),
+                cast: true,
+            },
+            state,
+            "",
+        )
+    }
+}
+
+/// Spec: session-arbitration, "Service without a title".
+#[test]
+fn service_without_a_title() {
+    let snapshot = arbitrate(&airplay_without_a_title(PlaybackState::Playing), &[]);
+
+    let shown = snapshot.content.unwrap();
+    assert_eq!(shown.track.title, "Playing from AirPlay");
+    assert_eq!(shown.position, None);
+    assert_eq!(shown.queue, QueueView::NotApplicable);
+    assert_eq!(snapshot.session.label, "AirPlay");
+}
+
+/// Spec: session-arbitration, "Stopped service without a title".
+#[test]
+fn stopped_service_without_a_title() {
+    let snapshot = arbitrate(&airplay_without_a_title(PlaybackState::Stopped), &[]);
+
+    assert_eq!(snapshot.content, None);
 }
 
 #[test]

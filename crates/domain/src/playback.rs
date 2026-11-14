@@ -257,6 +257,9 @@ pub struct Content {
     /// The other speakers playing the same session; empty when the player
     /// plays alone.
     pub speakers: Vec<Speaker>,
+    /// A paused group session that the provider holds while the player
+    /// reports stopped: shown as paused.
+    pub held: bool,
 }
 
 /// What the device reports about itself.

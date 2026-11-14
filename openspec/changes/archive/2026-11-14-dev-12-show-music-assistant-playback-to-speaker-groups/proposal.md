@@ -2,7 +2,8 @@
 
 Together with DEV-13 (show which speakers are playing), in one stack:
 DEV-12 is layer 1, DEV-44 and DEV-45 (sub-issues of DEV-13) are layers 2
-and 3.
+and 3, and DEV-46 (a sub-issue of DEV-12, found in the acceptance) is
+layer 4.
 
 ## Why
 
@@ -51,6 +52,12 @@ grouped with two other speakers) show what is available:
   left column, "Up next" in the right one; without a queue it runs left to
   right across the width. Straight lines with right angles; one pulse runs
   along the whole tree on a change.
+- **DEV-46, a paused group shows as paused:** when Music Assistant
+  pauses a group, the player goes back to its own previous queue and
+  reports stopped, while Music Assistant still holds the group's track.
+  The provider keeps the session and shows that track as paused until
+  the player plays again or Music Assistant lets go of the track; the
+  screen goes off after the grace period, as for any pause.
 - **The maker's mark:** a second user-supplied logo,
   `brand-assets/<maker>-mark.svg` (for example the Bluesound "B"), shown in
   the streamer's corner.
@@ -59,8 +66,6 @@ grouped with two other speakers) show what is available:
 
 - BluOS's own groups (one BluOS player streaming to others): the
   reference host has one BluOS player; the design leaves room for them.
-- Pausing a group: the player reports stopped, so the idle screen shows,
-  as when playback stops.
 - Volume per speaker, a speaker's own processing after it receives the
   stream.
 - Editing the names in an admin app (DEV-6).
