@@ -15,7 +15,7 @@
 - [x] 3.2 Write failing component tests "Two artists on two lines", "Artists and album with icons", "Several artists", "A group's name" and "A name without a group word"; then artists wrapping to two lines and the icons (one person by default, a group for several artists or a group word); verify with the kiosk tests
 - [x] 3.3 Write failing tests for "Device signature" (no footer on the playing screen; the footer on the idle and input screens) and the steady portrait layout ("Title stepped down to two lines" and the artists' exception); then remove the footer from the playing screen, set the margins (5vh top, 4.5vh bottom) and 5vmin under the progress, and let the diagram and "Up next" run to the bottom margin; verify with the kiosk tests
 - [x] 3.4 Write failing e2e checks: a long classical title in full, "Aligned with the cover in portrait" (the edges of the title, progress, diagram and "Up next" against the cover), no footer on the playing screen, overflow checks against the bottom margin for every fake scenario in both orientations; review the screenshots
-- [ ] 3.5 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [x] 3.5 Verify the layer (as 1.2); open the pull request and verify CI is green
 - [x] 3.6 Found in the acceptance (7.4): the title clipped the tails of its letters ("g"). Write a failing e2e check "Letters with tails and accents" (each line holds the letters' ink, from the font's own metrics, for a short and a long title in both orientations); then lines 1.15 times the size and the steps 7.2 and 6.2 on one line, 4.8 and 4.2 on two, 3.2 on three, still in the 11.2 vmin box; verify with the kiosk tests and the e2e checks
 - [x] 3.7 Found in the review: the title didn't fit itself again when the viewport changed (design decision 1), and the component tests left their stand-in heights in place. Write the failing component test "a new viewport: the title fits again from the largest size"; then refit on a resize and remove the stand-ins after each test; verify with the kiosk tests
 
@@ -25,12 +25,12 @@
 - [x] 4.2 Write failing layout tests "What the source streams, as a wave", "A wide logo" and "Two speakers in portrait"; then the wave from the logo to the format (at least 40 units), the speaker rows (32), the gap above the streamer (26), the output rows (26) and the source's line (34); verify with the kiosk tests
 - [x] 4.3 Write failing tests for "Pulse along the diagram" (the wave and its format light up as the pulse starts; nothing lights with reduced motion), then the flash; verify with the kiosk tests and the e2e motion checks
 - [x] 4.4 Write the failing e2e check "two speakers without + N more in portrait", keep the overflow checks; review the screenshots against the approved renders
-- [ ] 4.5 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [x] 4.5 Verify the layer (as 1.2); open the pull request and verify CI is green
 
 ## 5. "Up next" grouped (stack layer 5, DEV-53: kiosk, fake device)
 
 - [x] 5.1 Write failing unit tests for the grouping function, one per "Up next" scenario (movements of one work, performer changes, no composer, dash separator, lone title, album, featured artist, artist interrupted, no artist), then the function; verify with the kiosk tests
 - [x] 5.2 Write failing component tests "Long title" (two lines, then "…") and "Heading at the bottom", then the grouped list; verify with the kiosk tests
 - [x] 5.3 Add a fake scenario with a classical queue; write the failing e2e check for a grouped classical queue; review the screenshots
-- [ ] 5.4 Verify the layer (as 1.2); open the pull request and verify CI is green (found: on CI the e2e check that the cover has loaded read it the instant the page opened; it now waits for it)
+- [x] 5.4 Verify the layer (as 1.2); open the pull request and verify CI is green (found: on CI the e2e check that the cover has loaded read it the instant the page opened; it now waits for it)
 - [ ] 5.5 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing; an hour's CPU against about 64 s; record the results on DEV-48
