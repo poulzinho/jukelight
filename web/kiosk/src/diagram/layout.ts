@@ -19,6 +19,8 @@ export interface Line {
   soft: boolean
   /** Its straight pieces, for the pulse, with how far along the tree each starts. */
   segments: Segment[]
+  /** What the line stands for, when it isn't a path the pulse runs along. */
+  part?: 'wave'
 }
 
 export interface Segment {
@@ -113,14 +115,14 @@ export interface Layout {
 }
 
 const R = 7
-const ROW = 26
+const ROW = 32
 const MORE = 24
-const GAP = 14
-const SEG = 52
+const GAP = 26
+const SEG = 34
 const SEG_COMPACT = 40
-const CARD_HEIGHT = 56
+const CARD_HEIGHT = 58
 const CARD_WIDTH_ACROSS = 176
-const OUTPUT_ROW = 22
+const OUTPUT_ROW = 26
 
 /** Shortens `text` with "…" to fit `room`. */
 export function fit(text: string, size: number, room: number, bold: boolean, measure: Measure): string {
@@ -209,21 +211,43 @@ function routeNode(model: DiagramModel, x: number, y: number, out: Layout) {
   else out.icons.push({ kind: 'server', x: x + 12, y: y + 12, ink: 'text', soft: false })
 }
 
-function streams(model: DiagramModel, x: number, y: number, compact: boolean, out: Layout) {
-  if (!model.streams) return
-  if (!compact) out.texts.push({ x, y, text: 'streams', size: 9.5, weight: 400, ink: 'dim', soft: false, anchor: 'start', part: 'streams' })
-  out.texts.push({
-    x,
-    y: y + 14,
-    text: model.streams.quality,
-    size: 11,
-    weight: 650,
-    ink: model.sourceClass,
-    soft: false,
-    anchor: 'start',
-    part: 'streams',
-    then: { text: model.streams.codec, weight: 500, part: 'streams-codec' },
-  })
+/** The shortest wave between the source's logo and its format. */
+const WAVE_MIN = 40
+/** The narrowest a source's logo is drawn. */
+const LOGO_MIN = 24
+
+/** Where the format of what the source streams starts, right-aligned at `right`. */
+function formatLeft(model: DiagramModel, right: number, measure: Measure): number {
+  const s = model.streams
+  return s ? right - measure(s.codec, 11, false) - 7 - measure(s.short, 11, true) : right
+}
+
+/**
+ * What the source streams: the format and codec ("24/44.1  FLAC") at
+ * `right`, set like the speakers' formats, and, from `fromX`, a gentle wave
+ * out to it on the same line. The wave is no path for the pulse.
+ */
+function streams(model: DiagramModel, fromX: number | null, right: number, y: number, measure: Measure, out: Layout) {
+  const s = model.streams
+  if (!s) return
+  const ink = model.sourceClass
+  const codecW = measure(s.codec, 11, false)
+  out.texts.push({ x: right, y, text: s.codec, size: 11, weight: 500, ink, soft: true, anchor: 'end', part: 'streams-codec' })
+  out.texts.push({ x: right - codecW - 7, y, text: s.short, size: 11, weight: 650, ink, soft: true, anchor: 'end', part: 'streams' })
+  if (fromX === null) return
+  const ly = y - 4
+  const end = formatLeft(model, right, measure) - 8
+  const half = 9
+  const amplitude = 1.8
+  let d = `M${fromX},${ly}`
+  let x = fromX
+  let up = true
+  while (x + half <= end) {
+    d += ` q${half / 2},${up ? -amplitude * 2 : amplitude * 2} ${half},0`
+    x += half
+    up = !up
+  }
+  out.lines.push({ d, ink, soft: true, segments: [], part: 'wave' })
 }
 
 function emptyLayout(direction: Layout['direction']): Layout {
@@ -234,8 +258,6 @@ function card(model: DiagramModel, x: number, y: number, width: number, measure:
   const s = model.streamer
   const left = s.hiRes ? 51 : 12
   const room = width - 10 - left
-  // The mark sits at the top right, 23 from the edge; it gives way to the format.
-  const markFits = s.markUrl !== null && measure(s.main, 13, true) <= width - 26 - left
   const mainSize = measure(s.main, 13, true) <= room ? 13 : 12
   return {
     x,
@@ -246,11 +268,12 @@ function card(model: DiagramModel, x: number, y: number, width: number, measure:
     main: s.main,
     mainSize,
     codec: fit(s.codec, 10.5, room - (s.codec.startsWith('PCM') ? 17 : 0), false, measure),
-    room: fit(s.room, 9.5, room, false, measure),
+    // In the lid, set like a speaker's name, after the mark.
+    room: fit(s.room, 12.5, width - 30 - (s.markUrl ? 16 : 0), false, measure),
     pcm: s.codec.startsWith('PCM'),
     hiRes: s.hiRes,
     hiResLogoUrl: s.hiResLogoUrl,
-    markUrl: markFits ? s.markUrl : null,
+    markUrl: s.markUrl,
   }
 }
 
@@ -279,10 +302,16 @@ function layoutDown(model: DiagramModel, w: number, option: Options, measure: Me
   const soft = model.soft
   const seg = option.compact ? SEG_COMPACT : SEG
 
-  source(model, tx - 12, 9, w - 2, measure, out)
+  // A logo leaves room for at least a short wave to what it streams.
+  // At least a small logo, however narrow the diagram.
+  const logoRoom = Math.max(
+    LOGO_MIN,
+    model.streams ? formatLeft(model, w - 2, measure) - 8 - (WAVE_MIN + 9) - 8 - (tx - 12) : w - 2,
+  )
+  const sourceW = source(model, tx - 12, 9, logoRoom, measure, out)
   const sourceInk: Ink = model.streams ? model.sourceClass : 'faint'
   out.lines.push({ d: `M${tx},22 V${seg}`, ink: sourceInk, soft: false, segments: [{ x1: tx, y1: 22, x2: tx, y2: seg, from: 0 }] })
-  streams(model, tx + 12, seg - (option.compact ? 16 : 21), option.compact, out)
+  streams(model, tx - 12 + sourceW + 8, w - 2, 9 + 4, measure, out)
   let y = seg
   let along = seg - 22
   if (model.route) {
@@ -304,7 +333,7 @@ function layoutDown(model: DiagramModel, w: number, option: Options, measure: Me
     cur += MORE
   }
   const ny = rows.length ? cur - ROW + 4 + GAP + 28 - 6 : y + GAP + 22
-  const top = ny - 28
+  const top = ny - 29
 
   // The trunk down to the streamer, turning into its port.
   // Without Music Assistant, the source's line runs on to the streamer in one colour.
@@ -382,11 +411,11 @@ function layoutDown(model: DiagramModel, w: number, option: Options, measure: Me
     const xs = outputs.map((_, k) => bx + 26 + k * 40)
     const last = xs[xs.length - 1] as number
     out.lines.push({
-      d: `M${bx},${top + 59.5} V${oy - R} Q${bx},${oy} ${bx + R},${oy} H${last - 5}`,
+      d: `M${bx},${top + 61.5} V${oy - R} Q${bx},${oy} ${bx + R},${oy} H${last - 5}`,
       ink: trunkInk,
       soft,
       segments: [
-        { x1: bx, y1: top + 59.5, x2: bx, y2: oy, from: atCard },
+        { x1: bx, y1: top + 61.5, x2: bx, y2: oy, from: atCard },
         { x1: bx, y1: oy, x2: last - 5, y2: oy, from: atCard + (oy - top - 59.5) },
       ],
     })
@@ -399,14 +428,14 @@ function layoutDown(model: DiagramModel, w: number, option: Options, measure: Me
   } else if (outputs.length) {
     const bx = px + 30
     const opx = bx + 26
-    const oys = outputs.map((_, k) => top + CARD_HEIGHT + 20 + k * OUTPUT_ROW)
+    const oys = outputs.map((_, k) => top + CARD_HEIGHT + 22 + k * OUTPUT_ROW)
     const lastY = oys[oys.length - 1] as number
     out.lines.push({
-      d: `M${bx},${top + 59.5} V${lastY - R} Q${bx},${lastY} ${bx + R},${lastY} H${opx - 5}`,
+      d: `M${bx},${top + 61.5} V${lastY - R} Q${bx},${lastY} ${bx + R},${lastY} H${opx - 5}`,
       ink: trunkInk,
       soft,
       segments: [
-        { x1: bx, y1: top + 59.5, x2: bx, y2: lastY, from: atCard },
+        { x1: bx, y1: top + 61.5, x2: bx, y2: lastY, from: atCard },
         { x1: bx, y1: lastY, x2: opx - 5, y2: lastY, from: atCard + (lastY - top - 59.5) },
       ],
     })
@@ -455,14 +484,14 @@ function layoutAcross(model: DiagramModel, w: number, measure: Measure): Layout 
   const trunkInk = model.playerClass
   const soft = model.soft
   const mw = source(model, 0, cy, 110, measure, out)
-  const labelW = model.streams ? measure(model.streams.quality, 11, true) + measure(model.streams.codec, 11, false) + 8 : 0
+  const labelW = model.streams ? measure(model.streams.short, 11, true) + measure(model.streams.codec, 11, false) + 7 : 0
   const outW = model.outputs.length ? Math.max(...model.outputs.map((o) => measure(o.name, 12, false))) + 79 : 0
   const routeW = model.route ? 44 : 0
   const cardW = acrossCardWidth(model, measure)
   const line = w - mw - routeW - cardW - outW - 10
   if (line < 34 || labelW > mw + 10 + routeW + line - 12) return null
 
-  if (model.streams) streams(model, 0, cy + 24, false, out)
+  if (model.streams) streams(model, null, mw + 10 + routeW + line - 6, cy + 24, measure, out)
   let x0 = mw + 10
   let along = 0
   if (model.route) {

@@ -21,10 +21,10 @@
 
 ## 4. The diagram (stack layer 4, DEV-52: kiosk)
 
-- [ ] 4.1 Write failing component and layout tests for the "Streamer card" scenarios (mark and room in the lid, the room set like a speaker, no mark), "Long room name" and "Lines stay in the background"; then the taller lid (19, card 58) and the lighter lines (1.0), ports, dots, icons (stroke 1.4) and border (1.05); verify with the kiosk tests
-- [ ] 4.2 Write failing layout tests "What the source streams, as a wave", "A wide logo" and "Two speakers in portrait"; then the wave from the logo to the format (at least 40 units), the speaker rows (32), the gap above the streamer (26), the output rows (26) and the source's line (34); verify with the kiosk tests
-- [ ] 4.3 Write failing tests for "Pulse along the diagram" (the wave and its format light up as the pulse starts; nothing lights with reduced motion), then the flash; verify with the kiosk tests and the e2e motion checks
-- [ ] 4.4 Write the failing e2e check "two speakers without + N more in portrait", keep the overflow checks; review the screenshots against the approved renders
+- [x] 4.1 Write failing component and layout tests for the "Streamer card" scenarios (mark and room in the lid, the room set like a speaker, no mark), "Long room name" and "Lines stay in the background"; then the taller lid (19, card 58) and the lighter lines (1.0), ports, dots, icons (stroke 1.4) and border (1.05); verify with the kiosk tests
+- [x] 4.2 Write failing layout tests "What the source streams, as a wave", "A wide logo" and "Two speakers in portrait"; then the wave from the logo to the format (at least 40 units), the speaker rows (32), the gap above the streamer (26), the output rows (26) and the source's line (34); verify with the kiosk tests
+- [x] 4.3 Write failing tests for "Pulse along the diagram" (the wave and its format light up as the pulse starts; nothing lights with reduced motion), then the flash; verify with the kiosk tests and the e2e motion checks
+- [x] 4.4 Write the failing e2e check "two speakers without + N more in portrait", keep the overflow checks; review the screenshots against the approved renders
 - [ ] 4.5 Verify the layer (as 1.2); open the pull request and verify CI is green
 
 ## 5. "Up next" grouped (stack layer 5, DEV-53: kiosk, fake device)

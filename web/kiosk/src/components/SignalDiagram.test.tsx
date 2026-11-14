@@ -13,8 +13,6 @@ function show(overrides: Partial<Player> = {}) {
 const diagram = () => screen.getByTestId('signal-diagram')
 const parts = (part: string) => [...diagram().querySelectorAll(`[data-part="${part}"]`)]
 const texts = (part: string) => parts(part).map((element) => element.textContent)
-/** The text itself, without what follows it on the line. */
-const own = (part: string) => parts(part).map((element) => element.firstChild?.textContent)
 
 const qobuzViaMusicAssistant = (available = true): Source => ({
   brand: 'qobuz',
@@ -62,7 +60,7 @@ test('a group with a queue: logos, rows, the streamer and its outputs, top to bo
   expect(diagram()).toHaveAttribute('data-direction', 'down')
   expect(parts('source')[0]).toHaveAttribute('href', '/api/v1/logos/qobuz?v=1')
   expect(parts('route')[0]).toHaveAttribute('href', '/api/v1/logos/music-assistant?v=1')
-  expect(own('streams')).toEqual(['streams', '24 bit / 96 kHz'])
+  expect(texts('streams')).toEqual(['24/96'])
   expect(texts('streams-codec')).toEqual(['FLAC'])
   expect(texts('speaker-name')).toEqual(['Kitchen', 'Office'])
   expect(texts('speaker-quality')).toEqual(['PCM', '16/44.1', 'PCM', '16/44.1'])
@@ -79,7 +77,7 @@ test('native service without a queue: across the width', () => {
     queue: null,
   })
   expect(diagram()).toHaveAttribute('data-direction', 'across')
-  expect(own('streams')).toEqual(['streams', '320 kbps'])
+  expect(texts('streams')).toEqual(['320 kbps'])
   expect(texts('streams-codec')).toEqual(['lossy'])
 })
 
@@ -210,4 +208,83 @@ test('the quality changes: a new pulse', () => {
   const first = screen.getByTestId('pulse')
   rerender(<Kiosk player={player({ signal: signal({ class: 'lossless', source: quality('FLAC 16/44.1', null, false) }), queue })} connection="live" clockOffsetMs={0} />)
   expect(screen.getByTestId('pulse')).not.toBe(first)
+})
+
+// "Streamer card": the lid holds the mark and the room, set like a speaker.
+
+test('the room in the lid, set like a speaker\'s name, after the mark', () => {
+  show({
+    source: qobuzViaMusicAssistant(),
+    signal: signal(),
+    speakers: [speaker('Kitchen')],
+    device: { brand: 'bluesound', name: 'Example Player', logoUrl: null, markUrl: '/api/v1/logos/bluesound-mark?v=1' },
+    queue,
+  })
+  const room = parts('streamer-room')[0] as SVGTextElement
+  const name = parts('speaker-name')[0] as SVGTextElement
+  const main = parts('streamer-main')[0] as SVGTextElement
+  for (const attribute of ['font-size', 'font-weight', 'fill']) {
+    expect(room.getAttribute(attribute), attribute).toBe(name.getAttribute(attribute))
+  }
+  expect(Number(room.getAttribute('y'))).toBeLessThan(Number(main.getAttribute('y')))
+  const mark = (parts('streamer')[0] as Element).querySelector('image[href="/api/v1/logos/bluesound-mark?v=1"]')
+  expect(Number(mark?.getAttribute('x'))).toBeLessThan(Number(room.getAttribute('x')))
+})
+
+test('no mark: the room alone in the lid', () => {
+  show({ signal: signal(), device: { brand: null, name: 'Example Player', logoUrl: null, markUrl: null }, queue })
+  const card = parts('streamer')[0] as Element
+  expect(card.querySelector('image')).toBeNull()
+  expect(texts('streamer-room')).toEqual(['Example Player'])
+})
+
+// "Line colours": the lines stay in the background.
+
+test('lines, ports and dots are thin and partly transparent; the card\'s border is as heavy as the icons', () => {
+  show({ source: qobuzViaMusicAssistant(), signal: signal(), speakers: [speaker('Kitchen')], outputs, queue })
+  // The diagram's own lines: the paths directly in its drawing.
+  const lines = [...(diagram().querySelector('svg') as SVGSVGElement).querySelectorAll(':scope > path')]
+  expect(lines.length).toBeGreaterThan(0)
+  for (const line of lines) {
+    expect(Number(line.getAttribute('stroke-width'))).toBe(1)
+    expect(Number(line.getAttribute('stroke-opacity'))).toBe(0.6)
+  }
+  const border = (parts('streamer')[0] as Element).querySelector('rect')
+  expect(Number(border?.getAttribute('stroke-width'))).toBe(1.05)
+  const icon = parts('icon-speaker')[0] as Element
+  expect(Number(icon.getAttribute('stroke-width'))).toBe(1.4)
+})
+
+// "Pulse along the diagram": the wave lights up as a pulse starts.
+
+test('a pulse lights up the wave and its format at once', () => {
+  show({ source: { ...qobuzViaMusicAssistant(), logoUrl: '/api/v1/logos/qobuz?v=1' }, signal: signal(), speakers: [speaker('Kitchen')], queue })
+  const flash = parts('wave-flash')
+  expect(flash).toHaveLength(1)
+  expect(flash[0]).toHaveClass('signal-flash')
+  expect((flash[0] as HTMLElement).style.animationDelay).toBe('0ms')
+})
+
+test('the flash text lies exactly over the format: set the same way', () => {
+  show({ source: { ...qobuzViaMusicAssistant(), logoUrl: '/api/v1/logos/qobuz?v=1' }, signal: signal(), speakers: [speaker('Kitchen')], queue })
+  const flash = parts('wave-flash')[0] as Element
+  // The bright wave lies exactly over the wave: the same path and width.
+  const wave = [...(diagram().querySelector('svg') as SVGSVGElement).querySelectorAll(':scope > path')].find((p) => p.getAttribute('d')?.includes(' q'))
+  const brightWave = flash.querySelector('path')
+  expect(brightWave?.getAttribute('d')).toBe(wave?.getAttribute('d'))
+  expect(brightWave?.getAttribute('stroke-width')).toBe(wave?.getAttribute('stroke-width'))
+  const copies = [...flash.querySelectorAll('text')]
+  const originals = [...parts('streams'), ...parts('streams-codec')]
+  expect(copies).toHaveLength(originals.length)
+  for (const original of originals) {
+    const copy = copies.find((text) => text.textContent === original.textContent)
+    for (const attribute of ['x', 'y', 'font-size', 'font-weight', 'text-anchor', 'class']) {
+      expect(copy?.getAttribute(attribute), `${original.textContent} ${attribute}`).toBe(original.getAttribute(attribute))
+    }
+  }
+})
+
+test('no quality reported: nothing to light up', () => {
+  show({ source: { brand: 'airplay', name: 'AirPlay', logoUrl: null, via: null }, signal: signal({ class: 'unknown', source: null }), queue: null })
+  expect(parts('wave-flash')).toHaveLength(0)
 })

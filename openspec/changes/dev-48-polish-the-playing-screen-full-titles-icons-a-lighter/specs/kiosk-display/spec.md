@@ -49,7 +49,7 @@ right, the source on the left and the outputs on the right.
 
 #### Scenario: Native service without a queue
 - **WHEN** Spotify Connect plays at 320 kbps with no queue
-- **THEN** the diagram runs left to right: the Spotify logo with "streams 320 kbps lossy" under it, a line to the streamer, and the outputs to its right
+- **THEN** the diagram runs left to right: the Spotify logo with "320 kbps lossy" under it, a line to the streamer, and the outputs to its right
 
 #### Scenario: AirPlay from a phone
 - **WHEN** the session is AirPlay with no quality reported

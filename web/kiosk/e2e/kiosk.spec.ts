@@ -42,11 +42,10 @@ test('playing with queue', async ({ page }) => {
   } else {
     expect(art.x + art.width).toBeLessThanOrEqual(title.x)
   }
-  // The generated cover actually loaded.
-  const loaded = await page
-    .getByRole('img', { name: 'Example Album' })
-    .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)
-  expect(loaded).toBe(true)
+  // The generated cover actually loads (on a slow runner, a moment after the page).
+  await expect
+    .poll(() => page.getByRole('img', { name: 'Example Album' }).evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+    .toBe(true)
 
   await expect(page.getByRole('progressbar')).toBeVisible()
   await expect(page.getByRole('img', { name: 'Qobuz to Example Player' })).toBeVisible()
@@ -459,6 +458,11 @@ test.describe('signal diagram', () => {
     await expect(diagram).toHaveAttribute('data-direction', 'down')
     await expect(diagram.locator('[data-part="speaker-name"]')).toHaveText(['Kitchen', 'Office'])
     await expect(diagram.locator('[data-part="output"]')).toHaveText(['Example Speaker', 'Subwoofer'])
+    // Both speakers fit, in portrait too: no "+ N more".
+    await expect(diagram.locator('[data-part="more"]')).toHaveCount(0)
+    // What the source streams: a wave from its logo to the format.
+    await expect(diagram.locator('svg > path[d*=" q"]')).toHaveCount(1)
+    await expect(diagram.locator('[data-part="streams"]')).not.toHaveText('streams')
   })
 
   test('many speakers fold into "+ N more"', async ({ page }) => {

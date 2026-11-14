@@ -126,6 +126,21 @@ body {
   animation: signal-arrive 600ms steps(9) none;
 }
 
+/* The source's wave and its format light up as a pulse starts. */
+.signal-flash {
+  opacity: 0;
+  animation: signal-flash 1400ms steps(21) none;
+}
+
+@keyframes signal-flash {
+  20% {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes signal-spark {
   from {
     opacity: 1;
@@ -148,7 +163,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .signal-spark,
-  .signal-arrive {
+  .signal-arrive,
+  .signal-flash {
     display: none;
     animation: none;
   }

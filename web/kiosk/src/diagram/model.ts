@@ -5,8 +5,8 @@ export interface DiagramModel {
   source: SourceNode
   /** Music Assistant, when it is the route and reachable. */
   route: { name: string; logoUrl: string | null } | null
-  /** What the source streams, written by its line; `null` when not reported. */
-  streams: { quality: string; codec: string } | null
+  /** What the source streams, shown by its logo; `null` when not reported. */
+  streams: { short: string; codec: string } | null
   speakers: SpeakerRow[]
   streamer: StreamerCard
   outputs: OutputNode[]
@@ -72,7 +72,7 @@ export function diagramModel(player: Player): DiagramModel | null {
       unavailable,
     },
     route,
-    streams: known && signal.source ? { quality: long(signal.source), codec: codecName(signal.source) } : null,
+    streams: known && signal.source ? { short: short(signal.source), codec: codecName(signal.source) } : null,
     speakers: player.speakers.map((speaker) => ({
       name: speaker.name,
       kind: speaker.kind,
