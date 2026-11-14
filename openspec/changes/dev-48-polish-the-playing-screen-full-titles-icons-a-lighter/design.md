@@ -86,6 +86,13 @@ lines at a larger size, and "Up next" gains most of the width.
 - *Alternative:* widen the cover with the column. Rejected: a taller cover
   takes back the room the diagram needs (two speakers would fold).
 
+For gestalt, the title, artists and album stay with the cover: in portrait
+they are inset by half the difference between the column and the cover
+(`calc((min(92vw,47vh) - min(86vw,42vh)) / 2)` on each side), so their
+edges line up with the cover's. The progress bar starts the wider band and
+separates the track from what plays it (the diagram and "Up next"). The
+title's size steps fit the inset width.
+
 ### 4. Figtree, bundled like Inter
 
 `@fontsource-variable/figtree` replaces `@fontsource-variable/inter`: one

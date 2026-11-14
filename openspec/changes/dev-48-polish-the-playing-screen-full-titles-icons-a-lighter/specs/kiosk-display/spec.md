@@ -26,7 +26,10 @@ artists or its one artist's name contains a word for a group (orchestra,
 philharmonic, ensemble, quartet, trio, choir or band, also in Spanish,
 French, German and Italian: orquesta, orchestre, orchester, orchestra,
 coro, chœur, chor, cuarteto, quatuor, quartett, quartetto); the album SHALL
-follow a dimmed disc icon. With a queue, the area below the
+follow a dimmed disc icon. In portrait the title, artists and album SHALL
+line up with the cover's edges, and the progress bar, the diagram and "Up
+next" below them SHALL take a wider column, so the progress bar separates
+the track from what plays it. With a queue, the area below the
 progress SHALL have two columns, the diagram on the left and "Up next" on
 the right, both aligned at the top; without a queue the diagram SHALL take
 the full width. A title too long for two lines at the largest size SHALL
@@ -45,6 +48,10 @@ even then SHALL end with an ellipsis.
 #### Scenario: Queue beside the diagram
 - **WHEN** the snapshot has a queue
 - **THEN** "Up next" sits in the right column, its heading level with the top of the diagram
+
+#### Scenario: Aligned with the cover in portrait
+- **WHEN** the screen is in portrait
+- **THEN** the title, artists and album start and end at the cover's left and right edges, and the progress bar extends beyond both
 
 #### Scenario: Short title
 - **WHEN** the title is "Example Song"
