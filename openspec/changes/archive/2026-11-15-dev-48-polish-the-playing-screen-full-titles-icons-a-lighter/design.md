@@ -217,11 +217,24 @@ delayed: settling only happens around a new origin.
 
 ### 11. Every paused group is held (DEV-55)
 
-To be designed from a recording of the failing pause (the player went from
-"paused" with the group to "stopped" with its own Qobuz queue, and the
-hold of decision 8 in DEV-46 didn't take): what the player and Music
-Assistant report at each step, then the rule that holds the group through
-it.
+Recorded on the reference host (45 steps, a third of a second apart):
+the player stops and returns to its own Qobuz queue first, while Music
+Assistant's queue still reports the same item *playing* for about a
+second, then idle. The hold of DEV-46 asked for a queue that isn't
+playing, so on its first poll it let go, and when Music Assistant caught
+up there was no group left to hold.
+
+The hold now accepts the queue still playing the same item, for up to 5
+seconds from the start of the hold (`Timing::pause_lag`); past that the
+group is taken to play on without the player, and the hold ends as
+before. A changed or cleared item still ends it at once.
+
+- *Alternative:* wait for Music Assistant before deciding the hold.
+  Rejected: holding at once keeps the paused screen from the first frame;
+  letting go later costs nothing.
+- The recording's states are the existing scrubbed fixtures' (a group
+  playing, the same group paused), so the tests use those; the raw
+  recording stays out of the repository.
 
 ### Stack layers
 

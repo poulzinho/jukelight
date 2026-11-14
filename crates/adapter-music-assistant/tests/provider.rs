@@ -252,6 +252,57 @@ mod paused_groups {
         assert!(!content.speakers.is_empty(), "the group's speakers stay");
     }
 
+    /// Recorded: the player stops first, while Music Assistant's queue still
+    /// reports the item playing for about a second.
+    #[tokio::test]
+    async fn music_assistant_reports_the_pause_late() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&airplay_device());
+        wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| !content.held)
+        })
+        .await;
+
+        // The player stops; Music Assistant still says the queue plays.
+        let stopped = stopped_on_its_own_queue();
+        provider.follow(&stopped);
+        for _ in 0..6 {
+            tokio::time::sleep(Duration::from_millis(50)).await;
+            assert!(
+                provider.claims(&stopped),
+                "let go while Music Assistant caught up"
+            );
+        }
+        // Music Assistant reports the pause.
+        server.set_fixture("group-paused");
+        let content = wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| {
+                content.held && content.position.is_some_and(|p| p.elapsed.as_secs() == 121)
+            })
+        })
+        .await
+        .unwrap();
+        assert_eq!(content.track.title, paused_title());
+        assert!(provider.claims(&stopped));
+    }
+
+    #[tokio::test]
+    async fn the_group_plays_on_without_the_player() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&airplay_device());
+        wait_for(&provider, |content| {
+            content.as_ref().is_some_and(|content| !content.held)
+        })
+        .await;
+
+        let stopped = stopped_on_its_own_queue();
+        provider.follow(&stopped);
+        // The queue keeps playing past the pause lag (600 ms in tests).
+        wait_for_claim(&provider, &stopped, false).await;
+    }
+
     #[tokio::test]
     async fn group_resumed() {
         let server = TestServer::start("group-playing").await;

@@ -29,6 +29,7 @@ pub const FAST: Timing = Timing {
     interval: Duration::from_millis(50),
     request_timeout: Duration::from_millis(300),
     answer_lifetime: Duration::from_millis(400),
+    pause_lag: Duration::from_millis(600),
 };
 
 /// A fake Music Assistant serving one recorded situation.
