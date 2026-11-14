@@ -42,11 +42,10 @@ test('playing with queue', async ({ page }) => {
   } else {
     expect(art.x + art.width).toBeLessThanOrEqual(title.x)
   }
-  // The generated cover actually loaded.
-  const loaded = await page
-    .getByRole('img', { name: 'Example Album' })
-    .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)
-  expect(loaded).toBe(true)
+  // The generated cover actually loads (on a slow runner, a moment after the page).
+  await expect
+    .poll(() => page.getByRole('img', { name: 'Example Album' }).evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+    .toBe(true)
 
   await expect(page.getByRole('progressbar')).toBeVisible()
   await expect(page.getByRole('img', { name: 'Qobuz to Example Player' })).toBeVisible()
