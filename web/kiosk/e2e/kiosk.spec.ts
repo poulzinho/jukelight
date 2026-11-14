@@ -459,6 +459,11 @@ test.describe('signal diagram', () => {
     await expect(diagram).toHaveAttribute('data-direction', 'down')
     await expect(diagram.locator('[data-part="speaker-name"]')).toHaveText(['Kitchen', 'Office'])
     await expect(diagram.locator('[data-part="output"]')).toHaveText(['Example Speaker', 'Subwoofer'])
+    // Both speakers fit, in portrait too: no "+ N more".
+    await expect(diagram.locator('[data-part="more"]')).toHaveCount(0)
+    // What the source streams: a wave from its logo to the format.
+    await expect(diagram.locator('svg > path[d*=" q"]')).toHaveCount(1)
+    await expect(diagram.locator('[data-part="streams"]')).not.toHaveText('streams')
   })
 
   test('many speakers fold into "+ N more"', async ({ page }) => {
