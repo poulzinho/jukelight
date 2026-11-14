@@ -1,13 +1,19 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
+use std::time::Duration;
 
 use futures::{StreamExt, stream};
 use jukelight_domain::{DeviceSnapshot, PlayerEvent, PlayerSnapshot, detect_changes};
 use tokio::sync::{broadcast, watch};
+use tokio::time::Instant;
 
 use crate::names::SpeakerNames;
 use crate::{DeviceMonitor, SessionProvider, arbitrate};
 
 const EVENT_CAPACITY: usize = 64;
+
+/// The longest a new session waits for a settling provider.
+const SETTLE: Duration = Duration::from_secs(2);
 
 /// Follows a device and keeps the player snapshot up to date.
 ///
@@ -22,6 +28,12 @@ pub struct PlayerMonitor {
     current: watch::Sender<PlayerSnapshot>,
     published: watch::Sender<PlayerSnapshot>,
     events: broadcast::Sender<PlayerEvent>,
+    /// When a provider started settling the device's origin, while it is.
+    settling_since: Mutex<Option<Instant>>,
+    /// When to rebuild anyway, while a provider is still settling.
+    deadline: watch::Sender<Option<Instant>>,
+    /// A change was held back from `published` while a provider settled.
+    held_back: AtomicBool,
 }
 
 /// Read access to a running monitor, for the HTTP layer and other consumers.
@@ -50,6 +62,9 @@ impl PlayerMonitor {
             current,
             published,
             events,
+            settling_since: Mutex::new(None),
+            deadline: watch::channel(None).0,
+            held_back: AtomicBool::new(false),
         }
     }
 
@@ -88,10 +103,17 @@ impl PlayerMonitor {
     }
 
     fn rebuild(&self, device: &DeviceSnapshot) {
+        let settling = self.waits_for_settling(device);
         let next = self.names.apply(arbitrate(device, &self.providers));
         let changes = detect_changes(&self.current.borrow(), &next);
 
-        if changes.material {
+        // While a provider settles, live clients keep what they had; the
+        // current snapshot and the events follow the device as usual.
+        if settling {
+            if changes.material {
+                self.held_back.store(true, Ordering::Relaxed);
+            }
+        } else if changes.material || self.held_back.swap(false, Ordering::Relaxed) {
             self.published.send_replace(next.clone());
         }
         self.current.send_replace(next);
@@ -101,17 +123,59 @@ impl PlayerMonitor {
         }
     }
 
+    /// Whether the snapshot waits for a provider still settling the device's
+    /// origin: for at most `SETTLE`, after which it is rebuilt anyway.
+    fn waits_for_settling(&self, device: &DeviceSnapshot) -> bool {
+        let settling = self
+            .providers
+            .iter()
+            .any(|provider| provider.settling(device));
+        let mut since = self
+            .settling_since
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        if !settling {
+            *since = None;
+            self.deadline
+                .send_if_modified(|deadline| deadline.take().is_some());
+            return false;
+        }
+        let started = *since.get_or_insert_with(Instant::now);
+        let deadline = started + SETTLE;
+        if Instant::now() >= deadline {
+            self.deadline
+                .send_if_modified(|current| current.take().is_some());
+            return false;
+        }
+        self.deadline.send_if_modified(|current| {
+            let changed = *current != Some(deadline);
+            *current = Some(deadline);
+            changed
+        });
+        true
+    }
+
     /// Follows the device and the providers until the device stream ends.
     pub async fn run(self, device: Arc<dyn DeviceMonitor>) {
         let mut snapshots = device.snapshots();
         let mut updates = stream::select_all(self.providers.iter().map(|p| p.updates()));
+        let mut deadline = self.deadline.subscribe();
         loop {
+            let wake = *deadline.borrow_and_update();
             tokio::select! {
                 snapshot = snapshots.next() => match snapshot {
                     Some(snapshot) => self.apply(&snapshot),
                     None => return,
                 },
                 Some(()) = updates.next() => self.refresh(),
+                // A settling provider ran out of time: show what is known.
+                () = async {
+                    match wake {
+                        Some(at) => tokio::time::sleep_until(at).await,
+                        None => std::future::pending().await,
+                    }
+                } => self.refresh(),
+                _ = deadline.changed() => {}
             }
         }
     }

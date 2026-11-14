@@ -40,8 +40,8 @@
 
 ## 6. A new session settles before it shows (stack layer 6, DEV-54: application, Music Assistant adapter)
 
-- [ ] 6.1 Write failing application tests "A group resumes", "The provider doesn't answer in time" and "Nothing settling" (a fake provider that settles, with a paused clock); then `SessionProvider::settling`, and the monitor holding the snapshot for at most 2 seconds with a timer; verify with `cargo test -p jukelight-application`
-- [ ] 6.2 Write failing provider tests "AirPlay, no answer yet", "AirPlay, answered", "Claimed, no content yet" and "Unreachable"; then the Music Assistant provider's `settling`; verify with `cargo test -p jukelight-adapter-music-assistant`
+- [x] 6.1 Write failing application tests "A group resumes", "The provider doesn't answer in time" and "Nothing settling" (a fake provider that settles, with a paused clock); then `SessionProvider::settling`, and the monitor holding the snapshot for at most 2 seconds with a timer; verify with `cargo test -p jukelight-application`
+- [x] 6.2 Write failing provider tests "AirPlay, no answer yet", "AirPlay, answered", "Claimed, no content yet" and "Unreachable"; then the Music Assistant provider's `settling`; verify with `cargo test -p jukelight-adapter-music-assistant`
 - [ ] 6.3 Verify the layer (as 1.2); open the pull request and verify CI is green
 
 ## 7. Every paused group is held (stack layer 7, DEV-55: Music Assistant adapter)

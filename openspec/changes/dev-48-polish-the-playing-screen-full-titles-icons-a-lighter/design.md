@@ -199,11 +199,14 @@ The session provider port gains `settling(device)`, false by default. The
 Music Assistant provider is settling while it follows an AirPlay origin
 without an answer since it started following it, and while it claims the
 origin without content fetched for it; a failed poll ends settling (the
-provider is unreachable, shown as before). The player monitor, before
-rebuilding, asks the providers: while one is settling and less than 2
-seconds have passed since it started, it leaves the snapshot as it is and
-sets a timer for the deadline; a provider's update or the timer rebuilds
-as usual. Track changes, pauses and positions of a settled session are not
+provider is unreachable, shown as before). The player monitor rebuilds as
+usual, updating the current snapshot and sending events (the display
+turns on at once), but while a provider is settling and less than 2
+seconds have passed, it holds back the published snapshot, which the
+kiosk follows, and sets a timer for the deadline; a provider's update or
+the timer publishes the snapshot as soon as nothing is settling. (Found in
+review: holding back the whole rebuild also delayed the events and the
+current snapshot.) Track changes, pauses and positions of a settled session are not
 delayed: settling only happens around a new origin.
 
 - *Alternative:* the kiosk waits for a settled snapshot. Rejected: the

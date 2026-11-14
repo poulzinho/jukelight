@@ -328,6 +328,90 @@ mod paused_groups {
     }
 }
 
+// Spec: session-music-assistant, "Settling the session".
+mod settling {
+    use super::*;
+
+    /// Polls `settling` until it is `expected`, for at most `WAIT`.
+    async fn wait_settling(
+        provider: &jukelight_adapter_music_assistant::MusicAssistantProvider,
+        device: &DeviceSnapshot,
+        expected: bool,
+    ) {
+        let deadline = tokio::time::Instant::now() + WAIT;
+        while provider.settling(device) != expected {
+            assert!(
+                tokio::time::Instant::now() < deadline,
+                "settling never became {expected}"
+            );
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn airplay_no_answer_yet() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        // Nothing asked yet: Music Assistant hasn't answered.
+        assert!(provider.settling(&device));
+    }
+
+    #[tokio::test]
+    async fn airplay_answered_drives_the_player() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_settling(&provider, &device, false).await;
+        // Settled with its content: no "Playing from" in between.
+        assert!(provider.claims(&device));
+        assert!(provider.content().is_some());
+    }
+
+    #[tokio::test]
+    async fn airplay_answered_a_phone() {
+        let server = TestServer::start("airplay-phone").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_settling(&provider, &device, false).await;
+        assert!(!provider.claims(&device));
+    }
+
+    #[tokio::test]
+    async fn claimed_no_content_yet() {
+        let server = TestServer::start("qobuz").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = claimed_device();
+        provider.follow(&device);
+        assert!(provider.settling(&device));
+        wait_settling(&provider, &device, false).await;
+        assert!(provider.content().is_some());
+    }
+
+    #[tokio::test]
+    async fn unreachable() {
+        let server = TestServer::start("group-playing").await;
+        server.set_reachable(false);
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_settling(&provider, &device, false).await;
+        assert!(!provider.claims(&device));
+    }
+
+    #[tokio::test]
+    async fn a_service_origin_never_settles() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = service_device();
+        provider.follow(&device);
+        assert!(!provider.settling(&device));
+    }
+}
+
 mod group_sessions {
     use super::*;
 
