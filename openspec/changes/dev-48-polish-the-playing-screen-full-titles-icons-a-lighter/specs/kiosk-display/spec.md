@@ -230,7 +230,7 @@ SHALL NOT change them.
 
 #### Scenario: Lines stay in the background
 - **WHEN** the diagram is drawn
-- **THEN** its lines, ports and junction dots are partly transparent and thinner than the streamer card's border
+- **THEN** its lines, ports and junction dots are partly transparent and thinner than the streamer card's border, and the card's border is as thick as the speakers' icons
 
 ### Requirement: Diagram fits
 No part of the diagram SHALL leave its area, come within 3vmin of the

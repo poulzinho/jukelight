@@ -60,9 +60,9 @@ mark leaves the body, so "the maker's mark gives way first" is dropped from
 
 ### 3. Lighter lines, and more air between the rows
 
-Lines go from 1.6 to 1.1 units at 0.6 opacity; ports from radius 4.2 to
+Lines go from 1.6 to 1.0 units at 0.6 opacity; ports from radius 4.2 to
 3.3 with a 1.1 stroke at 0.75 opacity; junction dots from 2.6 to 1.9 at
-0.75. The card's border goes to 1.3, staying stronger than the lines. The diagram's icons (speakers, computers, outputs) go from a 1.9 to a 1.4 stroke, as light as the text beside them and the maker's mark. The
+0.75. The card's border goes to 1.05, as thick as the icons' strokes appear, and stays stronger than the lines. The diagram's icons (speakers, computers, outputs) go from a 1.9 to a 1.4 stroke on lucide's 24-unit grid (about 1.05 as drawn), as light as the text beside them and the maker's mark. The
 gap between the last speaker row and the streamer grows from 14 to 24
 units; the source's line shrinks from 52 to 48 (its label still clears the
 logo).
