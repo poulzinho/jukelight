@@ -248,7 +248,8 @@ function Pulse({ laid }: { laid: Layout }) {
         <g data-part="wave-flash" className="signal-flash" style={{ animationDelay: '0ms' }}>
           <path d={wave.d} fill="none" stroke="#fff" strokeWidth={1.6} strokeLinecap="round" />
           {formats.map((text, i) => (
-            <text key={i} x={text.x} y={text.y} fontSize={text.size} fontWeight={text.weight} textAnchor={text.anchor} fill="#fff">
+            // Set exactly like the format, so the copy lies over it.
+            <text key={i} x={text.x} y={text.y} fontSize={text.size} fontWeight={text.weight} textAnchor={text.anchor} fill="#fff" className="tabular-nums">
               {text.text}
             </text>
           ))}

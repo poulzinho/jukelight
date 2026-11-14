@@ -265,6 +265,20 @@ test('a pulse lights up the wave and its format at once', () => {
   expect((flash[0] as HTMLElement).style.animationDelay).toBe('0ms')
 })
 
+test('the flash text lies exactly over the format: set the same way', () => {
+  show({ source: { ...qobuzViaMusicAssistant(), logoUrl: '/api/v1/logos/qobuz?v=1' }, signal: signal(), speakers: [speaker('Kitchen')], queue })
+  const flash = parts('wave-flash')[0] as Element
+  const copies = [...flash.querySelectorAll('text')]
+  const originals = [...parts('streams'), ...parts('streams-codec')]
+  expect(copies).toHaveLength(originals.length)
+  for (const original of originals) {
+    const copy = copies.find((text) => text.textContent === original.textContent)
+    for (const attribute of ['x', 'y', 'font-size', 'font-weight', 'text-anchor', 'class']) {
+      expect(copy?.getAttribute(attribute), `${original.textContent} ${attribute}`).toBe(original.getAttribute(attribute))
+    }
+  }
+})
+
 test('no quality reported: nothing to light up', () => {
   show({ source: { brand: 'airplay', name: 'AirPlay', logoUrl: null, via: null }, signal: signal({ class: 'unknown', source: null }), queue: null })
   expect(parts('wave-flash')).toHaveLength(0)
