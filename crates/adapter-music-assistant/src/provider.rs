@@ -51,6 +51,9 @@ pub struct Timing {
     pub request_timeout: Duration,
     /// How long Music Assistant's answer counts for an AirPlay claim.
     pub answer_lifetime: Duration,
+    /// How long a paused group is held while Music Assistant still reports
+    /// its queue playing: it reports a pause late.
+    pub pause_lag: Duration,
 }
 
 impl Default for Timing {
@@ -59,6 +62,7 @@ impl Default for Timing {
             interval: Duration::from_secs(2),
             request_timeout: Duration::from_secs(5),
             answer_lifetime: Duration::from_secs(5),
+            pause_lag: Duration::from_secs(5),
         }
     }
 }
@@ -111,6 +115,8 @@ struct Inner {
     /// Music Assistant's latest answer during an AirPlay session; it ticks
     /// `updates` when the queue changes, so the claim is decided again.
     answer: watch::Sender<Option<Answer>>,
+    /// When the current hold of a paused group began.
+    held_since: std::sync::Mutex<Option<Instant>>,
     /// Whether the last request to Music Assistant was answered: a provider
     /// that can't reach it isn't settling anything.
     reachable: AtomicBool,
@@ -162,6 +168,7 @@ impl MusicAssistantProvider {
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
                 answer: watch::Sender::new(None),
+                held_since: std::sync::Mutex::new(None),
                 reachable: AtomicBool::new(true),
                 group: std::sync::Mutex::new(None),
             }),
@@ -278,8 +285,31 @@ impl Inner {
     /// Ends a hold: forgets the group and stops following the player.
     fn release(&self) {
         self.remember_group(None);
+        self.hold_from(None);
         self.followed
             .send_if_modified(|current| current.take().is_some());
+    }
+
+    /// Starts (when not started yet) or ends the clock of a hold.
+    fn hold_from(&self, start: Option<Instant>) {
+        if let Ok(mut since) = self.held_since.lock() {
+            match start {
+                Some(now) => {
+                    since.get_or_insert(now);
+                }
+                None => *since = None,
+            }
+        }
+    }
+
+    /// Whether the hold has lasted longer than Music Assistant's lag in
+    /// reporting a pause.
+    fn hold_outlasted_the_lag(&self) -> bool {
+        self.held_since
+            .lock()
+            .ok()
+            .and_then(|since| *since)
+            .is_some_and(|since| since.elapsed() > self.timing.pause_lag)
     }
 
     /// Whether the provider holds a paused group session.
@@ -334,10 +364,13 @@ impl Inner {
             .map(|item| item.queue_item_id.clone());
         match &mode {
             Mode::Held(group) => {
-                // Held only while the queue still holds the group's item and
-                // doesn't play it.
+                // Held while the queue still holds the group's item. Music
+                // Assistant reports a pause late, so a queue still playing it
+                // is held too, until the lag has passed: then the group plays
+                // on without the player.
                 let playing = queue.state.as_deref() == Some("playing");
-                if playing || item.as_ref() != Some(&group.item) {
+                if item.as_ref() != Some(&group.item) || (playing && self.hold_outlasted_the_lag())
+                {
                     return Ok(None);
                 }
             }
@@ -462,8 +495,10 @@ impl SessionProvider for MusicAssistantProvider {
                     }
                     _ => false,
                 });
+            self.inner.hold_from(Some(Instant::now()));
             Some(Mode::Held(group))
         } else if is_airplay(device) && !device.player_key.is_empty() {
+            self.inner.hold_from(None);
             Some(Mode::Checking)
         } else {
             // Anything else plays: no group to hold any more.
