@@ -33,6 +33,18 @@
 - [x] 5.2 Write failing component tests "Long title" (two lines, then "…") and "Heading at the bottom", then the grouped list; verify with the kiosk tests
 - [x] 5.3 Add a fake scenario with a classical queue; write the failing e2e check for a grouped classical queue; review the screenshots
 - [x] 5.4 Verify the layer (as 1.2); open the pull request and verify CI is green (found: on CI the e2e check that the cover has loaded read it the instant the page opened; it now waits for it)
-- [ ] 5.5 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing; an hour's CPU against about 64 s; record the results on DEV-48
-- [x] 5.6 Found in the acceptance (5.5): the wave's flash smeared the format ("16/44.1"): its bright copy lacked tabular numbers, so the digits didn't lie over the format's. Test "the flash text lies exactly over the format"; fixed in layer 4
-- [x] 5.7 Found in the acceptance (5.5): back from the idle screen, the diagram showed for two frames at a guessed size (236 by 227 pixels) before its measured one, so the diagram jumped. Write the failing e2e check "Back from the idle screen" (the diagram's and "Up next"'s boxes in the first frame equal the settled ones), then measure the box before the first paint and remember logo proportions across screens
+- [x] 5.5 Found in the acceptance (7.4): the wave's flash smeared the format ("16/44.1"): its bright copy lacked tabular numbers, so the digits didn't lie over the format's. Test "the flash text lies exactly over the format"; fixed in layer 4
+- [x] 5.6 Found in the acceptance (7.4): back from the idle screen, the diagram showed for two frames at a guessed size (236 by 227 pixels) before its measured one, so the diagram jumped. Write the failing e2e check "Back from the idle screen" (the diagram's and "Up next"'s boxes in the first frame equal the settled ones), then measure the box before the first paint and remember logo proportions across screens
+
+## 6. A new session settles before it shows (stack layer 6, DEV-54: application, Music Assistant adapter)
+
+- [ ] 6.1 Write failing application tests "A group resumes", "The provider doesn't answer in time" and "Nothing settling" (a fake provider that settles, with a paused clock); then `SessionProvider::settling`, and the monitor holding the snapshot for at most 2 seconds with a timer; verify with `cargo test -p jukelight-application`
+- [ ] 6.2 Write failing provider tests "AirPlay, no answer yet", "AirPlay, answered", "Claimed, no content yet" and "Unreachable"; then the Music Assistant provider's `settling`; verify with `cargo test -p jukelight-adapter-music-assistant`
+- [ ] 6.3 Verify the layer (as 1.2); open the pull request and verify CI is green
+
+## 7. Every paused group is held (stack layer 7, DEV-55: Music Assistant adapter)
+
+- [ ] 7.1 Record the failing pause on the reference host (Music Assistant's players and queues, the player's status, and the live feed) at each step; copy into the git-ignored `fixtures/raw/`, commit only scrubbed fixtures
+- [ ] 7.2 From the recording: the spec change ("A paused group" in session-music-assistant) and the design (decision 11), then a failing fixture test for the recorded sequence, then the fix; verify with `cargo test -p jukelight-adapter-music-assistant`
+- [ ] 7.3 Verify the layer (as 1.2); open the pull request and verify CI is green
+- [ ] 7.4 Acceptance on the reference host for the whole stack: the long classical title, a medium and a short title in portrait from across the room, two artists on two lines, the streamer card with the mark, the wave and its flash, the background on a red and a dark cover, a two-speaker group, a classical queue and a pop queue in "Up next", no footer while playing, resuming a group without a jump, pausing a group (held); an hour's CPU against about 64 s; record the results on DEV-48

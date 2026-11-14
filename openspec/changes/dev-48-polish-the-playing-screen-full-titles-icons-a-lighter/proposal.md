@@ -1,8 +1,10 @@
 # DEV-48: Polish the playing screen: full titles, icons, a lighter diagram, Figtree and a softer background
 
-In one stack of five layers, each a sub-issue of DEV-48: DEV-49 (a softer
+In one stack of seven layers, each a sub-issue of DEV-48: DEV-49 (a softer
 background), DEV-50 (Figtree), DEV-51 (the track's text and the page's
-room), DEV-52 (the diagram) and DEV-53 ("Up next" grouped).
+room), DEV-52 (the diagram), DEV-53 ("Up next" grouped), and two found in
+the acceptance: DEV-54 (a new session settles before it shows) and DEV-55
+(every paused group is held).
 
 ## Why
 
@@ -50,6 +52,14 @@ was reviewed and approved. Part of roadmap step 4 (finished kiosk).
   logo to its format; it lights up when a pulse starts.
 - **No footer on the playing screen:** the streamer card already shows the
   maker's mark and the room; the space goes to the diagram and "Up next".
+- **A new session settles before it shows** (found in the acceptance):
+  resuming a Music Assistant group, the kiosk got AirPlay, then "Playing
+  from Music Assistant", then the group, within a second, so the layout
+  jumped. While a provider is still settling the session, the snapshot
+  waits, at most 2 seconds.
+- **Every paused group is held** (found in the acceptance): pausing a
+  group sometimes went straight to the idle screen; recorded first, then
+  fixed as DEV-46 intended.
 - **A softer background:** the artwork proxy makes the backdrop at a larger
   size, blurs it and adds a faint grain against banding; the kiosk still
   stretches one image without CSS filters, so its CPU use doesn't change.
@@ -78,6 +88,9 @@ None.
   signature"; a new requirement names the bundled typeface.
 - `artwork`: the backdrop image is larger and blurred with grain instead
   of a 32-pixel thumbnail.
+- `session-arbitration`: a new session settles before it shows.
+- `session-music-assistant`: the provider reports when it is settling the
+  session; holding a paused group (after the recording).
 
 ## Impact
 
