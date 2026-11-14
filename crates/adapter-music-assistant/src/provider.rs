@@ -6,7 +6,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use futures::stream::{self, BoxStream};
 use jukelight_application::{Clock, SessionProvider};
-use jukelight_domain::{Brand, Content, DeviceSnapshot};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tokio::sync::watch;
@@ -45,9 +45,11 @@ pub struct MusicAssistantConfig {
 /// Timing of requests to Music Assistant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Timing {
-    /// Time between the starts of two polls while claimed.
+    /// Time between the starts of two polls while claimed or checking.
     pub interval: Duration,
     pub request_timeout: Duration,
+    /// How long Music Assistant's answer counts for an AirPlay claim.
+    pub answer_lifetime: Duration,
 }
 
 impl Default for Timing {
@@ -55,8 +57,27 @@ impl Default for Timing {
         Self {
             interval: Duration::from_secs(2),
             request_timeout: Duration::from_secs(5),
+            answer_lifetime: Duration::from_secs(5),
         }
     }
+}
+
+/// Why the provider polls Music Assistant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    /// Music Assistant's own stream: claimed from configuration alone.
+    Claimed,
+    /// An AirPlay session: claimed only while Music Assistant says it drives
+    /// the player (it plays to a group of speakers).
+    Checking,
+}
+
+/// Music Assistant's latest answer about an AirPlay session: the queue it
+/// plays to the player from, if any, and when it answered.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Answer {
+    queue: Option<String>,
+    at: Instant,
 }
 
 /// Follows Music Assistant's view of the player while Music Assistant drives
@@ -72,9 +93,12 @@ struct Inner {
     timing: Timing,
     clock: Arc<dyn Clock>,
     client: reqwest::Client,
-    /// The player key while the provider claims the device, else `None`.
-    followed: watch::Sender<Option<String>>,
+    /// The player key and why it is followed, else `None`.
+    followed: watch::Sender<Option<(String, Mode)>>,
     content: watch::Sender<Option<Content>>,
+    /// Music Assistant's latest answer during an AirPlay session; it ticks
+    /// `updates` when the queue changes, so the claim is decided again.
+    answer: watch::Sender<Option<Answer>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -119,6 +143,7 @@ impl MusicAssistantProvider {
                 client: reqwest::Client::new(),
                 followed: watch::Sender::new(None),
                 content: watch::Sender::new(None),
+                answer: watch::Sender::new(None),
             }),
         })
     }
@@ -141,21 +166,21 @@ impl MusicAssistantProvider {
     }
 }
 
-async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option<String>>) {
+async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option<(String, Mode)>>) {
     let mut cache = Cache::default();
     let mut reachable = true;
     loop {
-        let player_key = {
+        let (player_key, mode) = {
             let Ok(key) = followed.wait_for(Option::is_some).await else {
                 return;
             };
-            key.clone().unwrap_or_default()
+            key.clone().unwrap_or((String::new(), Mode::Claimed))
         };
         let Some(provider) = inner.upgrade() else {
             return;
         };
         let started = Instant::now();
-        match provider.poll(&player_key, &mut cache).await {
+        match provider.poll(&player_key, mode, &mut cache).await {
             Ok(content) => {
                 if !reachable {
                     tracing::info!("Music Assistant reachable again");
@@ -172,6 +197,7 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
                 reachable = false;
                 cache = Cache::default();
                 provider.publish(None);
+                provider.forget_answer();
             }
         }
         let interval = provider.timing.interval;
@@ -185,6 +211,7 @@ async fn run(inner: std::sync::Weak<Inner>, mut followed: watch::Receiver<Option
         if followed.borrow().is_none() {
             if let Some(provider) = inner.upgrade() {
                 provider.publish(None);
+                provider.forget_answer();
             }
             cache = Cache::default();
         }
@@ -200,16 +227,53 @@ impl Inner {
         });
     }
 
+    /// Remembers which queue Music Assistant plays to the player from during
+    /// an AirPlay session; ticks `updates` only when that changes.
+    fn remember_answer(&self, queue: Option<String>) {
+        let at = Instant::now();
+        self.answer.send_if_modified(|current| {
+            let changed = current.as_ref().map(|answer| &answer.queue) != Some(&queue);
+            *current = Some(Answer { queue, at });
+            changed
+        });
+    }
+
+    fn forget_answer(&self) {
+        self.answer
+            .send_if_modified(|current| current.take().is_some());
+    }
+
+    /// Whether Music Assistant said, recently enough, that it drives the
+    /// player.
+    fn drives_player(&self) -> bool {
+        self.answer.borrow().as_ref().is_some_and(|answer| {
+            answer.queue.is_some() && answer.at.elapsed() <= self.timing.answer_lifetime
+        })
+    }
+
     async fn poll(
         &self,
         player_key: &str,
+        mode: Mode,
         cache: &mut Cache,
     ) -> Result<Option<Content>, PollError> {
         let player: api::Player = self
             .call("players/get", json!({ "player_id": player_key }))
             .await?;
+        let group_queue = mapping::music_assistant_queue(&player, player_key);
+        let queue_id = match mode {
+            Mode::Claimed => group_queue.unwrap_or_else(|| player_key.to_owned()),
+            Mode::Checking => {
+                self.remember_answer(group_queue.clone());
+                // A phone's AirPlay: nothing more to ask.
+                let Some(queue_id) = group_queue else {
+                    return Ok(None);
+                };
+                queue_id
+            }
+        };
         let queue: api::Queue = self
-            .call("player_queues/get", json!({ "queue_id": player_key }))
+            .call("player_queues/get", json!({ "queue_id": queue_id }))
             .await?;
 
         // Upcoming entries only change with the current item, index or count.
@@ -222,7 +286,7 @@ impl Inner {
                 Some(index) => {
                     self.call(
                         "player_queues/items",
-                        json!({ "queue_id": player_key, "limit": UP_NEXT, "offset": index + 1 }),
+                        json!({ "queue_id": queue_id, "limit": UP_NEXT, "offset": index + 1 }),
                     )
                     .await?
                 }
@@ -276,7 +340,7 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn claims(&self, device: &DeviceSnapshot) -> bool {
-        self.inner.rule.claims(device)
+        self.inner.rule.claims(device) || (is_airplay(device) && self.inner.drives_player())
     }
 
     fn content(&self) -> Option<Content> {
@@ -284,7 +348,14 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn follow(&self, device: &DeviceSnapshot) {
-        let key = self.claims(device).then(|| device.player_key.clone());
+        let mode = if self.inner.rule.claims(device) {
+            Some(Mode::Claimed)
+        } else if is_airplay(device) && !device.player_key.is_empty() {
+            Some(Mode::Checking)
+        } else {
+            None
+        };
+        let key = mode.map(|mode| (device.player_key.clone(), mode));
         self.inner.followed.send_if_modified(|current| {
             let changed = *current != key;
             *current = key;
@@ -293,9 +364,18 @@ impl SessionProvider for MusicAssistantProvider {
     }
 
     fn updates(&self) -> BoxStream<'static, ()> {
-        stream::unfold(self.inner.content.subscribe(), |mut receiver| async move {
+        let content = stream::unfold(self.inner.content.subscribe(), |mut receiver| async move {
             receiver.changed().await.ok().map(|()| ((), receiver))
-        })
-        .boxed()
+        });
+        let answer = stream::unfold(self.inner.answer.subscribe(), |mut receiver| async move {
+            receiver.changed().await.ok().map(|()| ((), receiver))
+        });
+        stream::select(content, answer).boxed()
     }
+}
+
+/// The player reports Music Assistant's group playback as an AirPlay session,
+/// like a phone's AirPlay; only Music Assistant can tell them apart.
+fn is_airplay(device: &DeviceSnapshot) -> bool {
+    matches!(&device.origin, Origin::Service { id, .. } if id == "AirPlay")
 }

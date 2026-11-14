@@ -1,4 +1,5 @@
-//! Spec: session-music-assistant, "Following the player", "Up next" and
+//! Spec: session-music-assistant, "Claiming the session" (group sessions),
+//! "The group's queue", "Following the player", "Up next" and
 //! "Unreachable Music Assistant", against a local test server that replays
 //! recorded responses; plus the session provider contract.
 
@@ -190,5 +191,101 @@ mod contract {
         let server = TestServer::start("qobuz").await;
         let provider = server.provider(TOKEN, FAST);
         session_provider_contract(provider.as_ref(), &Harness(server)).await;
+    }
+}
+
+// Spec: session-music-assistant, "Claiming the session" (Music Assistant's
+// group sessions), "Following the player" ("AirPlay session") and "The
+// group's queue".
+mod group_sessions {
+    use super::*;
+
+    #[tokio::test]
+    async fn music_assistant_plays_to_a_group() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_for_claim(&provider, &device, true).await;
+    }
+
+    #[tokio::test]
+    async fn the_player_leads_the_group() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        provider.follow(&airplay_device());
+        let content = wait_for(&provider, Option::is_some).await;
+        assert_eq!(
+            title(content.as_ref()),
+            Some(
+                fixture("group-playing", "queue.json")["current_item"]["media_item"]["name"]
+                    .as_str()
+                    .unwrap()
+            )
+        );
+        assert_eq!(
+            server.requests("player_queues/get")[0],
+            json!({"queue_id": "aabbccddeeff"})
+        );
+    }
+
+    #[tokio::test]
+    async fn a_member_of_another_players_group() {
+        let server = TestServer::start("group-playing").await;
+        server.patch_player(json!({"active_source": "112233445566", "synced_to": "112233445566"}));
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_for_claim(&provider, &device, true).await;
+        wait_for(&provider, Option::is_some).await;
+        assert_eq!(
+            server.requests("player_queues/get")[0],
+            json!({"queue_id": "112233445566"})
+        );
+    }
+
+    #[tokio::test]
+    async fn airplay_from_a_phone() {
+        let server = TestServer::start("airplay-phone").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        assert!(!provider.claims(&device));
+        assert_eq!(provider.content(), None);
+        // "AirPlay session": only the player is asked about.
+        assert!(server.requests("players/get").len() >= 2);
+        assert_eq!(server.requests("player_queues/get").len(), 0);
+    }
+
+    #[tokio::test]
+    async fn no_answer_yet() {
+        let server = TestServer::start("group-playing").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        wait_for_claim(&provider, &device, true).await;
+
+        // Music Assistant stops answering: the claim lapses.
+        server.set_reachable(false);
+        wait_for_claim(&provider, &device, false).await;
+    }
+
+    #[tokio::test]
+    async fn a_new_answer_rebuilds_the_snapshot() {
+        let server = TestServer::start("airplay-phone").await;
+        let provider = server.provider(TOKEN, FAST);
+        let device = airplay_device();
+        provider.follow(&device);
+        tokio::time::sleep(Duration::from_millis(200)).await;
+
+        let mut updates = provider.updates();
+        server.set_fixture("group-playing");
+        tokio::time::timeout(WAIT, updates.next())
+            .await
+            .expect("an update once Music Assistant drives the player")
+            .expect("updates continue");
+        wait_for_claim(&provider, &device, true).await;
     }
 }

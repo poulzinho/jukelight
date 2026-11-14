@@ -1,0 +1,583 @@
+{
+  "queue_id": "aabbccddeeff",
+  "active": true,
+  "display_name": "Bluesound Node",
+  "available": true,
+  "items": 11,
+  "shuffle_enabled": false,
+  "repeat_mode": "off",
+  "crossfade_enabled": false,
+  "autoplay_enabled": false,
+  "overlay_enabled": false,
+  "overlay_source": null,
+  "overlay_volume": 100,
+  "smart_fades_active": false,
+  "smart_shuffle_active": false,
+  "current_index": 0,
+  "index_in_buffer": 0,
+  "ended": false,
+  "elapsed_time": 112.46640578269958,
+  "elapsed_time_last_updated": 1794406191.9016526,
+  "playback_speed": 1.0,
+  "state": "playing",
+  "current_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "c2bbce3d816d41668c5878a4e44de64b",
+    "name": "Alejandro Filio - Mujer Que Camina",
+    "duration": 322,
+    "sort_index": 0,
+    "streamdetails": {
+      "provider": "qobuz--6s5ZHWN7",
+      "item_id": "167232868",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "flac",
+        "sample_rate": 44100,
+        "bit_depth": 16,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 322,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": {
+        "input_fidelity": {
+          "quality": "lossless",
+          "bit_perfect": null
+        },
+        "queue_processing": {
+          "pcm_format": {
+            "content_type": "f32le",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 32,
+            "channels": 2,
+            "output_format_str": "pcm;codec=pcm;rate=44100;bitrate=32;channels=2",
+            "bit_rate": 0
+          },
+          "normalization": {
+            "mode": "measurement_only",
+            "measurement_source": "track",
+            "target_lufs": -14.0,
+            "measured_lufs": -15.3,
+            "applied_gain_db": 1.3
+          },
+          "playback_speed": 1.0,
+          "crossfade_mode": "disabled",
+          "overlay_active": false
+        },
+        "outputs": [
+          {
+            "player_ids": [
+              "aabbccddeeff",
+              "up00000002"
+            ],
+            "dsp": {
+              "state": "disabled",
+              "input_gain": 0.0,
+              "filters": [],
+              "output_gain": 0.0,
+              "preset_id": null
+            },
+            "source_channel": null,
+            "output_format": {
+              "content_type": "s16le",
+              "codec_type": "?",
+              "sample_rate": 44100,
+              "bit_depth": 16,
+              "channels": 2,
+              "output_format_str": "pcm;codec=pcm;rate=44100;bitrate=16;channels=2",
+              "bit_rate": 0
+            },
+            "fidelity": {
+              "quality": "lossless",
+              "bit_perfect": false
+            }
+          },
+          {
+            "player_ids": [
+              "ma_companion_00000000-0000-0000-0000-000000000006"
+            ],
+            "dsp": {
+              "state": "disabled",
+              "input_gain": 0.0,
+              "filters": [],
+              "output_gain": 0.0,
+              "preset_id": null
+            },
+            "source_channel": null,
+            "output_format": {
+              "content_type": "flac",
+              "codec_type": "?",
+              "sample_rate": 44100,
+              "bit_depth": 24,
+              "channels": 2,
+              "output_format_str": "flac",
+              "bit_rate": 0
+            },
+            "fidelity": {
+              "quality": "lossless",
+              "bit_perfect": false
+            }
+          }
+        ]
+      },
+      "loudness": -15.3,
+      "loudness_album": null,
+      "prefer_album_loudness": true,
+      "volume_normalization_mode": "measurement_only",
+      "volume_normalization_gain_correct": 1.3,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "167232868",
+      "provider": "qobuz--6s5ZHWN7",
+      "name": "Mujer Que Camina",
+      "version": "",
+      "sort_name": "mujer que camina",
+      "uri": "qobuz--6s5ZHWN7://track/167232868",
+      "external_ids": [
+        [
+          "isrc",
+          "US7VG1731363"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "167232868",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--6s5ZHWN7",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 16,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/167232868",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+            "provider": "qobuz--6s5ZHWN7",
+            "remotely_accessible": true,
+            "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+          }
+        ],
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": "2001 Alejandro Filio 2001 Alejandro Filio",
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "Alejandro Filio, MainArtist"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": null,
+      "duration": 322,
+      "artists": [
+        {
+          "item_id": "69101",
+          "provider": "qobuz--6s5ZHWN7",
+          "name": "Alejandro Filio",
+          "version": "",
+          "sort_name": "alejandro filio",
+          "uri": "qobuz--6s5ZHWN7://artist/69101",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "provider_mappings": [
+            {
+              "item_id": "69101",
+              "provider_domain": "qobuz",
+              "provider_instance": "qobuz--6s5ZHWN7",
+              "available": true,
+              "in_library": null,
+              "is_unique": null,
+              "audio_format": {
+                "content_type": "?",
+                "codec_type": "?",
+                "sample_rate": 44100,
+                "bit_depth": 16,
+                "channels": 2,
+                "output_format_str": "?",
+                "bit_rate": 0
+              },
+              "url": "https://open.qobuz.com/artist/69101",
+              "details": null
+            }
+          ],
+          "metadata": {
+            "description": null,
+            "description_language": null,
+            "life_span": null,
+            "artist_entity_type": null,
+            "review": null,
+            "explicit": null,
+            "images": null,
+            "grouping": null,
+            "genres": null,
+            "mood": null,
+            "style": null,
+            "copyright": null,
+            "lyrics": null,
+            "lrc_lyrics": null,
+            "transcript": null,
+            "transcript_cues": null,
+            "has_transcript": null,
+            "label": null,
+            "links": null,
+            "performers": null,
+            "preview": null,
+            "popularity": null,
+            "release_date": null,
+            "languages": null,
+            "chapters": null,
+            "collections": null,
+            "last_refresh": null
+          },
+          "favorite": false,
+          "position": null,
+          "date_added": null,
+          "artist_type": "singer"
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "hc78phbv5u8cb",
+        "provider": "qobuz--6s5ZHWN7",
+        "name": "Mujer Que Camina",
+        "version": "",
+        "sort_name": "mujer que camina",
+        "uri": "qobuz--6s5ZHWN7://album/hc78phbv5u8cb",
+        "external_ids": [
+          [
+            "barcode",
+            "0655036206744"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+          "provider": "qobuz--6s5ZHWN7",
+          "remotely_accessible": true,
+          "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+        },
+        "year": 2001
+      },
+      "disc_number": 1,
+      "track_number": 1,
+      "audio_metadata": {
+        "bpm": 79.30616037741872,
+        "musical_key": "F# major"
+      }
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+      "provider": "qobuz--6s5ZHWN7",
+      "remotely_accessible": true,
+      "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "next_item": {
+    "queue_id": "aabbccddeeff",
+    "queue_item_id": "2c84fb5c264547fc8559775db2277994",
+    "name": "Alejandro Filio - De los Enamorados",
+    "duration": 304,
+    "sort_index": 1,
+    "streamdetails": {
+      "provider": "qobuz--6s5ZHWN7",
+      "item_id": "167232869",
+      "audio_format": {
+        "content_type": "flac",
+        "codec_type": "?",
+        "sample_rate": 44100,
+        "bit_depth": 16,
+        "channels": 2,
+        "output_format_str": "flac",
+        "bit_rate": 0
+      },
+      "media_type": "track",
+      "stream_type": "http",
+      "duration": 304,
+      "size": null,
+      "stream_metadata": null,
+      "audio_processing": null,
+      "loudness": null,
+      "loudness_album": null,
+      "prefer_album_loudness": true,
+      "volume_normalization_mode": "dynamic",
+      "volume_normalization_gain_correct": null,
+      "target_loudness": -14.0,
+      "stream_title": null
+    },
+    "media_item": {
+      "item_id": "167232869",
+      "provider": "qobuz--6s5ZHWN7",
+      "name": "De los Enamorados",
+      "version": "",
+      "sort_name": "los enamorados, de",
+      "uri": "qobuz--6s5ZHWN7://track/167232869",
+      "external_ids": [
+        [
+          "isrc",
+          "US7VG1731364"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "track",
+      "provider_mappings": [
+        {
+          "item_id": "167232869",
+          "provider_domain": "qobuz",
+          "provider_instance": "qobuz--6s5ZHWN7",
+          "available": true,
+          "in_library": null,
+          "is_unique": null,
+          "audio_format": {
+            "content_type": "flac",
+            "codec_type": "?",
+            "sample_rate": 44100,
+            "bit_depth": 16,
+            "channels": 2,
+            "output_format_str": "flac",
+            "bit_rate": 0
+          },
+          "url": "https://open.qobuz.com/track/167232869",
+          "details": null
+        }
+      ],
+      "metadata": {
+        "description": null,
+        "description_language": null,
+        "life_span": null,
+        "artist_entity_type": null,
+        "review": null,
+        "explicit": null,
+        "images": [
+          {
+            "type": "thumb",
+            "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+            "provider": "qobuz--6s5ZHWN7",
+            "remotely_accessible": true,
+            "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+          }
+        ],
+        "grouping": null,
+        "genres": null,
+        "mood": null,
+        "style": null,
+        "copyright": "2001 Alejandro Filio 2001 Alejandro Filio",
+        "lyrics": null,
+        "lrc_lyrics": null,
+        "transcript": null,
+        "transcript_cues": null,
+        "has_transcript": null,
+        "label": null,
+        "links": null,
+        "performers": [
+          "Alejandro Filio, MainArtist"
+        ],
+        "preview": null,
+        "popularity": null,
+        "release_date": null,
+        "languages": null,
+        "chapters": null,
+        "collections": null,
+        "last_refresh": null
+      },
+      "favorite": false,
+      "position": null,
+      "date_added": null,
+      "duration": 304,
+      "artists": [
+        {
+          "item_id": "69101",
+          "provider": "qobuz--6s5ZHWN7",
+          "name": "Alejandro Filio",
+          "version": "",
+          "sort_name": "alejandro filio",
+          "uri": "qobuz--6s5ZHWN7://artist/69101",
+          "external_ids": [],
+          "is_playable": true,
+          "media_type": "artist",
+          "provider_mappings": [
+            {
+              "item_id": "69101",
+              "provider_domain": "qobuz",
+              "provider_instance": "qobuz--6s5ZHWN7",
+              "available": true,
+              "in_library": null,
+              "is_unique": null,
+              "audio_format": {
+                "content_type": "?",
+                "codec_type": "?",
+                "sample_rate": 44100,
+                "bit_depth": 16,
+                "channels": 2,
+                "output_format_str": "?",
+                "bit_rate": 0
+              },
+              "url": "https://open.qobuz.com/artist/69101",
+              "details": null
+            }
+          ],
+          "metadata": {
+            "description": null,
+            "description_language": null,
+            "life_span": null,
+            "artist_entity_type": null,
+            "review": null,
+            "explicit": null,
+            "images": null,
+            "grouping": null,
+            "genres": null,
+            "mood": null,
+            "style": null,
+            "copyright": null,
+            "lyrics": null,
+            "lrc_lyrics": null,
+            "transcript": null,
+            "transcript_cues": null,
+            "has_transcript": null,
+            "label": null,
+            "links": null,
+            "performers": null,
+            "preview": null,
+            "popularity": null,
+            "release_date": null,
+            "languages": null,
+            "chapters": null,
+            "collections": null,
+            "last_refresh": null
+          },
+          "favorite": false,
+          "position": null,
+          "date_added": null,
+          "artist_type": "singer"
+        }
+      ],
+      "last_played": 0,
+      "album": {
+        "item_id": "hc78phbv5u8cb",
+        "provider": "qobuz--6s5ZHWN7",
+        "name": "Mujer Que Camina",
+        "version": "",
+        "sort_name": "mujer que camina",
+        "uri": "qobuz--6s5ZHWN7://album/hc78phbv5u8cb",
+        "external_ids": [
+          [
+            "barcode",
+            "0655036206744"
+          ]
+        ],
+        "is_playable": true,
+        "media_type": "album",
+        "available": true,
+        "image": {
+          "type": "thumb",
+          "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+          "provider": "qobuz--6s5ZHWN7",
+          "remotely_accessible": true,
+          "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+        },
+        "year": 2001
+      },
+      "disc_number": 1,
+      "track_number": 2,
+      "audio_metadata": {
+        "bpm": 130.06140316937885,
+        "musical_key": "G major"
+      }
+    },
+    "image": {
+      "type": "thumb",
+      "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+      "provider": "qobuz--6s5ZHWN7",
+      "remotely_accessible": true,
+      "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+    },
+    "index": 0,
+    "available": true,
+    "extra_attributes": {}
+  },
+  "sources": [
+    {
+      "item_id": "hc78phbv5u8cb",
+      "provider": "qobuz--6s5ZHWN7",
+      "name": "Mujer Que Camina",
+      "version": "",
+      "sort_name": "mujer que camina",
+      "uri": "qobuz--6s5ZHWN7://album/hc78phbv5u8cb",
+      "external_ids": [
+        [
+          "barcode",
+          "0655036206744"
+        ]
+      ],
+      "is_playable": true,
+      "media_type": "album",
+      "available": true,
+      "image": {
+        "type": "thumb",
+        "path": "https://static.qobuz.com/images/covers/cb/u8/hc78phbv5u8cb_600.jpg",
+        "provider": "qobuz--6s5ZHWN7",
+        "remotely_accessible": true,
+        "proxy_id": "32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6"
+      },
+      "year": 2001
+    }
+  ],
+  "flow_mode": true,
+  "resume_pos": 0,
+  "is_dynamic": false,
+  "extra_attributes": {
+    "play_action_in_progress": false
+  },
+  "dont_stop_the_music_enabled": false,
+  "radio_source": []
+}

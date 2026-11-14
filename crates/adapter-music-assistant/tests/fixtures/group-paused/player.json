@@ -1,0 +1,294 @@
+{
+  "player_id": "aabbccddeeff",
+  "provider": "bluesound",
+  "type": "player",
+  "name": "Bluesound Node",
+  "available": true,
+  "device_info": {
+    "model": "N130",
+    "manufacturer": "BluOS",
+    "software_version": null,
+    "model_id": null,
+    "manufacturer_id": null,
+    "identifiers": {
+      "ip_address": "192.168.1.40",
+      "mac_address": "aabbccddeeff"
+    },
+    "mac_address": "aabbccddeeff",
+    "ip_address": "192.168.1.40"
+  },
+  "supported_features": [
+    "pause",
+    "play_media",
+    "seek",
+    "volume_set",
+    "next_previous",
+    "multi_device_dsp",
+    "set_members",
+    "volume_mute",
+    "select_source"
+  ],
+  "playback_state": "idle",
+  "elapsed_time": 0.0,
+  "elapsed_time_last_updated": 1794406201.1728268,
+  "powered": true,
+  "volume_level": 62,
+  "volume_muted": false,
+  "group_members": [
+    "aabbccddeeff",
+    "ma_companion_00000000-0000-0000-0000-000000000006",
+    "up00000002"
+  ],
+  "static_group_members": [],
+  "can_group_with": [
+    "up00000003",
+    "00000000-0000-0000-0000-000000000005",
+    "ma_companion_00000000-0000-0000-0000-000000000006",
+    "up00000002"
+  ],
+  "synced_to": null,
+  "active_sound_mode": null,
+  "sound_mode_list": [],
+  "options": [],
+  "active_source": "aabbccddeeff",
+  "source_list": [
+    {
+      "id": "preset-1",
+      "name": "Preset 01: Leak CDT",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-2",
+      "name": "Preset 02: Spotify",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-3",
+      "name": "Preset 03: Bluetooth ",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-4",
+      "name": "Preset 04: SWR3",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:bluez:bluetooth",
+      "name": "Input: Bluetooth",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input2",
+      "name": "Input: HDMI ARC",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input1",
+      "name": "Input: Leak CDT",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Spotify:play",
+      "name": "Input: Spotify",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "AirPlay",
+      "name": "AirPlay",
+      "passive": true,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "aabbccddeeff",
+      "name": "Music Assistant Queue",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": true,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    }
+  ],
+  "active_group": null,
+  "current_media": {
+    "uri": "qobuz--6s5ZHWN7://track/167232868",
+    "media_type": "track",
+    "title": "Mujer Que Camina",
+    "artist": "Alejandro Filio",
+    "album": "Mujer Que Camina",
+    "album_artist": null,
+    "image_url": "http://192.168.1.67:8095/imageproxy/32f97ad9e8fc3ae97aef6da540e1342a4c706094a6426a470689dd540ef71af6?size=512&fmt=jpg",
+    "palette": {
+      "background_dark": [
+        71,
+        71,
+        71
+      ],
+      "background_light": [
+        238,
+        238,
+        237
+      ],
+      "primary": [
+        238,
+        238,
+        237
+      ],
+      "accent": [
+        54,
+        52,
+        53
+      ],
+      "on_dark": [
+        238,
+        238,
+        237
+      ],
+      "on_light": [
+        54,
+        52,
+        53
+      ]
+    },
+    "duration": 322,
+    "stream_duration": null,
+    "source_id": "aabbccddeeff",
+    "queue_item_id": "c2bbce3d816d41668c5878a4e44de64b",
+    "custom_data": null,
+    "elapsed_time": 121,
+    "elapsed_time_last_updated": 1794406201.4349222
+  },
+  "enabled": true,
+  "hide_in_ui": false,
+  "private": false,
+  "expose_to_ha": true,
+  "icon": "speaker",
+  "group_volume": 62,
+  "group_volume_muted": false,
+  "extra_attributes": {},
+  "power_control": "none",
+  "volume_control": "native",
+  "mute_control": "native",
+  "output_protocols": [
+    {
+      "output_protocol_id": "native",
+      "name": "Bluesound",
+      "protocol_domain": "bluesound",
+      "is_native": true,
+      "priority": 0,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "apaabbccddeeff",
+      "name": "AirPlay",
+      "protocol_domain": "airplay",
+      "is_native": false,
+      "priority": 10,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "spb_aabbccddeeff",
+      "name": "Sendspin",
+      "protocol_domain": "sendspin",
+      "is_native": false,
+      "priority": 40,
+      "available": true,
+      "derived_from": "apaabbccddeeff"
+    }
+  ],
+  "active_output_protocol": "spb_aabbccddeeff",
+  "needs_setup": false,
+  "setup_reason": null,
+  "has_setup_flow": true,
+  "sleep_timer_expires_at": null,
+  "active_source_audio": null,
+  "display_name": "Bluesound Node",
+  "state": "idle",
+  "group_childs": [
+    "aabbccddeeff",
+    "ma_companion_00000000-0000-0000-0000-000000000006",
+    "up00000002"
+  ],
+  "extra_data": {},
+  "hide_player_in_ui": [
+    "when_unavailable",
+    "when_synced",
+    "when_group_active"
+  ]
+}

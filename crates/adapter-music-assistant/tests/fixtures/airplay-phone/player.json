@@ -1,0 +1,280 @@
+{
+  "player_id": "aabbccddeeff",
+  "provider": "bluesound",
+  "type": "player",
+  "name": "Bluesound Node",
+  "available": true,
+  "device_info": {
+    "model": "N130",
+    "manufacturer": "BluOS",
+    "software_version": null,
+    "model_id": null,
+    "manufacturer_id": null,
+    "identifiers": {
+      "ip_address": "192.168.1.40",
+      "mac_address": "aabbccddeeff"
+    },
+    "mac_address": "aabbccddeeff",
+    "ip_address": "192.168.1.40"
+  },
+  "supported_features": [
+    "pause",
+    "play_media",
+    "seek",
+    "volume_set",
+    "next_previous",
+    "set_members",
+    "volume_mute",
+    "select_source"
+  ],
+  "playback_state": "playing",
+  "elapsed_time": 54.0,
+  "elapsed_time_last_updated": 1794406270.706298,
+  "powered": true,
+  "volume_level": 62,
+  "volume_muted": false,
+  "group_members": [],
+  "static_group_members": [],
+  "can_group_with": [],
+  "synced_to": null,
+  "active_sound_mode": null,
+  "sound_mode_list": [],
+  "options": [],
+  "active_source": "AirPlay",
+  "source_list": [
+    {
+      "id": "preset-1",
+      "name": "Preset 01: Leak CDT",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-2",
+      "name": "Preset 02: Spotify",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-3",
+      "name": "Preset 03: Bluetooth ",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "preset-4",
+      "name": "Preset 04: SWR3",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:bluez:bluetooth",
+      "name": "Input: Bluetooth",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input2",
+      "name": "Input: HDMI ARC",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Capture:hw:imxspdif,0/1/25/2?id=input1",
+      "name": "Input: Leak CDT",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "input-Spotify:play",
+      "name": "Input: Spotify",
+      "passive": false,
+      "can_play_pause": false,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "AirPlay",
+      "name": "AirPlay",
+      "passive": true,
+      "can_play_pause": true,
+      "can_seek": false,
+      "can_next_previous": false,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    },
+    {
+      "id": "aabbccddeeff",
+      "name": "Music Assistant Queue",
+      "passive": false,
+      "can_play_pause": true,
+      "can_seek": true,
+      "can_next_previous": true,
+      "can_shuffle": false,
+      "can_repeat": false,
+      "shuffle_enabled": null,
+      "repeat_mode": null,
+      "account_id": null
+    }
+  ],
+  "active_group": null,
+  "current_media": {
+    "uri": "AirPlay:airplay_pcm01:pcm/44100/16/2/4",
+    "media_type": "unknown",
+    "title": "De Mi Enamórate",
+    "artist": "Daniela Romo • Recommended for you",
+    "album": "Mujer De Todos Mujer De Nadie",
+    "album_artist": null,
+    "image_url": "http://192.168.1.40:11000/var/data/airplay/images/p01_7123e8b78f9d1e41.jpg",
+    "palette": {
+      "background_dark": [
+        67,
+        34,
+        32
+      ],
+      "background_light": [
+        199,
+        189,
+        188
+      ],
+      "primary": [
+        67,
+        34,
+        32
+      ],
+      "accent": [
+        226,
+        194,
+        160
+      ],
+      "on_dark": [
+        226,
+        194,
+        160
+      ],
+      "on_light": [
+        67,
+        34,
+        32
+      ]
+    },
+    "duration": 210.0,
+    "stream_duration": null,
+    "source_id": "AirPlay",
+    "queue_item_id": null,
+    "custom_data": null,
+    "elapsed_time": 54,
+    "elapsed_time_last_updated": 1794406270.706298
+  },
+  "enabled": true,
+  "hide_in_ui": false,
+  "private": false,
+  "expose_to_ha": true,
+  "icon": "speaker",
+  "group_volume": 62,
+  "group_volume_muted": false,
+  "extra_attributes": {},
+  "power_control": "none",
+  "volume_control": "native",
+  "mute_control": "native",
+  "output_protocols": [
+    {
+      "output_protocol_id": "native",
+      "name": "Bluesound",
+      "protocol_domain": "bluesound",
+      "is_native": true,
+      "priority": 0,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "apaabbccddeeff",
+      "name": "AirPlay",
+      "protocol_domain": "airplay",
+      "is_native": false,
+      "priority": 10,
+      "available": true,
+      "derived_from": null
+    },
+    {
+      "output_protocol_id": "spb_aabbccddeeff",
+      "name": "Sendspin",
+      "protocol_domain": "sendspin",
+      "is_native": false,
+      "priority": 40,
+      "available": true,
+      "derived_from": "apaabbccddeeff"
+    }
+  ],
+  "active_output_protocol": null,
+  "needs_setup": false,
+  "setup_reason": null,
+  "has_setup_flow": true,
+  "sleep_timer_expires_at": null,
+  "active_source_audio": null,
+  "display_name": "Bluesound Node",
+  "state": "playing",
+  "group_childs": [],
+  "extra_data": {},
+  "hide_player_in_ui": [
+    "when_unavailable",
+    "when_synced",
+    "when_group_active"
+  ]
+}

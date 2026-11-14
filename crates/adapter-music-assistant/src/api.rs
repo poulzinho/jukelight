@@ -9,6 +9,11 @@ use serde::Deserialize;
 #[serde(default)]
 pub struct Player {
     pub current_media: Option<CurrentMedia>,
+    /// What the player plays from: a queue id (a player id) when Music
+    /// Assistant drives it, otherwise e.g. `AirPlay`.
+    pub active_source: Option<String>,
+    /// The group leader's player id, when this player is a group member.
+    pub synced_to: Option<String>,
 }
 
 /// What the player reports as playing; the fallback for the queue.

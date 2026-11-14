@@ -18,7 +18,7 @@ use jukelight_adapter_music_assistant::{
 };
 use jukelight_application::SessionProvider;
 use jukelight_application::testing::FixedClock;
-use jukelight_domain::{Content, DeviceSnapshot, Origin, PlaybackState, Timestamp};
+use jukelight_domain::{Brand, Content, DeviceSnapshot, Origin, PlaybackState, Timestamp};
 use serde_json::Value;
 
 pub const TOKEN: &str = "test-token-0123456789";
@@ -28,6 +28,7 @@ pub const WAIT: Duration = Duration::from_secs(5);
 pub const FAST: Timing = Timing {
     interval: Duration::from_millis(50),
     request_timeout: Duration::from_millis(300),
+    answer_lifetime: Duration::from_millis(400),
 };
 
 /// A fake Music Assistant serving one recorded situation.
@@ -35,6 +36,8 @@ pub struct Server {
     fixture: String,
     /// Replaces fields of the recorded queue.
     queue_patch: Option<Value>,
+    /// Replaces fields of the recorded player.
+    player_patch: Option<Value>,
     reachable: bool,
     requests: Vec<(String, Value)>,
 }
@@ -50,6 +53,7 @@ impl TestServer {
         let state = Arc::new(Mutex::new(Server {
             fixture: fixture.into(),
             queue_patch: None,
+            player_patch: None,
             reachable: true,
             requests: Vec::new(),
         }));
@@ -71,6 +75,10 @@ impl TestServer {
 
     pub fn patch_queue(&self, patch: Value) {
         self.state.lock().unwrap().queue_patch = Some(patch);
+    }
+
+    pub fn patch_player(&self, patch: Value) {
+        self.state.lock().unwrap().player_patch = Some(patch);
     }
 
     pub fn set_reachable(&self, reachable: bool) {
@@ -136,7 +144,12 @@ pub async fn api(
         _ => return StatusCode::BAD_REQUEST.into_response(),
     };
     let mut value = fixture(&server.fixture, file);
-    if let (Some(patch), "queue.json") = (&server.queue_patch, file) {
+    let patch = match file {
+        "queue.json" => server.queue_patch.as_ref(),
+        "player.json" => server.player_patch.as_ref(),
+        _ => None,
+    };
+    if let Some(patch) = patch {
         for (key, field) in patch.as_object().unwrap() {
             value[key] = field.clone();
         }
@@ -174,6 +187,34 @@ pub fn claimed_device() -> DeviceSnapshot {
     device(Origin::Stream {
         url: "http://127.0.0.1:8097/flow/session1/aabbccddeeff/00000000000000000000000000000001/aabbccddeeff.flac".into(),
     })
+}
+
+/// An AirPlay session, as the player reports Music Assistant's group playback
+/// and a phone's AirPlay alike.
+pub fn airplay_device() -> DeviceSnapshot {
+    device(Origin::Service {
+        brand: Brand::new("airplay"),
+        id: "AirPlay".into(),
+        name: "AirPlay".into(),
+        cast: true,
+    })
+}
+
+/// Polls `provider.claims(device)` until it is `expected`, for at most `WAIT`.
+pub async fn wait_for_claim(
+    provider: &MusicAssistantProvider,
+    device: &DeviceSnapshot,
+    expected: bool,
+) {
+    let deadline = tokio::time::Instant::now() + WAIT;
+    while provider.claims(device) != expected {
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "the claim never became {expected}"
+        );
+        provider.follow(device);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
 }
 
 pub fn service_device() -> DeviceSnapshot {
