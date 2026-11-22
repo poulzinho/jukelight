@@ -5,8 +5,8 @@
 - [ ] 1.3 Draw Jukelight's own icon as SVG and show the owner a rendered draft in the browser tab and at full size; once approved, replace `web/kiosk/public/favicon.svg`; verify with the kiosk tests and the e2e screenshots in landscape and portrait
 - [x] 1.4 Move `tailwindcss` and `@tailwindcss/vite` to `devDependencies` (decision 4); verify the built kiosk is unchanged (same files in `dist/`), the Docker build passes, and the licence summary of shipped packages lists only MIT, ISC, Apache-2.0, BSD and OFL-1.1
 - [x] 1.5 Add `SECURITY.md` (report privately through GitHub's private vulnerability reporting; what's in scope: the backend, the kiosk, the display agent) and `CONTRIBUTING.md` (propose -> apply -> verify -> archive with OpenSpec, tests first, example values only, no personal data, recordings in `fixtures/raw/`, brand logos never committed)
-- [ ] 1.6 Run the audit again on this branch: tracked files and the whole history against the local `.env` and the patterns (private addresses, MACs, host names, tokens), commit messages, pull requests and their comments, CI artifacts, `cargo deny check licenses`, the npm licence summary; record the outcome on DEV-56 without any private value
-- [ ] 1.7 Verify: cargo fmt, clippy -D warnings, tests; kiosk lint, typecheck, unit and e2e tests; open the pull request and verify CI is green
+- [x] 1.6 Run the audit again on this branch: tracked files and the whole history against the local `.env` and the patterns (private addresses, MACs, host names, tokens), commit messages, pull requests and their comments, CI artifacts, `cargo deny check licenses`, the npm licence summary; record the outcome on DEV-56 without any private value
+- [x] 1.7 Verify: cargo fmt, clippy -D warnings, tests; kiosk lint, typecheck, unit and e2e tests; open the pull request and verify CI is green
 
 ## 2. GitHub settings before the merge (the owner)
 
