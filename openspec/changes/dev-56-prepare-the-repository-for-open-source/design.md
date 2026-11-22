@@ -53,15 +53,21 @@ Jukelight.
 
 ### 3. Jukelight's own icon
 
-Vite's default favicon is Vite's logo. Jukelight gets a simple SVG of its
-own, drawn for this change and chosen by the owner from rendered drafts: a
-1940s jukebox in flat shapes, its arch lit in the kiosk's quality colours
-(teal over the top, purple and gold down the sides), a record and a grille
-in the window, on two short feet. Drafts tried and set aside: a record with
-a lit arc (read as a camera lens), bubble tubes under an arch (read as
-headphones over an equaliser), and versions with glows and gradients
-(muddy at 16 px). The shapes sit on a 64-unit grid, so at 16 px the tubes
-are whole pixels. No third-party mark, and no new dependency.
+Vite's default favicon is Vite's logo. Jukelight gets an SVG of its own,
+drawn for this change and chosen by the owner from rendered drafts: a neon
+jukebox in flat shapes. Its arch is three neon tubes with a small gap at
+each joint; under it are a record (with a groove, a label and a hole) and a
+small equaliser; the tile is a squircle. The icon carries two palettes and
+follows the browser's colour scheme with `prefers-color-scheme`: violet,
+cyan and pink on ink when dark, ink, teal and terracotta on cream when
+light. Browsers that ignore the query show the dark one.
+
+Drafts tried and set aside: a record with a lit arc (read as a camera
+lens), bubble tubes under an arch (read as headphones over an equaliser), a
+chrome cabinet on feet (good, but busier than the neon alone), and versions
+with glows and gradients (muddy at 16 px, and against current favicon
+advice). The shapes sit on a 64-unit grid, so at 16 px the tubes are whole
+pixels. No third-party mark, and no new dependency.
 
 ### 4. Tailwind as a dev dependency
 
