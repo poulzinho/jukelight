@@ -54,8 +54,14 @@ Jukelight.
 ### 3. Jukelight's own icon
 
 Vite's default favicon is Vite's logo. Jukelight gets a simple SVG of its
-own, drawn for this change: a rendered draft is shown to the owner before
-it's committed. No third-party mark, and no new dependency.
+own, drawn for this change and chosen by the owner from rendered drafts: a
+1940s jukebox in flat shapes, its arch lit in the kiosk's quality colours
+(teal over the top, purple and gold down the sides), a record and a grille
+in the window, on two short feet. Drafts tried and set aside: a record with
+a lit arc (read as a camera lens), bubble tubes under an arch (read as
+headphones over an equaliser), and versions with glows and gradients
+(muddy at 16 px). The shapes sit on a 64-unit grid, so at 16 px the tubes
+are whole pixels. No third-party mark, and no new dependency.
 
 ### 4. Tailwind as a dev dependency
 

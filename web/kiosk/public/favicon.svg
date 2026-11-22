@@ -1,7 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Jukelight: a jukebox whose arch is lit in the kiosk's quality colours
+       (lossy purple, lossless teal, Hi-Res gold). Drawn on a 64-unit grid:
+       at 16 px, 4 units are 1 px, so the tubes stay sharp. -->
   <rect width="64" height="64" rx="14" fill="#151a33"/>
-  <circle cx="32" cy="32" r="21" fill="none" stroke="#d2d8e0" stroke-opacity=".85" stroke-width="5"/>
-  <path d="M28.35 11.32 A21 21 0 0 1 52.68 28.35" fill="none" stroke="#3ee0d0" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="32" cy="32" r="13" fill="none" stroke="#d2d8e0" stroke-opacity=".3" stroke-width="2"/>
-  <circle cx="32" cy="32" r="6" fill="#3ee0d0"/>
+  <!-- The cabinet, on two short feet -->
+  <path d="M12 52V28a20 20 0 0 1 40 0v24z" fill="#e6eaf0"/>
+  <rect x="15" y="51" width="5" height="5" rx="1.2" fill="#e6eaf0"/>
+  <rect x="44" y="51" width="5" height="5" rx="1.2" fill="#e6eaf0"/>
+  <!-- The lit tubes around the arch -->
+  <path d="M17 48V28a15 15 0 0 1 30 0v20" fill="none" stroke="#3ee0d0" stroke-width="4"/>
+  <path d="M17 48V36" stroke="#b48cff" stroke-width="4"/>
+  <path d="M47 48V36" stroke="#ffc93d" stroke-width="4"/>
+  <!-- The window: a record and the grille -->
+  <path d="M21 48V29a11 11 0 0 1 22 0v19z" fill="#151a33"/>
+  <circle cx="32" cy="31" r="6" fill="none" stroke="#e6eaf0" stroke-width="2.5"/>
+  <circle cx="32" cy="31" r="1.5" fill="#e6eaf0"/>
+  <path d="M25 40h14M25 44h14" stroke="#e6eaf0" stroke-opacity=".55" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
