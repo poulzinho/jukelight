@@ -7,6 +7,7 @@
 - [x] 1.5 Add `SECURITY.md` (report privately through GitHub's private vulnerability reporting; what's in scope: the backend, the kiosk, the display agent) and `CONTRIBUTING.md` (propose -> apply -> verify -> archive with OpenSpec, tests first, example values only, no personal data, recordings in `fixtures/raw/`, brand logos never committed)
 - [x] 1.6 Run the audit again on this branch: tracked files and the whole history against the local `.env` and the patterns (private addresses, MACs, host names, tokens), commit messages, pull requests and their comments, CI artifacts, `cargo deny check licenses`, the npm licence summary; record the outcome on DEV-56 without any private value
 - [x] 1.7 Verify: cargo fmt, clippy -D warnings, tests; kiosk lint, typecheck, unit and e2e tests; open the pull request and verify CI is green
+- [x] 1.8 Found in CI: `cargo deny` reports RUSTSEC-2026-0592 (a stack overflow in `url` 2.5.8's `Url::origin()` on nested `blob:` URLs; Jukelight gets `url` through `reqwest` and `tower-http` and never calls `origin()` itself). Update `url` to 2.5.9 in `Cargo.lock`; verify `cargo deny check` passes and the Rust checks stay green
 
 ## 2. GitHub settings before the merge (the owner)
 
