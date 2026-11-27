@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-11-27
+# The README and its badges: no requirement changes.
+skip_specs: true
