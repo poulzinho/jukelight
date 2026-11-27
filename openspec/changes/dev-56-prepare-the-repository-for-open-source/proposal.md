@@ -25,7 +25,7 @@ vulnerabilities or contributing.
 - Run the audit again on the final branch.
 - After the merge, the owner switches the repository to public and turns on
   GitHub's protections (listed in the tasks). The commit history is kept as
-  it is.
+  it is, and commits keep the owner's development address.
 
 Non-goals:
 - Rewriting the git history or starting a fresh repository (see design).

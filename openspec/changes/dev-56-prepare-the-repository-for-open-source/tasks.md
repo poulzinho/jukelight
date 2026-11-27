@@ -12,8 +12,7 @@
 
 ## 2. GitHub settings before the merge (the owner)
 
-- [ ] 2.1 Set the commit email to GitHub's noreply address (`git config user.email`, on every machine that commits) and turn on "Block command line pushes that expose my email"
-- [ ] 2.2 Turn on Dependabot alerts (found while checking 2.2: private vulnerability reporting and the approval for first-time contributors' workflows are available only for public repositories, so they move to the switch below)
+- [ ] 2.1 Turn on Dependabot alerts (found while checking this task: private vulnerability reporting and the approval for first-time contributors' workflows are available only for public repositories, so they move to the switch below)
 
 Switching the repository to public follows the merge, and is recorded on
 DEV-56, not here. In the same session, right after the switch, the owner

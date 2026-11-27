@@ -38,8 +38,13 @@ The author's personal email address is on most commits. Alternatives:
   pull requests, their reviews and the history, which document how the
   specs came about.
 
-The address is one the owner uses for development. New commits use the
-noreply address, and GitHub blocks pushes that expose the personal one.
+The address is one the owner uses for development, and it stays the
+commit address after the switch too: in well-known open-source projects
+(Axum, rust-url, Music Assistant, Vite, Tailwind CSS, React, Cargo, Home
+Assistant), a large share of recent commits carry personal or work
+addresses, and GitHub's noreply address is an opt-in. A `.mailmap` was
+considered and set aside: it changes how addresses are shown, not what the
+commits contain.
 
 ### 2. A trademark note in the README, not a separate file
 
@@ -100,8 +105,8 @@ look for their values; CI has neither. The existing
 
 ## Risks / Trade-offs
 
-- [The email stays public in the history] -> accepted by the owner
-  (decision 1); future commits use the noreply address.
+- [The email is public in the history and in new commits] -> accepted by
+  the owner (decision 1).
 - [Switching to public can't be undone: forks and clones keep a copy] ->
   the owner switches only after the merge and the final audit.
 - [Strangers' pull requests run CI] -> approval required for first-time
