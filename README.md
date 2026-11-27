@@ -1,4 +1,25 @@
-# Jukelight
+<p align="center">
+  <img src="web/kiosk/public/favicon.svg" width="112" alt="Jukelight's icon: a neon jukebox">
+</p>
+
+<h1 align="center">Jukelight</h1>
+
+<p align="center">
+  A now-playing kiosk for BluOS players and Music Assistant:<br>
+  artwork, the signal path and what's up next, on a wall-mounted screen.
+</p>
+
+<!-- Badges: CI and CodeQL are live. The others are static: update the Rust
+     badge with rust-toolchain.toml and the React badge with web/kiosk. -->
+<p align="center">
+  <a href="https://github.com/poulzinho/jukelight/actions/workflows/ci.yml"><img src="https://github.com/poulzinho/jukelight/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/poulzinho/jukelight/actions/workflows/github-code-scanning/codeql"><img src="https://github.com/poulzinho/jukelight/actions/workflows/github-code-scanning/codeql/badge.svg" alt="CodeQL"></a>
+  <a href="deny.toml"><img src="https://img.shields.io/badge/dependencies-audited%20by%20cargo--deny-22d3ee" alt="Dependencies audited by cargo-deny"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-8b5cf6" alt="Licence: MIT"></a>
+  <a href="rust-toolchain.toml"><img src="https://img.shields.io/badge/Rust-1.93-f472b6" alt="Rust 1.93"></a>
+  <a href="web/kiosk"><img src="https://img.shields.io/badge/kiosk-React%2019-22d3ee" alt="Kiosk: React 19"></a>
+  <a href="Dockerfile"><img src="https://img.shields.io/badge/runs%20in-Docker-8b5cf6" alt="Runs in Docker"></a>
+</p>
 
 Jukelight shows what your BluOS player is playing on a wall-mounted screen:
 artwork, title, artists, album and progress; a diagram of the signal from
@@ -102,7 +123,7 @@ work but are not tested.
 
 ## Development
 
-Requirements: Rust (stable), Node.js 24.
+Requirements: Rust 1.93 (pinned in `rust-toolchain.toml`), Node.js 24.
 
 ```sh
 # Backend: format, lint, test
