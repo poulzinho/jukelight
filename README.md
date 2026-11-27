@@ -1,13 +1,16 @@
 # Jukelight
 
 Jukelight shows what your BluOS player is playing on a wall-mounted screen:
-artwork, title, artist, album, progress, audio quality and what's up next.
+artwork, title, artists, album and progress; a diagram of the signal from
+the source through the player to the speakers, with the audio quality at
+each step; and what's up next, grouped by work or artist.
 
-It only reads from the player; it never controls playback.
+It follows the player itself and, if you use it, Music Assistant, including
+Music Assistant's speaker groups. It turns the screen on when music starts
+and off a while after it stops. It only reads; it never controls playback.
 
-> Status: early. The current version follows a BluOS player and shows its
-> playback in a browser. Music Assistant support, switching the screen on and
-> off, and an admin app are planned.
+> Status: in daily use on one reference setup (see below). Settings are
+> read from `.env`; an admin app is planned.
 
 ## Quickstart
 
@@ -74,15 +77,28 @@ JUKELIGHT_DEVICE=fake:playing-with-queue docker compose up --build
 ```
 
 Scenarios: `playing-with-queue`, `cast-without-queue`, `long-title`,
-`no-artwork`, `hi-res`, `album-colours`, `optical-input`, `paused`, `stopped`,
-`offline`.
+`no-album`, `no-artwork`, `hi-res`, `album-colours`, `optical-input`,
+`paused`, `stopped`, `offline`, `music-assistant`,
+`music-assistant-unavailable`, `long-signal`, `upsampled`,
+`unknown-quality`, `group`, `group-dropped`, `group-many`,
+`group-long-names`, `airplay`, `bluetooth`, `radio`, `long-artists`,
+`classical`.
+
+### Switching the screen
+
+Jukelight decides when the screen should be on: while music plays, and for
+`DISPLAY_GRACE_MINUTES` after it stops. A small display agent on the host
+follows that decision and switches the monitor, through its power saving or
+a smart plug. Without the agent, the screen simply stays on.
+[docs/reference-setup.md](docs/reference-setup.md) shows how to install it.
 
 ## Reference setup
 
 Jukelight is built and tested on a mini PC with Ubuntu Server driving a 4K
 monitor in kiosk mode. [docs/reference-setup.md](docs/reference-setup.md)
-describes that setup: hardware, packages, the kiosk session and the monitor
-settings. Other setups may work but are not tested.
+describes that setup: hardware, packages, the kiosk session, the display
+agent and an optional smart plug, and the monitor settings. Other setups may
+work but are not tested.
 
 ## Development
 
@@ -116,11 +132,14 @@ crates/
   domain/            playback model, change detection, Hi-Res rule (no IO)
   application/       ports and services: session arbitration, player monitor
   adapter-bluos/     follows a BluOS player (long-polling)
+  adapter-music-assistant/
+                     asks Music Assistant what it plays, including groups
   adapter-fake/      scripted fake player
   adapter-artwork/   artwork proxy with opaque ids
   adapter-http/      REST and SSE API, embedded kiosk
   app/               configuration and wiring (the `jukelight` binary)
 web/kiosk/           the kiosk screen (React, Tailwind)
+host/display-agent/  switches the monitor on the host
 openspec/            specifications and changes
 ```
 
@@ -143,6 +162,23 @@ Test fixtures are recorded from real players but contain example values only
 responses into a `fixtures/raw/` folder (git-ignored) and replace personal
 values before committing.
 
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how changes are made, and
+[SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
+## Trademarks
+
+BluOS and Bluesound, Qobuz, Spotify, TIDAL, Deezer, Apple Music, AirPlay,
+Plex, Jellyfin, Navidrome, Subsonic, Music Assistant, Bluetooth, Hi-Res
+Audio and the other product names mentioned here are trademarks of their
+respective owners.
+Jukelight is an independent project, not affiliated with or endorsed by
+any of them; it names their products only to say what it works with. For
+that reason the repository contains none of their logos: whoever runs
+Jukelight supplies them (see [Brand logos](#brand-logos)).
+
 ## Licence
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). The kiosk bundles the Figtree typeface, under
+the SIL Open Font License 1.1.
